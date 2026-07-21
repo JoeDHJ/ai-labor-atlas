@@ -18,6 +18,14 @@ python -m ai_labor_atlas.cli serve
 
 The demo build is deterministic and creates a small local dataset. For the public sources, inspect `config/source_registry.json`, place downloaded files in `data/raw/`, and run `atlas build`.
 
+## Visual demo
+
+Run `python -m ai_labor_atlas.cli build --demo` and then `python -m ai_labor_atlas.cli serve`. Open `http://127.0.0.1:8765` to explore the local dashboard.
+
+![AI Labor Atlas dashboard](docs/assets/atlas-dashboard.png)
+
+The dashboard compares AI exposure with wages, projected employment growth, annual openings, and employment scale. Exposure is a task-applicability indicator—not a probability of job loss—so the page explains the economic meaning and limits of each measure alongside the chart.
+
 ## Data sources and vintages
 
 | Layer | Source | Version/vintage | Use |
