@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-labor-atlas"
+version = "0.1.0"
+description = "A reproducible, descriptive atlas of occupations, AI exposure, wages, and employment."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "AI Labor Atlas contributors"}]
+dependencies = []
+
+[project.optional-dependencies]
+excel = ["openpyxl>=3.1"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+atlas = "ai_labor_atlas.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

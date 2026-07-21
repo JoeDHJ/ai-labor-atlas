@@ -1,0 +1,68 @@
+{
+  "project": "ai-labor-atlas",
+  "release": "0.1.0",
+  "scope": {"geography": "US", "language": "en", "level": "national"},
+  "sources": [
+    {
+      "id": "onet_database",
+      "provider": "O*NET Resource Center / USDOL ETA",
+      "version": "30.3",
+      "landing_url": "https://www.onetcenter.org/database.html",
+      "download_url": "https://www.onetcenter.org/dl_files/database/db_30_3_text.zip",
+      "license": "CC BY 4.0",
+      "redistribution": "allowed_with_attribution",
+      "raw_filename": "onet_30_3_text.zip"
+    },
+    {
+      "id": "onet_soc_crosswalk",
+      "provider": "O*NET Resource Center / USDOL ETA",
+      "version": "2019_to_2018",
+      "landing_url": "https://www.onetcenter.org/crosswalks.html",
+      "download_url": "https://www.onetcenter.org/taxonomy/2019/soc/2019_to_SOC_Crosswalk.xlsx?fmt=xlsx",
+      "license": "CC BY 4.0",
+      "redistribution": "allowed_with_attribution",
+      "raw_filename": "onet_soc_2019_to_2018.xlsx"
+    },
+    {
+      "id": "bls_oews",
+      "provider": "U.S. Bureau of Labor Statistics",
+      "version": "May 2025",
+      "landing_url": "https://www.bls.gov/oes/tables.htm",
+      "download_url": "https://www.bls.gov/oes/special.requests/oesm25nat.zip",
+      "license": "BLS public data",
+      "redistribution": "verify_current_terms",
+      "raw_filename": "bls_oews_may_2025.zip"
+    },
+    {
+      "id": "bls_projections",
+      "provider": "U.S. Bureau of Labor Statistics",
+      "version": "2024-2034",
+      "landing_url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
+      "download_url": null,
+      "license": "BLS public data",
+      "redistribution": "verify_current_terms",
+      "raw_filename": "bls_projections_2024_2034.xlsx",
+      "note": "Place the official table in data/raw when the page or download path changes."
+    },
+    {
+      "id": "aioe",
+      "provider": "AIOE-Data",
+      "version": "source_release",
+      "landing_url": "https://github.com/AIOE-Data/AIOE",
+      "download_url": "https://raw.githubusercontent.com/AIOE-Data/AIOE/main/AIOE_DataAppendix.xlsx",
+      "license": "unverified",
+      "redistribution": "do_not_vendor_until_verified",
+      "raw_filename": "aioe_data_appendix.xlsx"
+    },
+    {
+      "id": "gpts_are_gpts",
+      "provider": "OpenAI",
+      "version": "2023 paper",
+      "landing_url": "https://openai.com/index/gpts-are-gpts/",
+      "download_url": null,
+      "license": "paper/source reference",
+      "redistribution": "do_not_vendor",
+      "raw_filename": null
+    }
+  ]
+}

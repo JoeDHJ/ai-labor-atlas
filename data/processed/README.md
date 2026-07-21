@@ -1,0 +1,2 @@
+Generated CSV and JSON outputs are intentionally ignored by Git. Run `atlas build --demo` for a deterministic smoke test or `atlas build` after placing the public raw files in `data/raw`.
+
