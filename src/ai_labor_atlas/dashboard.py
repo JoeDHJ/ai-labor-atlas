@@ -9,7 +9,7 @@ HTML_TEMPLATE = r"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Labor Atlas · Research Explorer</title>
+  <title>AI Labor Atlas | Research Explorer</title>
   <style>
     :root {
       color-scheme: dark;
@@ -124,20 +124,20 @@ HTML_TEMPLATE = r"""<!doctype html>
   <main class="shell">
     <header class="topbar">
       <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">AI Labor Atlas</span></div>
-      <span class="micro">Descriptive research explorer · v0.1.0</span>
+      <span class="micro">Descriptive research explorer | v0.1.0</span>
     </header>
     <section class="hero">
       <div class="hero-copy">
-        <div class="hero-badge">U.S. occupations · task-level evidence</div>
+        <div class="hero-badge">U.S. occupations | task-level evidence</div>
         <h1>Where does AI overlap with work?</h1>
-        <p>This explorer connects occupational tasks, an AI exposure indicator, wages, employment, and projections. It helps you ask better questions about changing work — it does not forecast layoffs.</p>
+        <p>This explorer connects occupational tasks, an AI exposure indicator, wages, employment, and projections. It helps you ask better questions about changing work - it does not forecast layoffs.</p>
       </div>
     </section>
     <section class="kpi-grid" aria-label="Atlas overview">
-      <article class="kpi"><span class="label">职业 / occupations</span><strong class="kpi-value" id="kpi-rows">—</strong><span class="kpi-context">records in the current build</span></article>
-      <article class="kpi"><span class="label">暴露覆盖 / exposure coverage</span><strong class="kpi-value" id="kpi-exposure">—</strong><span class="kpi-context">occupations with an exposure value</span></article>
-      <article class="kpi"><span class="label">就业加权暴露 / weighted exposure</span><strong class="kpi-value" id="kpi-weighted">—</strong><span class="kpi-context">larger occupations count more</span></article>
-      <article class="kpi"><span class="label">工资覆盖 / wage coverage</span><strong class="kpi-value" id="kpi-wage">—</strong><span class="kpi-context">occupations with a wage estimate</span></article>
+      <article class="kpi"><span class="label">Occupations</span><strong class="kpi-value" id="kpi-rows">Not available</strong><span class="kpi-context">records in the current build</span></article>
+      <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">occupations with an exposure value</span></article>
+      <article class="kpi"><span class="label">Employment-weighted exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">larger occupations count more</span></article>
+      <article class="kpi"><span class="label">Wage coverage</span><strong class="kpi-value" id="kpi-wage">Not available</strong><span class="kpi-context">occupations with a wage estimate</span></article>
     </section>
     <section class="section">
       <div class="section-head">
@@ -146,14 +146,14 @@ HTML_TEMPLATE = r"""<!doctype html>
       </div>
       <div class="panel">
         <div class="control-row">
-          <label for="metric-select">Y-axis / 纵轴
+          <label for="metric-select">Y-axis
             <select id="metric-select">
-              <option value="wage">Median annual wage / 中位年薪</option>
-              <option value="growth">Projected employment growth / 预计就业增长</option>
-              <option value="openings">Annual openings / 年均岗位空缺</option>
+              <option value="wage">Median annual wage</option>
+              <option value="growth">Projected employment growth</option>
+              <option value="openings">Annual openings</option>
             </select>
           </label>
-          <label for="occupation-search">Search / 搜索
+          <label for="occupation-search">Search occupations
             <input id="occupation-search" type="search" placeholder="e.g. software">
           </label>
           <button id="reset-view" class="secondary" type="button">Reset view</button>
@@ -164,14 +164,14 @@ HTML_TEMPLATE = r"""<!doctype html>
               <title id="chart-title">Occupation AI exposure comparison</title>
               <desc id="chart-desc">Bubble chart comparing AI exposure with an economic outcome. Bubble area represents employment.</desc>
               <g id="grid"></g><g id="marks"></g><g id="labels"></g>
-              <text class="axis-title" x="430" y="426" text-anchor="middle">AI exposure / AI 暴露（任务适配度指标）</text>
-              <text id="y-axis-title" class="axis-title" transform="translate(18 220) rotate(-90)" text-anchor="middle">Median annual wage / 中位年薪</text>
+              <text class="axis-title" x="430" y="426" text-anchor="middle">AI exposure</text>
+              <text id="y-axis-title" class="axis-title" transform="translate(18 220) rotate(-90)" text-anchor="middle">Median annual wage</text>
             </svg>
-            <div class="legend"><span><span class="legend-dot"></span>Bubble area = employment / 气泡面积 = 就业规模</span><span>Click a bubble to inspect an occupation / 点击气泡查看职业</span></div>
+            <div class="legend"><span><span class="legend-dot"></span>Bubble area = employment</span><span>Click a bubble to inspect an occupation</span></div>
           </div>
           <aside class="detail-panel">
             <span class="eyebrow">Selected occupation</span>
-            <h3 class="detail-name" id="detail-title">—</h3>
+            <h3 class="detail-name" id="detail-title">Select an occupation</h3>
             <span class="code-pill" id="detail-code">—</span>
             <div class="detail-list">
               <div class="detail-row"><span class="muted">AI exposure</span><strong id="detail-exposure">—</strong></div>
@@ -219,9 +219,9 @@ HTML_TEMPLATE = r"""<!doctype html>
         return value >= 1000000 ? (value / 1000000).toFixed(2) + "M" : Math.round(value / 1000).toLocaleString("en-US") + "K";
       };
       const metric = {
-        wage: { label: "Median annual wage / 中位年薪", axis: "Median annual wage / 中位年薪", field: "median_annual_wage", format: money, note: "This is a descriptive wage level. A higher value does not mean AI exposure caused higher pay." },
-        growth: { label: "Projected growth / 预计增长", axis: "Projected employment growth / 预计就业增长", field: "employment_change_2024_2034_pct", format: percent, note: "This is a projected change under the source scenario. It is not an AI causal effect." },
-        openings: { label: "Annual openings / 年均空缺", axis: "Annual openings / 年均岗位空缺", field: "annual_openings_2024_2034", format: workers, note: "Annual openings capture replacement and growth demand. They are not the same as net new jobs." }
+        wage: { label: "Median annual wage", axis: "Median annual wage", field: "median_annual_wage", format: money, note: "This is a descriptive wage level. A higher value does not mean AI exposure caused higher pay." },
+        growth: { label: "Projected growth", axis: "Projected employment growth", field: "employment_change_2024_2034_pct", format: percent, note: "This is a projected change under the source scenario. It is not an AI causal effect." },
+        openings: { label: "Annual openings", axis: "Annual openings", field: "annual_openings_2024_2034", format: workers, note: "Annual openings capture replacement and growth demand. They are not the same as net new jobs." }
       };
       const make = function (tag, attrs, text) {
         const node = document.createElementNS(ns, tag);
@@ -239,7 +239,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       function updateKpis() {
         setText("kpi-rows", Number(summary.rows || 0).toLocaleString("en-US"));
         setText("kpi-exposure", ((Number(summary.exposure_coverage || 0)) * 100).toFixed(1) + "%");
-        setText("kpi-weighted", numeric(summary.employment_weighted_exposure) == null ? "—" : Number(summary.employment_weighted_exposure).toFixed(2));
+        setText("kpi-weighted", numeric(summary.employment_weighted_exposure) == null ? "Not available" : Number(summary.employment_weighted_exposure).toFixed(2));
         setText("kpi-wage", ((Number(summary.wage_coverage || 0)) * 100).toFixed(1) + "%");
       }
       function draw() {
@@ -289,7 +289,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         });
         yAxisTitle.textContent = currentMetric.axis;
         const selectedRow = rows[selected.index] || {};
-        setText("detail-title", selectedRow.title || "—");
+        setText("detail-title", selectedRow.title || "Select an occupation");
         setText("detail-code", selectedRow.soc_2018_code || "SOC unavailable");
         setText("detail-exposure", numeric(selectedRow.ai_exposure) == null ? "Not available" : numeric(selectedRow.ai_exposure).toFixed(2));
         setText("detail-outcome-label", currentMetric.label);
