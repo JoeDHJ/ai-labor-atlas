@@ -2,7 +2,7 @@
 
 AI Labor Atlas is a reproducible, descriptive measurement layer connecting occupations, tasks, AI exposure indicators, wages, and employment projections.
 
-The current explorer focuses on U.S. national data, English-language sources, and descriptive—not causal—interpretation. It keeps the meaning and coverage of each measure clear so users can ask better questions about changing work.
+The current explorer focuses on U.S. national data, English-language sources, and descriptive rather than causal interpretation. It keeps the meaning and coverage of each measure clear so users can ask better questions about changing work.
 
 ## Quick start
 
@@ -26,7 +26,11 @@ The dashboard connects occupational tasks, AI exposure, wages, employment, and p
 
 ![AI Labor Atlas task explorer](docs/assets/atlas-task-explorer.png)
 
+![AI Labor Atlas career bridge](docs/assets/atlas-career-bridge.png)
+
 The dashboard compares AI exposure with wages, projected employment growth, annual openings, and employment scale. Exposure is a task-applicability indicator—not a probability of job loss—so the page explains the economic meaning and limits of each measure alongside the chart.
+
+The Career bridge view helps users explore adjacent occupations. It uses structured O*NET importance ratings as the primary profile distance, then shows software overlap, supplemental task evidence, labor-market context, and a practical training hint. The bridge is a descriptive pathway tool. It is not a personal ability estimate, a hiring-probability model, or an employment forecast.
 
 ### Optional semantic review
 
@@ -54,6 +58,10 @@ Candidate evidence is sent only when the review button is used. A local OpenAI-c
 O*NET-derived files must retain attribution to O*NET and the U.S. Department of Labor, Employment and Training Administration, and must identify modifications. AIOE raw redistribution is disabled by default until its repository license is verified.
 
 The full local build uses the registered public files rather than the demo rows. The current validation snapshot contains 1,016 O*NET occupations and 18,796 source task statements across 923 occupations, with 79.0% exposure coverage, 94.1% wage coverage, and 94.6% employment coverage. The dashboard shows representative task statements for the selected occupation and supports keyword filtering within that task list. Missing source values remain missing in the output.
+
+The occupation bridge uses O*NET 30.3 Essential Skills, Transferable Skills, Knowledge, Abilities, Work Activities, and Software Skills. Exact profiles are preferred; when a parent occupation has no direct structured rating, a family-average profile is marked in the result. This fallback is a data-coverage aid, not an exact occupational equivalence.
+
+The research rationale and application boundaries are summarized in [the literature-to-product map](docs/literature-map.md).
 
 ## What the numbers mean
 

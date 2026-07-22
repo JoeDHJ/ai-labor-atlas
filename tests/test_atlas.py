@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ai_labor_atlas.dashboard import render
 from ai_labor_atlas.demo import TASK_FIELDS, FIELDS, demo_rows, demo_tasks
+from ai_labor_atlas.distance import OccupationBridge
 from ai_labor_atlas.metrics import group_by_major_soc, summarize, summarize_tasks
 from ai_labor_atlas.pipeline import (
     _load_oews,
@@ -100,6 +101,52 @@ class AtlasTests(unittest.TestCase):
         self.assertIn("Core tasks", page)
         self.assertIn("tasks_by_onet", page)
         self.assertIn("Design, develop, and test software applications.", page)
+        self.assertIn('id="bridge-select"', page)
+        self.assertIn("Career bridge", page)
+
+    def test_occupation_bridge_keeps_distance_evidence_separate(self):
+        with tempfile.TemporaryDirectory() as temp:
+            raw = Path(temp)
+            header = "O*NET-SOC Code\tElement ID\tElement Name\tScale ID\tData Value\n"
+            for filename, element, name in [
+                ("Essential Skills.txt", "2.A.1.a", "Reading Comprehension"),
+                ("Transferable Skills.txt", "2.B.1.a", "Social Perceptiveness"),
+                ("Knowledge.txt", "2.C.1.a", "Administration and Management"),
+                ("Abilities.txt", "1.A.1.a", "Oral Comprehension"),
+                ("Work Activities.txt", "4.A.1.a.1", "Getting Information"),
+            ]:
+                (raw / filename).write_text(
+                    header
+                    + f"15-1252.00\t{element}\t{name}\tIM\t4.0\n"
+                    + f"13-2011.00\t{element}\t{name}\tIM\t3.0\n",
+                    encoding="utf-8",
+                )
+            (raw / "Software Skills.txt").write_text(
+                "O*NET-SOC Code\tWorkplace Example\tElement ID\tElement Name\tHot Technology\tIn Demand\n"
+                "15-1252.00\tPython\t2.E.1.a\tProgramming\tY\tY\n"
+                "13-2011.00\tMicrosoft Excel\t2.E.1.a\tSpreadsheet\tY\tY\n",
+                encoding="utf-8",
+            )
+            rows = [
+                {key: str(value) for key, value in row.items()}
+                for row in demo_rows()[:2]
+            ]
+            bridge = OccupationBridge(raw, rows, demo_tasks()[:4])
+            result = bridge.bridge(rows[0]["onet_soc_code"])
+            self.assertTrue(result["available"])
+            self.assertEqual(result["source"]["profile_source"], "exact")
+            self.assertTrue(result["candidates"])
+            candidate = result["candidates"][0]
+            self.assertIn("structured_distance", candidate)
+            self.assertIn("software_overlap", candidate)
+            self.assertIn("shared_task_evidence", candidate)
+
+    def test_occupation_bridge_is_explicit_when_structured_data_is_missing(self):
+        rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
+        bridge = OccupationBridge(Path("Z:\\missing-onet"), rows, demo_tasks())
+        result = bridge.bridge(rows[0]["onet_soc_code"])
+        self.assertFalse(result["available"])
+        self.assertEqual(result["error"], "structured_onet_profiles_unavailable")
 
     def test_grouping(self):
         rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]

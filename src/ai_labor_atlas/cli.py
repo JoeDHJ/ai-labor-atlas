@@ -5,10 +5,11 @@ import json
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .dashboard import write_site
 from .demo import write_demo
+from .distance import OccupationBridge
 from .io import read_csv, write_json
 from .llm_review import LLMNotConfiguredError, LLMReviewClient, LLMReviewError
 from .metrics import group_by_major_soc, rank_rows, summarize, summarize_tasks
@@ -87,7 +88,23 @@ def main(argv: list[str] | None = None) -> int:
         site_dir = ROOT / "site"
         summary = summarize(rows)
         summary.update(summarize_tasks(rows, tasks))
-        write_site(site_dir, rows, summary, group_by_major_soc(rows), tasks)
+        bridge_engine = OccupationBridge(raw_dir, rows, tasks)
+        default_code = next(
+            (
+                row["onet_soc_code"]
+                for row in rows
+                if row.get("title", "").casefold() == "data scientists"
+            ),
+            rows[0].get("onet_soc_code", "") if rows else "",
+        )
+        write_site(
+            site_dir,
+            rows,
+            summary,
+            group_by_major_soc(rows),
+            tasks,
+            bridge_engine.bridge(default_code) if default_code else None,
+        )
 
         class AtlasHandler(SimpleHTTPRequestHandler):
             def __init__(self, *handler_args, **handler_kwargs):
@@ -139,6 +156,27 @@ def main(argv: list[str] | None = None) -> int:
                     )
                     return
                 self._send_json(result)
+
+            def do_GET(self) -> None:
+                parsed = urlparse(self.path)
+                if parsed.path == "/favicon.ico":
+                    self.send_response(204)
+                    self.end_headers()
+                    return
+                if parsed.path == "/api/bridge":
+                    source = parse_qs(parsed.query).get("source", [""])[0]
+                    if not source:
+                        self._send_json(
+                            {
+                                "error": "invalid_request",
+                                "detail": "source is required",
+                            },
+                            status=400,
+                        )
+                        return
+                    self._send_json(bridge_engine.bridge(source))
+                    return
+                super().do_GET()
 
             def log_message(self, format: str, *args: object) -> None:
                 return

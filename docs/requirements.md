@@ -12,11 +12,14 @@ Provide an auditable public tool for exploring how occupational AI exposure indi
 4. Treat AIOE as an exposure/applicability measure and preserve missingness.
 5. Support deterministic demo data, public-data download, validation, build, search, analysis, and local serving.
 6. Preserve many-to-one crosswalks and report coverage instead of silently selecting one row.
+7. Provide a descriptive Career bridge that ranks adjacent occupations using structured O*NET profile distance.
+8. Expose software overlap, shared task evidence, profile provenance, labor-market context, and a training hint separately.
+9. Mark family-average fallbacks and unavailable structured profiles explicitly.
 
 ## Non-goals for 0.1
 
 - causal effects, job-loss probabilities, or firm-level AI response;
 - individual career recommendations;
+- worker ability estimates, hiring-probability rankings, or employment forecasts;
 - China, multilingual data, or live job-board scraping;
 - redistribution of sources whose license is not verified.
-

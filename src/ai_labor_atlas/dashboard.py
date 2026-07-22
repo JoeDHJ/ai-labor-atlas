@@ -121,6 +121,26 @@ HTML_TEMPLATE = r"""<!doctype html>
     .task-list { display: grid; gap: 8px; margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.82rem; }
     .task-list li::marker { color: var(--cyan); }
     .task-caveat { margin: 13px 0 0; color: var(--muted); font-size: 0.74rem; }
+    .bridge-controls { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .bridge-controls label { display: grid; gap: 6px; min-width: min(420px, 100%); }
+    .bridge-controls select { width: 100%; }
+    .bridge-source { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .bridge-source strong { display: block; margin-top: 4px; font-size: 1.18rem; }
+    .bridge-source-meta { color: var(--muted); font-size: .78rem; }
+    .bridge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .bridge-card { display: grid; gap: 10px; padding: 16px; background: rgba(8, 18, 33, .48); border: 1px solid var(--line); border-radius: 15px; }
+    .bridge-rank { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; }
+    .bridge-card h3 { margin-bottom: 0; font-size: 1rem; }
+    .bridge-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+    .bridge-metric { padding: 8px; background: rgba(170, 190, 215, .08); border-radius: 9px; }
+    .bridge-metric span { display: block; color: var(--muted); font-size: .65rem; }
+    .bridge-metric strong { display: block; margin-top: 2px; font-size: .92rem; }
+    .bridge-evidence { margin: 0; padding-left: 17px; color: var(--muted); font-size: .78rem; }
+    .bridge-evidence li::marker { color: var(--cyan); }
+    .bridge-hint { margin: 0; color: var(--text); font-size: .8rem; }
+    .bridge-confidence { color: var(--muted); font-size: .72rem; }
+    .bridge-method { margin-top: 16px; padding-top: 14px; color: var(--muted); border-top: 1px solid var(--line); font-size: .76rem; }
+    .bridge-section[hidden] { display: none; }
     .review-panel { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
     .review-panel[hidden] { display: none; }
     .review-status { margin: 10px 0 0; color: var(--muted); font-size: 0.78rem; }
@@ -136,8 +156,8 @@ HTML_TEMPLATE = r"""<!doctype html>
     .source-note code { color: var(--cyan); }
     .footer-row { margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8rem; }
     @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .chart-layout { grid-template-columns: 1fr; } }
-    @media (max-width: 620px) { .shell { width: min(100% - 26px, 1240px); } .hero { padding-top: 48px; } .kpi-grid, .meaning-grid { grid-template-columns: 1fr; } .task-filter-row { grid-template-columns: 1fr; } .panel { padding: 17px; } .chart-svg { min-height: 330px; } }
+    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .chart-layout { grid-template-columns: 1fr; } .bridge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 620px) { .shell { width: min(100% - 26px, 1240px); } .hero { padding-top: 48px; } .kpi-grid, .meaning-grid, .bridge-grid { grid-template-columns: 1fr; } .task-filter-row { grid-template-columns: 1fr; } .panel { padding: 17px; } .chart-svg { min-height: 330px; } }
     @media (prefers-reduced-motion: reduce) { .bubble { transition: none; } }
   </style>
 </head>
@@ -226,6 +246,20 @@ HTML_TEMPLATE = r"""<!doctype html>
         </div>
       </div>
     </section>
+    <section class="section bridge-section" id="bridge-section">
+      <div class="section-head"><div><span class="eyebrow">Career bridge</span><h2>Where could this work lead?</h2></div><p>Explore adjacent occupations through structured work profiles, shared tools, and representative tasks.</p></div>
+      <div class="panel">
+        <div class="bridge-controls">
+          <label for="bridge-select">Starting occupation
+            <select id="bridge-select" aria-label="Starting occupation"></select>
+          </label>
+          <span class="status" id="bridge-status" aria-live="polite">Select an occupation to explore a descriptive pathway.</span>
+        </div>
+        <div id="bridge-source" class="bridge-source"></div>
+        <div id="bridge-grid" class="bridge-grid"></div>
+        <p id="bridge-method" class="bridge-method"></p>
+      </div>
+    </section>
     <section class="section">
       <div class="section-head"><div><span class="eyebrow">Economic meaning</span><h2>What the numbers can and cannot say</h2></div></div>
       <div class="meaning-grid">
@@ -260,6 +294,11 @@ HTML_TEMPLATE = r"""<!doctype html>
       const taskFilter = document.getElementById("task-filter");
       const taskTypeFilter = document.getElementById("task-type-filter");
       const taskList = document.getElementById("task-list");
+      const bridgeSelect = document.getElementById("bridge-select");
+      const bridgeStatus = document.getElementById("bridge-status");
+      const bridgeSource = document.getElementById("bridge-source");
+      const bridgeGrid = document.getElementById("bridge-grid");
+      const bridgeMethod = document.getElementById("bridge-method");
       const llmEnabled = __LLM_ENABLED__;
       const yAxisTitle = document.getElementById("y-axis-title");
       const selected = { index: 0 };
@@ -314,6 +353,57 @@ HTML_TEMPLATE = r"""<!doctype html>
         if (text != null) node.textContent = text;
         return node;
       };
+      const bridgePercent = function (value) { return value == null ? "Not available" : Math.round(Number(value) * 100) + "%"; };
+      const bridgeMetric = function (label, value) {
+        const node = htmlNode("div", "bridge-metric");
+        node.append(htmlNode("span", "", label), htmlNode("strong", "", value));
+        return node;
+      };
+      function renderBridge(result) {
+        bridgeSource.innerHTML = ""; bridgeGrid.innerHTML = ""; bridgeMethod.textContent = "";
+        if (!result || !result.available) {
+          bridgeStatus.textContent = result && result.message ? result.message : "Structured occupation profiles are not available in this build.";
+          bridgeGrid.appendChild(htmlNode("p", "task-note", "Add the O*NET 30.3 structured files to explore occupation bridges."));
+          return;
+        }
+        const source = result.source || {};
+        const sourceCopy = htmlNode("div", "");
+        sourceCopy.append(htmlNode("span", "eyebrow", "Starting point"), htmlNode("strong", "", source.title || "Occupation"), htmlNode("span", "bridge-source-meta", (source.profile_source === "family_average" ? "Family-average O*NET profile" : "Exact O*NET profile") + " · " + (source.onet_soc_code || "Code unavailable")));
+        const sourceStats = htmlNode("div", "bridge-source-meta");
+        sourceStats.textContent = "Wage " + money(source.median_annual_wage) + " · Projected change " + percent(source.employment_change_2024_2034_pct);
+        bridgeSource.append(sourceCopy, sourceStats);
+        (result.candidates || []).forEach(function (item, index) {
+          const occupation = item.occupation || {};
+          const card = htmlNode("article", "bridge-card");
+          const rank = htmlNode("div", "bridge-rank"); rank.append(htmlNode("span", "", "Bridge " + (index + 1)), htmlNode("span", "", (item.confidence || "Limited") + " evidence"));
+          card.append(rank, htmlNode("h3", "", occupation.title || "Adjacent occupation"));
+          const metrics = htmlNode("div", "bridge-metrics");
+          metrics.append(bridgeMetric("Profile similarity", bridgePercent(item.structured_similarity)), bridgeMetric("Software overlap", bridgePercent(item.software_overlap)), bridgeMetric("Task evidence", bridgePercent(item.task_similarity)));
+          card.append(metrics);
+          const labor = htmlNode("p", "bridge-source-meta", "Wage " + money(occupation.median_annual_wage) + " · Openings " + workers(occupation.annual_openings_2024_2034) + " · Growth " + percent(occupation.employment_change_2024_2034_pct));
+          card.append(labor);
+          const evidence = htmlNode("ul", "bridge-evidence");
+          const shared = item.shared_task_evidence || [];
+          if (!shared.length) evidence.appendChild(htmlNode("li", "", "No short shared-task example was identified."));
+          shared.forEach(function (statement) { evidence.appendChild(htmlNode("li", "", statement)); });
+          card.append(evidence, htmlNode("p", "bridge-hint", item.training_hint || "Use the shared tasks to choose a focused work sample."));
+          bridgeGrid.appendChild(card);
+        });
+        bridgeMethod.textContent = (result.method && result.method.interpretation ? result.method.interpretation + " " : "") + (result.method && result.method.primary ? result.method.primary : "");
+        bridgeStatus.textContent = "Showing " + (result.candidates || []).length + " descriptive pathway options from " + (result.candidate_count || 0).toLocaleString("en-US") + " profiled occupations.";
+      }
+      async function loadBridge(code) {
+        bridgeStatus.textContent = "Loading the structured occupation bridge…";
+        try {
+          const response = await fetch("/api/bridge?source=" + encodeURIComponent(code));
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.message || "bridge unavailable");
+          renderBridge(result);
+        } catch (error) {
+          bridgeStatus.textContent = "The bridge is unavailable. The occupation explorer remains available.";
+          bridgeGrid.innerHTML = "";
+        }
+      }
       function renderDeepReview(review) {
         deepReviewResult.hidden = false;
         deepReviewSummary.textContent = (review.decision || "review") + " · " + Math.round(Number(review.confidence || 0) * 100) + "% confidence. " + (review.rationale || "No rationale supplied.");
@@ -418,10 +508,16 @@ HTML_TEMPLATE = r"""<!doctype html>
       search.addEventListener("input", draw);
       taskFilter.addEventListener("input", function () { renderTasks(rows[selected.index]); });
       taskTypeFilter.addEventListener("change", function () { renderTasks(rows[selected.index]); });
+      rows.slice().sort(function (left, right) { return String(left.title || "").localeCompare(String(right.title || "")); }).forEach(function (row) {
+        const option = document.createElement("option"); option.value = row.onet_soc_code || ""; option.textContent = row.title || row.onet_soc_code || "Occupation"; bridgeSelect.appendChild(option);
+      });
+      const defaultBridge = payload.bridge || null;
+      if (defaultBridge && defaultBridge.source && defaultBridge.source.onet_soc_code) bridgeSelect.value = defaultBridge.source.onet_soc_code;
+      bridgeSelect.addEventListener("change", function () { loadBridge(bridgeSelect.value); });
       deepReviewButton.addEventListener("click", deepReview);
       reset.addEventListener("click", function () { search.value = ""; taskFilter.value = ""; taskTypeFilter.value = "all"; metricSelect.value = "wage"; selected.index = 0; draw(); });
       if (llmEnabled) deepReviewStatus.textContent = "Optional review available.";
-      updateKpis(); draw();
+      updateKpis(); draw(); renderBridge(defaultBridge);
     }());
   </script>
 </body>
@@ -434,13 +530,19 @@ def render(
     summary: dict[str, object],
     groups: list[dict[str, object]],
     tasks: list[dict[str, str]] | None = None,
+    bridge: dict[str, object] | None = None,
 ) -> str:
     del groups
     tasks_by_onet: dict[str, list[dict[str, str]]] = {}
     for task in tasks or []:
         tasks_by_onet.setdefault(task.get("onet_soc_code", ""), []).append(task)
     payload = json.dumps(
-        {"rows": rows, "summary": summary, "tasks_by_onet": tasks_by_onet},
+        {
+            "rows": rows,
+            "summary": summary,
+            "tasks_by_onet": tasks_by_onet,
+            "bridge": bridge,
+        },
         ensure_ascii=False,
         separators=(",", ":"),
     ).replace("<", "\\u003c")
@@ -455,8 +557,9 @@ def write_site(
     summary: dict[str, object],
     groups: list[dict[str, object]],
     tasks: list[dict[str, str]] | None = None,
+    bridge: dict[str, object] | None = None,
 ) -> Path:
     site_dir.mkdir(parents=True, exist_ok=True)
     index = site_dir / "index.html"
-    index.write_text(render(rows, summary, groups, tasks), encoding="utf-8")
+    index.write_text(render(rows, summary, groups, tasks, bridge), encoding="utf-8")
     return index

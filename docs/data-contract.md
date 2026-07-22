@@ -48,3 +48,16 @@ task_quality_flags
 ```
 
 Task statements describe representative work activities for an occupation. They are not individual job requirements and do not imply that every worker performs every task.
+
+## Career bridge response
+
+The local server exposes `GET /api/bridge?source=<O*NET-SOC code>`. The response contains:
+
+- `source`: the selected occupation and its labor-market snapshot;
+- `candidates`: adjacent occupations with `structured_distance`, `structured_similarity`, `software_overlap`, `task_similarity`, `shared_profile_elements`, `shared_task_evidence`, `training_hint`, and `confidence`;
+- `method`: the source files, weighting boundary, and interpretation caveat;
+- `available` and an explicit error message when the structured O*NET files are not present.
+
+The primary distance uses weighted normalized importance ratings from O*NET Essential Skills, Transferable Skills, Knowledge, Abilities, and Work Activities. Software overlap is a separate set-overlap signal and lightly regularizes the ranking. Task-text overlap is supplemental evidence only. A `family_average` profile is used only when the parent O*NET code has no direct structured rating and is visibly labeled.
+
+The response supports pathway discovery. It does not estimate individual ability, hiring probability, wage causality, or future employment.
