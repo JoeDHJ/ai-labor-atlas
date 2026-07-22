@@ -1,19 +1,30 @@
 import csv
 import io
+import json
 import tempfile
 import unittest
 import zipfile
+from contextlib import redirect_stdout
 from pathlib import Path
 
+from ai_labor_atlas.cli import main as cli_main
 from ai_labor_atlas.dashboard import render
 from ai_labor_atlas.demo import TASK_FIELDS, FIELDS, demo_rows, demo_tasks
 from ai_labor_atlas.distance import OccupationBridge
 from ai_labor_atlas.metrics import group_by_major_soc, summarize, summarize_tasks
+from ai_labor_atlas.occupation_context import suggest_occupations
 from ai_labor_atlas.pipeline import (
     _load_oews,
     _load_projections,
     _load_tasks,
     build_dataset,
+)
+from ai_labor_atlas.reviews import (
+    REVIEW_DISCLOSURE,
+    load_reviews,
+    normalize_review,
+    summarize_reviews,
+    validate_review_file,
 )
 
 try:
@@ -103,6 +114,195 @@ class AtlasTests(unittest.TestCase):
         self.assertIn("Design, develop, and test software applications.", page)
         self.assertIn('id="bridge-select"', page)
         self.assertIn("Career bridge", page)
+
+    def test_worker_review_contract_preserves_source_and_does_not_score_reviews(self):
+        review = normalize_review(
+            {
+                "review_id": "review-1",
+                "onet_soc_code": "15-2051.00",
+                "source": "reddit",
+                "source_url": "https://www.reddit.com/r/datascience/",
+                "review_scope": "employer_role",
+                "review_date": "2025-04-03",
+                "job_title": "Data Scientist",
+                "topics": ["pay_benefits", "work_environment"],
+                "rating": 3,
+                "excerpt": "The work was interesting, but the team was understaffed.",
+                "private_moderation_note": "must never be public",
+            }
+        )
+        context = summarize_reviews([review], "15-2051.00")
+        self.assertEqual(context["review_count"], 1)
+        self.assertEqual(context["reviews"][0]["source"], "reddit")
+        self.assertNotIn("private_moderation_note", context["reviews"][0])
+        self.assertNotIn("overall_rating", context)
+        self.assertIn("biased", context["disclosure"])
+        self.assertEqual(context["total_review_count"], 1)
+        self.assertFalse(context["is_truncated"])
+
+    def test_review_loader_missing_file_is_empty_and_invalid_source_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "reviews.json"
+            self.assertEqual(load_reviews(path), [])
+            path.write_text(
+                '{"reviews": [{"review_id": "r", "onet_soc_code": "15-2051.00", "excerpt": "A comment", "source": "unknown"}]}',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "unsupported review source"):
+                load_reviews(path)
+
+    def test_review_loader_rejects_duplicate_ids_and_non_onet_codes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "reviews.json"
+            path.write_text(
+                '{"reviews": [{"review_id": "r", "onet_soc_code": "15-2051.00", "excerpt": "One", "source": "reddit"}, {"review_id": "r", "onet_soc_code": "15-2051.00", "excerpt": "Two", "source": "reddit"}]}',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "review_id values must be unique"):
+                load_reviews(path)
+            path.write_text(
+                '{"reviews": [{"review_id": "r-2", "onet_soc_code": "15-2051", "excerpt": "One", "source": "reddit"}]}',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "O\\*NET format"):
+                load_reviews(path)
+
+    def test_review_validation_reports_all_errors_and_coverage(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "reviews.json"
+            path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "review_id": "r-1",
+                            "onet_soc_code": "15-2051.00",
+                            "source": "reddit",
+                            "topics": ["work_environment"],
+                            "excerpt": "The team was supportive.",
+                        },
+                        {
+                            "review_id": "r-1",
+                            "onet_soc_code": "15-2051.00",
+                            "source": "reddit",
+                            "excerpt": "The same source ID is duplicated.",
+                        },
+                        {
+                            "review_id": "r-3",
+                            "onet_soc_code": "15-2051",
+                            "source": "indeed",
+                            "excerpt": "The occupation code is incomplete.",
+                        },
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            report = validate_review_file(path)
+        self.assertFalse(report["valid"])
+        self.assertEqual(report["row_count"], 3)
+        self.assertEqual(report["normalized_row_count"], 2)
+        self.assertEqual(report["invalid_row_count"], 3)
+        self.assertEqual(report["duplicate_review_ids"], ["r-1"])
+        self.assertEqual(report["occupation_codes"], ["15-2051.00"])
+        self.assertEqual(report["source_counts"], {"reddit": 2})
+        self.assertEqual(report["error_count"], 3)
+        self.assertTrue(any(item["field"] == "onet_soc_code" for item in report["errors"]))
+        self.assertNotIn("The team was supportive", json.dumps(report))
+
+    def test_review_validation_reports_malformed_json_without_traceback_data(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "reviews.json"
+            path.write_text("{not valid json", encoding="utf-8")
+            report = validate_review_file(path)
+        self.assertFalse(report["valid"])
+        self.assertEqual(report["errors"][0]["field"], "file")
+        self.assertIn("invalid review JSON", report["errors"][0]["message"])
+
+    def test_validate_reviews_cli_returns_json_and_nonzero_for_invalid_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "reviews.json"
+            path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "review_id": "r-1",
+                            "onet_soc_code": "15-2051",
+                            "excerpt": "Needs correction.",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            output = io.StringIO()
+            with redirect_stdout(output):
+                code = cli_main(["validate-reviews", "--input", str(path)])
+        self.assertEqual(code, 2)
+        report = json.loads(output.getvalue())
+        self.assertFalse(report["valid"])
+        self.assertEqual(report["errors"][0]["row"], 1)
+
+    def test_validate_reviews_cli_accepts_valid_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "reviews.json"
+            path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "review_id": "r-1",
+                            "onet_soc_code": "15-2051.00",
+                            "source": "user_submitted",
+                            "topics": ["growth"],
+                            "excerpt": "The work offers room to learn.",
+                        }
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            output = io.StringIO()
+            with redirect_stdout(output):
+                code = cli_main(["validate-reviews", "--input", str(path)])
+        self.assertEqual(code, 0)
+        report = json.loads(output.getvalue())
+        self.assertTrue(report["valid"])
+        self.assertEqual(report["occupation_count"], 1)
+
+    def test_dashboard_includes_transparent_worker_review_slot(self):
+        rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
+        page = render(rows, summarize(rows), [], demo_tasks())
+        self.assertIn("What workers say", page)
+        self.assertIn("About these reviews", page)
+        self.assertIn('id="worker-review-source-filter"', page)
+        self.assertIn('id="worker-review-topic-filter"', page)
+        self.assertIn(REVIEW_DISCLOSURE, page)
+
+    def test_occupation_suggestions_require_confirmation(self):
+        rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
+        result = suggest_occupations(rows, "Software Developer")
+        self.assertTrue(result["candidates"])
+        self.assertTrue(result["requires_confirmation"])
+        self.assertTrue(result["candidates"][0]["requires_confirmation"])
+
+    def test_review_summary_exposes_source_and_topic_labels(self):
+        context = summarize_reviews([], "15-2051.00")
+        self.assertEqual(context["source_labels"]["reddit"], "Reddit")
+        self.assertEqual(context["topic_labels"]["work_environment"], "Work environment")
+
+    def test_review_summary_reports_when_display_limit_truncates_comments(self):
+        reviews = [
+            normalize_review(
+                {
+                    "review_id": f"review-{index}",
+                    "onet_soc_code": "15-2051.00",
+                    "source": "user_submitted",
+                    "review_date": f"2025-01-{index:02d}",
+                    "excerpt": f"Comment {index}",
+                }
+            )
+            for index in range(1, 4)
+        ]
+        context = summarize_reviews(reviews, "15-2051.00", limit=2)
+        self.assertEqual(context["review_count"], 2)
+        self.assertEqual(context["total_review_count"], 3)
+        self.assertTrue(context["is_truncated"])
 
     def test_occupation_bridge_keeps_distance_evidence_separate(self):
         with tempfile.TemporaryDirectory() as temp:

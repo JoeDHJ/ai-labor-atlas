@@ -148,6 +148,22 @@ HTML_TEMPLATE = r"""<!doctype html>
     .review-summary { margin: 14px 0 0; color: var(--text); font-size: 0.88rem; }
     .review-evidence { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
     .review-evidence li { padding: 10px 12px; color: var(--muted); background: rgba(85, 214, 194, 0.08); border-left: 2px solid var(--cyan); font-size: 0.8rem; }
+    .worker-review-panel { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .worker-review-summary { margin: 6px 0 12px; color: var(--muted); font-size: 0.78rem; }
+    .worker-review-filter-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0 12px; }
+    .worker-review-filter-row label { display: grid; gap: 5px; color: var(--muted); font-size: 0.7rem; }
+    .worker-review-filter-row select { width: 100%; min-width: 0; padding: 7px 8px; font-size: 0.76rem; }
+    .worker-review-list { display: grid; gap: 10px; }
+    .worker-review-card { padding: 12px; background: rgba(8, 18, 33, 0.48); border: 1px solid var(--line); border-radius: 12px; }
+    .worker-review-meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; color: var(--muted); font-size: 0.7rem; }
+    .worker-review-card blockquote { margin: 9px 0 0; color: var(--text); font-size: 0.82rem; line-height: 1.45; }
+    .worker-review-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 9px; }
+    .worker-review-tag { padding: 3px 7px; color: var(--cyan); background: rgba(85, 214, 194, 0.08); border: 1px solid rgba(85, 214, 194, 0.2); border-radius: 999px; font-size: 0.68rem; }
+    .worker-review-source { color: var(--cyan); }
+    .worker-review-empty { margin: 0; color: var(--muted); font-size: 0.8rem; }
+    .review-disclosure { margin-top: 13px; color: var(--muted); font-size: 0.72rem; }
+    .review-disclosure summary { cursor: pointer; color: var(--muted); }
+    .review-disclosure p { max-width: 520px; margin: 8px 0 0; line-height: 1.45; }
     .legend { justify-content: flex-start; margin-top: 10px; color: var(--muted); font-size: 0.8rem; }
     .legend-dot { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 50%; background: var(--blue); }
     .meaning-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -235,6 +251,24 @@ HTML_TEMPLATE = r"""<!doctype html>
               <ul class="task-list" id="task-list"></ul>
               <p class="task-caveat">Source: O*NET 30.3. These are representative work activities, not individual job requirements.</p>
             </div>
+            <div class="worker-review-panel">
+              <span class="eyebrow">Workplace signals</span>
+              <h3 class="task-title">What workers say</h3>
+              <p class="worker-review-summary" id="worker-review-summary">No public review context is loaded for this occupation yet.</p>
+              <div class="worker-review-filter-row">
+                <label for="worker-review-source-filter">Source
+                  <select id="worker-review-source-filter"><option value="all">All sources</option></select>
+                </label>
+                <label for="worker-review-topic-filter">Topic
+                  <select id="worker-review-topic-filter"><option value="all">All topics</option></select>
+                </label>
+              </div>
+              <div class="worker-review-list" id="worker-review-list"></div>
+              <details class="review-disclosure">
+                <summary>About these reviews</summary>
+                <p id="worker-review-disclosure">Reviews are user-generated and may be incomplete, subjective, outdated, or biased. They are not verified facts or representative of all workers. Source links and dates are shown where available.</p>
+              </details>
+            </div>
             <div class="review-panel">
               <button id="deep-review-button" type="button" disabled>Review this mapping</button>
               <p class="review-status" id="deep-review-status">Optional review available when enabled.</p>
@@ -278,6 +312,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       const payload = JSON.parse(document.getElementById("atlas-data").textContent);
       const rows = payload.rows || [];
       const tasksByOnet = payload.tasks_by_onet || {};
+      const reviewsByOnet = payload.reviews_by_onet || {};
       const summary = payload.summary || {};
       const chart = document.getElementById("atlas-chart");
       const grid = document.getElementById("grid");
@@ -295,6 +330,11 @@ HTML_TEMPLATE = r"""<!doctype html>
       const taskFilter = document.getElementById("task-filter");
       const taskTypeFilter = document.getElementById("task-type-filter");
       const taskList = document.getElementById("task-list");
+      const workerReviewSummary = document.getElementById("worker-review-summary");
+      const workerReviewList = document.getElementById("worker-review-list");
+      const workerReviewDisclosure = document.getElementById("worker-review-disclosure");
+      const workerReviewSourceFilter = document.getElementById("worker-review-source-filter");
+      const workerReviewTopicFilter = document.getElementById("worker-review-topic-filter");
       const bridgeSelect = document.getElementById("bridge-select");
       const bridgeStatus = document.getElementById("bridge-status");
       const bridgeSource = document.getElementById("bridge-source");
@@ -354,6 +394,78 @@ HTML_TEMPLATE = r"""<!doctype html>
         if (text != null) node.textContent = text;
         return node;
       };
+      const reviewSourceLabel = function (value) {
+        return { user_submitted: "User submitted", reddit: "Reddit", indeed: "Indeed", other: "Other public source" }[value] || "Public source";
+      };
+      const reviewScopeLabel = function (value) {
+        return { occupation: "Occupation context", employer_role: "Employer and role", job_posting: "Specific job posting" }[value] || "Scope not specified";
+      };
+      const reviewTopicLabel = function (value) {
+        return { pay_benefits: "Pay and benefits", interview_management: "Interview and management", work_environment: "Work environment", workload: "Workload", growth: "Growth", tasks_tools: "Tasks and tools", other: "Other" }[value] || value;
+      };
+      function renderWorkerReviews(occupation) {
+        workerReviewList.innerHTML = "";
+        const context = reviewsByOnet[occupation.onet_soc_code] || {};
+        const reviews = context.reviews || [];
+        const sourceLabels = context.source_labels || {};
+        const topicLabels = context.topic_labels || {};
+        workerReviewDisclosure.textContent = context.disclosure || "Reviews are user-generated and may be incomplete, subjective, outdated, or biased. They are not verified facts or representative of all workers. Source links and dates are shown where available.";
+        const sourceValue = workerReviewSourceFilter.value;
+        const topicValue = workerReviewTopicFilter.value;
+        workerReviewSourceFilter.innerHTML = "";
+        const allSources = htmlNode("option", "", "All sources"); allSources.value = "all"; workerReviewSourceFilter.appendChild(allSources);
+        Object.keys(context.source_counts || {}).forEach(function (value) {
+          workerReviewSourceFilter.appendChild(htmlNode("option", "", sourceLabels[value] || reviewSourceLabel(value))).value = value;
+        });
+        workerReviewTopicFilter.innerHTML = "";
+        const allTopics = htmlNode("option", "", "All topics"); allTopics.value = "all"; workerReviewTopicFilter.appendChild(allTopics);
+        Object.keys(context.topic_counts || {}).forEach(function (value) {
+          workerReviewTopicFilter.appendChild(htmlNode("option", "", topicLabels[value] || reviewTopicLabel(value))).value = value;
+        });
+        workerReviewSourceFilter.value = sourceValue || "all";
+        workerReviewTopicFilter.value = topicValue || "all";
+        if (!reviews.length) {
+          workerReviewSourceFilter.disabled = true;
+          workerReviewTopicFilter.disabled = true;
+          workerReviewSummary.textContent = "No public review context is loaded for this occupation yet.";
+          workerReviewList.appendChild(htmlNode("p", "worker-review-empty", "When available, this space keeps different work experiences together with their source, date, and scope."));
+          return;
+        }
+        workerReviewSourceFilter.disabled = false;
+        workerReviewTopicFilter.disabled = false;
+        const filteredReviews = reviews.filter(function (review) {
+          return (sourceValue === "all" || !sourceValue || review.source === sourceValue)
+            && (topicValue === "all" || !topicValue || (review.topics || []).includes(topicValue));
+        });
+        const totalReviewCount = Number(context.total_review_count || reviews.length);
+        const totalText = totalReviewCount > reviews.length ? " of " + totalReviewCount : "";
+        workerReviewSummary.textContent = filteredReviews.length + totalText + " public comment" + (totalReviewCount === 1 ? "" : "s") + " shown. There is no overall occupation rating.";
+        if (context.is_truncated) workerReviewSummary.textContent += " The display is limited to the most recent " + reviews.length + ".";
+        if (!filteredReviews.length) {
+          workerReviewList.appendChild(htmlNode("p", "worker-review-empty", "No comments match these filters. Try showing all sources and topics."));
+          return;
+        }
+        filteredReviews.slice(0, 3).forEach(function (review) {
+          const card = htmlNode("article", "worker-review-card");
+          const meta = htmlNode("div", "worker-review-meta");
+          const source = review.source_url ? document.createElement("a") : htmlNode("span", "worker-review-source");
+          source.className = "worker-review-source";
+          source.textContent = reviewSourceLabel(review.source);
+          if (review.source_url) { source.href = review.source_url; source.target = "_blank"; source.rel = "noreferrer"; }
+          const details = [reviewScopeLabel(review.review_scope), review.review_date || "Date not provided"];
+          if (review.rating != null) details.push("Rating " + review.rating + "/5");
+          if (review.author_display) details.push("By " + review.author_display);
+          meta.append(source, htmlNode("span", "", details.join(" · ")));
+          card.appendChild(meta);
+          const contextLine = [review.job_title, review.employer, review.location].filter(Boolean).join(" · ");
+          if (contextLine) card.appendChild(htmlNode("p", "worker-review-meta", contextLine));
+          card.appendChild(document.createElement("blockquote")).textContent = review.excerpt;
+          const tags = htmlNode("div", "worker-review-tags");
+          (review.topics || []).forEach(function (topic) { tags.appendChild(htmlNode("span", "worker-review-tag", topicLabels[topic] || reviewTopicLabel(topic))); });
+          if (tags.childNodes.length) card.appendChild(tags);
+          workerReviewList.appendChild(card);
+        });
+      }
       const bridgePercent = function (value) { return value == null ? "Not available" : Math.round(Number(value) * 100) + "%"; };
       const bridgeMetric = function (label, value) {
         const node = htmlNode("div", "bridge-metric");
@@ -500,6 +612,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         setText("detail-growth", percent(numeric(selectedRow.employment_change_2024_2034_pct)));
         setText("detail-interpretation", selectedRow.title ? currentMetric.note : "Select an occupation to see a plain-language interpretation.");
         renderTasks(selectedRow);
+        renderWorkerReviews(selectedRow);
         deepReviewButton.disabled = !llmEnabled || !selectedRow.title;
         deepReviewResult.hidden = true;
         deepReviewSummary.textContent = "";
@@ -509,6 +622,8 @@ HTML_TEMPLATE = r"""<!doctype html>
       search.addEventListener("input", draw);
       taskFilter.addEventListener("input", function () { renderTasks(rows[selected.index]); });
       taskTypeFilter.addEventListener("change", function () { renderTasks(rows[selected.index]); });
+      workerReviewSourceFilter.addEventListener("change", function () { renderWorkerReviews(rows[selected.index]); });
+      workerReviewTopicFilter.addEventListener("change", function () { renderWorkerReviews(rows[selected.index]); });
       rows.slice().sort(function (left, right) { return String(left.title || "").localeCompare(String(right.title || "")); }).forEach(function (row) {
         const option = document.createElement("option"); option.value = row.onet_soc_code || ""; option.textContent = row.title || row.onet_soc_code || "Occupation"; bridgeSelect.appendChild(option);
       });
@@ -532,16 +647,26 @@ def render(
     groups: list[dict[str, object]],
     tasks: list[dict[str, str]] | None = None,
     bridge: dict[str, object] | None = None,
+    reviews: list[dict[str, object]] | None = None,
 ) -> str:
     del groups
     tasks_by_onet: dict[str, list[dict[str, str]]] = {}
     for task in tasks or []:
         tasks_by_onet.setdefault(task.get("onet_soc_code", ""), []).append(task)
+    reviews_by_onet = {}
+    if reviews:
+        from .reviews import summarize_reviews
+
+        for row in rows:
+            code = row.get("onet_soc_code", "")
+            if code:
+                reviews_by_onet[code] = summarize_reviews(reviews, code)
     payload = json.dumps(
         {
             "rows": rows,
             "summary": summary,
             "tasks_by_onet": tasks_by_onet,
+            "reviews_by_onet": reviews_by_onet,
             "bridge": bridge,
         },
         ensure_ascii=False,
@@ -559,8 +684,9 @@ def write_site(
     groups: list[dict[str, object]],
     tasks: list[dict[str, str]] | None = None,
     bridge: dict[str, object] | None = None,
+    reviews: list[dict[str, object]] | None = None,
 ) -> Path:
     site_dir.mkdir(parents=True, exist_ok=True)
     index = site_dir / "index.html"
-    index.write_text(render(rows, summary, groups, tasks, bridge), encoding="utf-8")
+    index.write_text(render(rows, summary, groups, tasks, bridge, reviews), encoding="utf-8")
     return index
