@@ -124,7 +124,7 @@ HTML_TEMPLATE = r"""<!doctype html>
   <main class="shell">
     <header class="topbar">
       <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">AI Labor Atlas</span></div>
-      <span class="micro">Descriptive research explorer | v0.1.0</span>
+      <span class="micro">Descriptive research explorer</span>
     </header>
     <section class="hero">
       <div class="hero-copy">
@@ -134,7 +134,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       </div>
     </section>
     <section class="kpi-grid" aria-label="Atlas overview">
-      <article class="kpi"><span class="label">Occupations</span><strong class="kpi-value" id="kpi-rows">Not available</strong><span class="kpi-context">records in the current build</span></article>
+      <article class="kpi"><span class="label">Occupations</span><strong class="kpi-value" id="kpi-rows">Not available</strong><span class="kpi-context">occupations included</span></article>
       <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">occupations with an exposure value</span></article>
       <article class="kpi"><span class="label">Employment-weighted exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">larger occupations count more</span></article>
       <article class="kpi"><span class="label">Wage coverage</span><strong class="kpi-value" id="kpi-wage">Not available</strong><span class="kpi-context">occupations with a wage estimate</span></article>
@@ -191,9 +191,9 @@ HTML_TEMPLATE = r"""<!doctype html>
         <article class="meaning"><h3>Wage is a level</h3><p>A wage comparison describes where occupations sit in the labor market. It does not show that AI exposure causes a wage difference.</p></article>
         <article class="meaning"><h3>Projections are a baseline</h3><p>Employment projections summarize a published scenario. They help frame scale and direction, but do not isolate the effect of AI.</p></article>
       </div>
-      <p class="source-note">Data vintages and source licenses are recorded in <code>config/source_registry.json</code>. Missingness is preserved rather than replaced with zero.</p>
+      <p class="source-note">Source note: The dashboard combines occupational task information, AI exposure estimates, and wage, employment, and projection data. Missing values remain visible rather than being treated as zero.</p>
     </section>
-    <footer class="footer-row"><span>Built for transparent, reproducible occupational analysis.</span><span>Source taxonomy and vintages remain visible by design.</span></footer>
+    <footer class="footer-row"><span>Occupational evidence for clearer questions about changing work.</span><span>Descriptive analysis, not a forecast of individual job outcomes.</span></footer>
   </main>
   <script id="atlas-data" type="application/json">__ATLAS_DATA__</script>
   <script>

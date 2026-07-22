@@ -2,7 +2,7 @@
 
 AI Labor Atlas is a reproducible, descriptive measurement layer connecting occupations, tasks, AI exposure indicators, wages, and employment projections.
 
-The first release is intentionally narrow: U.S. national data, English sources, and no causal claims. It keeps source taxonomies and data vintages explicit so that future updates can be compared rather than silently replacing earlier results.
+The current explorer focuses on U.S. national data, English-language sources, and descriptive—not causal—interpretation. It keeps the meaning and coverage of each measure clear so users can ask better questions about changing work.
 
 ## Quick start
 
@@ -16,11 +16,11 @@ python -m ai_labor_atlas.cli search analyst
 python -m ai_labor_atlas.cli serve
 ```
 
-The demo build is deterministic and creates a small local dataset. For the public sources, inspect `config/source_registry.json`, place downloaded files in `data/raw/`, and run `atlas build`.
+The demonstration dataset is deterministic so the examples are easy to explore and reproduce. Research users can find the public source coverage and attribution notes in the sections below.
 
-## Visual demo
+## Explore the dashboard
 
-Run `python -m ai_labor_atlas.cli build --demo` and then `python -m ai_labor_atlas.cli serve`. Open `http://127.0.0.1:8765` to explore the local dashboard.
+The dashboard connects occupational tasks, AI exposure, wages, employment, and projections in one visual view. Run the project locally to explore the interactive experience.
 
 ![AI Labor Atlas dashboard](docs/assets/atlas-dashboard.png)
 
