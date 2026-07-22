@@ -104,8 +104,10 @@ def _load_crosswalk(raw_dir: Path) -> dict[str, list[str]]:
         raise RuntimeError(
             "Crosswalk parsing requires optional dependency: pip install -e .[excel]"
         ) from error
-    sheet = load_workbook(workbook, read_only=True, data_only=True).active
+    workbook_handle = load_workbook(workbook, read_only=True, data_only=True)
+    sheet = workbook_handle.active
     rows = list(sheet.iter_rows(values_only=True))
+    workbook_handle.close()
     header_index = next(
         (
             index
@@ -157,8 +159,10 @@ def _load_aioe(raw_dir: Path) -> dict[str, float]:
             raise RuntimeError(
                 "AIOE workbook parsing requires optional dependency: pip install -e .[excel]"
             ) from error
-        sheet = load_workbook(workbook, read_only=True, data_only=True)["Appendix A"]
+        workbook_handle = load_workbook(workbook, read_only=True, data_only=True)
+        sheet = workbook_handle["Appendix A"]
         values = list(sheet.iter_rows(values_only=True))
+        workbook_handle.close()
         rows = [dict(zip(values[0], row)) for row in values[1:]]
     result = {}
     for row in rows:
@@ -173,6 +177,32 @@ def _read_csv_or_zip(path: Path) -> list[dict[str, str]]:
     if path.suffix.lower() != ".zip":
         return read_csv(path)
     with zipfile.ZipFile(path) as archive:
+        spreadsheet_names = [
+            name for name in archive.namelist() if name.lower().endswith(".xlsx")
+        ]
+        if spreadsheet_names:
+            try:
+                from openpyxl import load_workbook
+            except ImportError as error:
+                raise RuntimeError(
+                    "XLSX parsing requires optional dependency: pip install -e .[excel]"
+                ) from error
+            workbook_handle = load_workbook(
+                io.BytesIO(archive.read(spreadsheet_names[0])),
+                read_only=True,
+                data_only=True,
+            )
+            sheet = workbook_handle.active
+            values = list(sheet.iter_rows(values_only=True))
+            workbook_handle.close()
+            if not values:
+                return []
+            header = [str(cell or "").strip() for cell in values[0]]
+            return [
+                dict(zip(header, row))
+                for row in values[1:]
+                if any(cell not in (None, "") for cell in row)
+            ]
         names = [
             name
             for name in archive.namelist()
@@ -226,16 +256,23 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
             raise RuntimeError(
                 "Projection parsing requires optional dependency: pip install -e .[excel]"
             ) from error
-        sheet = load_workbook(path, read_only=True, data_only=True).active
+        workbook_handle = load_workbook(path, read_only=True, data_only=True)
+        sheet = (
+            workbook_handle["Table 1.2"]
+            if "Table 1.2" in workbook_handle.sheetnames
+            else workbook_handle.active
+        )
         values = list(sheet.iter_rows(values_only=True))
+        workbook_handle.close()
         header_index = next(
             (
                 index
                 for index, row in enumerate(values)
                 if any(
-                    "employment" in str(cell).lower() and "2024" in str(cell)
+                    "2024 national employment matrix code" in str(cell).lower()
                     for cell in row
                 )
+                and any(str(cell).strip().lower() == "employment, 2024" for cell in row)
             ),
             0,
         )
@@ -243,6 +280,13 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
         rows = [dict(zip(header, row)) for row in values[header_index + 1 :]]
     result = {}
     for row in rows:
+        annual_openings_thousands = _number(
+            _value(
+                row,
+                "Occupational openings, 2024-34 annual average",
+                "occupational openings annual average",
+            )
+        )
         code = _value(
             row,
             "2024 National Employment Matrix code",
@@ -266,12 +310,10 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
                     "employment change percent 2024 34",
                 )
             ),
-            "annual_openings_2024_2034": _number(
-                _value(
-                    row,
-                    "Occupational openings, 2024-34 annual average",
-                    "occupational openings annual average",
-                )
+            "annual_openings_2024_2034": (
+                annual_openings_thousands * 1000
+                if annual_openings_thousands is not None
+                else None
             ),
             "projection_median_annual_wage": _number(
                 _value(

@@ -1,6 +1,6 @@
 {
   "project": "ai-labor-atlas",
-  "release": "0.1.0",
+  "release": "0.2.0",
   "scope": {"geography": "US", "language": "en", "level": "national"},
   "sources": [
     {
@@ -11,7 +11,8 @@
       "download_url": "https://www.onetcenter.org/dl_files/database/db_30_3_text.zip",
       "license": "CC BY 4.0",
       "redistribution": "allowed_with_attribution",
-      "raw_filename": "onet_30_3_text.zip"
+      "raw_filename": "onet_30_3_text.zip",
+      "sha256": "7758ec966fd91895b3d290b83c9f1f1d46730d37fdda4faac67104d1c0d2a780"
     },
     {
       "id": "onet_soc_crosswalk",
@@ -21,27 +22,30 @@
       "download_url": "https://www.onetcenter.org/taxonomy/2019/soc/2019_to_SOC_Crosswalk.xlsx?fmt=xlsx",
       "license": "CC BY 4.0",
       "redistribution": "allowed_with_attribution",
-      "raw_filename": "onet_soc_2019_to_2018.xlsx"
+      "raw_filename": "onet_soc_2019_to_2018.xlsx",
+      "sha256": "bfc6722a92c2d607e5a99dee88b7826cf5aa91f7c0453182e0c8268e32a20a19"
     },
     {
       "id": "bls_oews",
       "provider": "U.S. Bureau of Labor Statistics",
       "version": "May 2025",
       "landing_url": "https://www.bls.gov/oes/tables.htm",
-      "download_url": "https://www.bls.gov/oes/special.requests/oesm25nat.zip",
+      "download_url": "https://www.bls.gov/oes/special-requests/oesm25nat.zip",
       "license": "BLS public data",
       "redistribution": "verify_current_terms",
-      "raw_filename": "bls_oews_may_2025.zip"
+      "raw_filename": "bls_oews_may_2025.zip",
+      "sha256": "b5855a37f3e03e779f6fbf173d3bbc94aeeff33426aef32fa95ce6d025bab1af"
     },
     {
       "id": "bls_projections",
       "provider": "U.S. Bureau of Labor Statistics",
       "version": "2024-2034",
       "landing_url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
-      "download_url": null,
+      "download_url": "https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx",
       "license": "BLS public data",
       "redistribution": "verify_current_terms",
       "raw_filename": "bls_projections_2024_2034.xlsx",
+      "sha256": "bebf85e71d3a274eb0531077a9fe1bbcd1167e0a14c59e33071f61cbda9d3a57",
       "note": "Place the official table in data/raw when the page or download path changes."
     },
     {
@@ -52,7 +56,8 @@
       "download_url": "https://raw.githubusercontent.com/AIOE-Data/AIOE/main/AIOE_DataAppendix.xlsx",
       "license": "unverified",
       "redistribution": "do_not_vendor_until_verified",
-      "raw_filename": "aioe_data_appendix.xlsx"
+      "raw_filename": "aioe_data_appendix.xlsx",
+      "sha256": "c123b4c64840aff3568ae6c97256678719b88a74d45b6362dbefb5af34667b95"
     },
     {
       "id": "gpts_are_gpts",

@@ -16,3 +16,4 @@ The downloader records results in `data/download_manifest.json`. If BLS blocks a
 
 The build will preserve missingness and report coverage. Do not replace missing values with zero.
 
+The full-source parser reads the national OEWS workbook inside the official May 2025 ZIP and Table 1.2 of the official projections workbook. BLS annual openings are stored as workers in the canonical output; the source table reports that field in thousands, so the build multiplies it by 1,000. The local validation snapshot produced 1,016 occupation rows with no duplicate O*NET/SOC output pairs.

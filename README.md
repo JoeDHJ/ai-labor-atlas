@@ -51,6 +51,8 @@ Candidate evidence is sent only when the review button is used. A local OpenAI-c
 
 O*NET-derived files must retain attribution to O*NET and the U.S. Department of Labor, Employment and Training Administration, and must identify modifications. AIOE raw redistribution is disabled by default until its repository license is verified.
 
+The full local build uses the registered public files rather than the demo rows. The current validation snapshot contains 1,016 O*NET occupations, with 79.0% exposure coverage, 94.1% wage coverage, and 94.6% employment coverage. Missing source values remain missing in the output.
+
 ## What the numbers mean
 
 `ai_exposure` is an exposure/applicability indicator, not a probability of job loss, a risk score, or evidence of causality. Wage and employment projections are joined by SOC code with provenance and coverage fields. Many-to-one crosswalks are preserved and summarized rather than silently collapsed.

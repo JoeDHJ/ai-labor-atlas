@@ -23,3 +23,11 @@ data_quality_flags
 ```
 
 Missing values remain blank and are accompanied by coverage fields. A blank exposure is not a zero exposure. A blank wage is not a zero wage.
+
+Units:
+
+- `ai_exposure`: source exposure score; it is not a probability of job loss.
+- `employment_2024`: workers from national OEWS.
+- `projected_employment_2024_thousands` and `projected_employment_2034_thousands`: thousands of workers from BLS projections.
+- `annual_openings_2024_2034`: workers per year; converted from the BLS table's thousands unit.
+- `median_annual_wage`: U.S. dollars for the stated wage vintage.
