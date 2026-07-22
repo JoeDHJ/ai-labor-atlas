@@ -96,6 +96,8 @@ class AtlasTests(unittest.TestCase):
         ]
         page = render(rows, summarize(rows), [], tasks)
         self.assertIn('id="task-filter"', page)
+        self.assertIn('id="task-type-filter"', page)
+        self.assertIn("Core tasks", page)
         self.assertIn("tasks_by_onet", page)
         self.assertIn("Design, develop, and test software applications.", page)
 
