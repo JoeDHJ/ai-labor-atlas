@@ -24,6 +24,8 @@ The dashboard connects occupational tasks, AI exposure, wages, employment, and p
 
 ![AI Labor Atlas dashboard](docs/assets/atlas-dashboard.png)
 
+![AI Labor Atlas task explorer](docs/assets/atlas-task-explorer.png)
+
 The dashboard compares AI exposure with wages, projected employment growth, annual openings, and employment scale. Exposure is a task-applicability indicator—not a probability of job loss—so the page explains the economic meaning and limits of each measure alongside the chart.
 
 ### Optional semantic review
