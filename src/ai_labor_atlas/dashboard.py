@@ -105,6 +105,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     .bubble:hover, .bubble.selected { fill: var(--cyan); fill-opacity: 1; }
     .bubble.selected { stroke: var(--text); stroke-width: 3; }
     .bubble-label { fill: var(--text); font-size: 11px; pointer-events: none; }
+    .detail-panel, .task-panel, .task-list { min-width: 0; }
     .detail-panel { min-height: 360px; }
     .detail-name { margin: 8px 0 4px; font-size: 1.42rem; line-height: 1.15; }
     .code-pill { display: inline-flex; color: var(--cyan); background: rgba(85, 214, 194, 0.1); border: 1px solid rgba(85, 214, 194, 0.24); padding: 4px 8px; border-radius: 8px; font-size: 0.78rem; }
@@ -116,8 +117,8 @@ HTML_TEMPLATE = r"""<!doctype html>
     .task-title { margin: 8px 0 4px; font-size: 1.05rem; }
     .task-note { margin-bottom: 10px; color: var(--muted); font-size: 0.78rem; }
     .task-filter-label { display: block; margin: 4px 0 5px; color: var(--muted); font-size: 0.76rem; }
-    .task-filter-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 9px; margin: 0 0 12px; }
-    .task-filter { width: 100%; margin: 0; }
+    .task-filter-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 138px); gap: 9px; margin: 0 0 12px; }
+    .task-filter { width: 100%; min-width: 0; margin: 0; }
     .task-list { display: grid; gap: 8px; margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.82rem; }
     .task-list li::marker { color: var(--cyan); }
     .task-caveat { margin: 13px 0 0; color: var(--muted); font-size: 0.74rem; }
