@@ -116,7 +116,8 @@ HTML_TEMPLATE = r"""<!doctype html>
     .task-title { margin: 8px 0 4px; font-size: 1.05rem; }
     .task-note { margin-bottom: 10px; color: var(--muted); font-size: 0.78rem; }
     .task-filter-label { display: block; margin: 4px 0 5px; color: var(--muted); font-size: 0.76rem; }
-    .task-filter { width: 100%; margin: 0 0 12px; }
+    .task-filter-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 9px; margin: 0 0 12px; }
+    .task-filter { width: 100%; margin: 0; }
     .task-list { display: grid; gap: 8px; margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.82rem; }
     .task-list li::marker { color: var(--cyan); }
     .task-caveat { margin: 13px 0 0; color: var(--muted); font-size: 0.74rem; }
@@ -136,7 +137,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     .footer-row { margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8rem; }
     @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .chart-layout { grid-template-columns: 1fr; } }
-    @media (max-width: 620px) { .shell { width: min(100% - 26px, 1240px); } .hero { padding-top: 48px; } .kpi-grid, .meaning-grid { grid-template-columns: 1fr; } .panel { padding: 17px; } .chart-svg { min-height: 330px; } }
+    @media (max-width: 620px) { .shell { width: min(100% - 26px, 1240px); } .hero { padding-top: 48px; } .kpi-grid, .meaning-grid { grid-template-columns: 1fr; } .task-filter-row { grid-template-columns: 1fr; } .panel { padding: 17px; } .chart-svg { min-height: 330px; } }
     @media (prefers-reduced-motion: reduce) { .bubble { transition: none; } }
   </style>
 </head>
@@ -206,7 +207,10 @@ HTML_TEMPLATE = r"""<!doctype html>
               <h3 class="task-title">What this occupation does</h3>
               <p class="task-note" id="task-note">Select an occupation to see example task statements.</p>
               <label class="task-filter-label" for="task-filter">Filter task statements</label>
-              <input class="task-filter" id="task-filter" type="search" placeholder="e.g. analyze or coordinate" />
+              <div class="task-filter-row">
+                <input class="task-filter" id="task-filter" type="search" placeholder="e.g. analyze or coordinate" />
+                <select class="task-filter" id="task-type-filter" aria-label="Task type filter"><option value="all">All task types</option><option value="Core">Core tasks</option><option value="Supplemental">Supplemental tasks</option></select>
+              </div>
               <ul class="task-list" id="task-list"></ul>
               <p class="task-caveat">Source: O*NET 30.3. These are representative work activities, not individual job requirements.</p>
             </div>
@@ -254,6 +258,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       const deepReviewEvidence = document.getElementById("deep-review-evidence");
       const taskNote = document.getElementById("task-note");
       const taskFilter = document.getElementById("task-filter");
+      const taskTypeFilter = document.getElementById("task-type-filter");
       const taskList = document.getElementById("task-list");
       const llmEnabled = __LLM_ENABLED__;
       const yAxisTitle = document.getElementById("y-axis-title");
@@ -282,9 +287,11 @@ HTML_TEMPLATE = r"""<!doctype html>
         taskList.innerHTML = "";
         const tasks = tasksByOnet[occupation.onet_soc_code] || [];
         const query = taskFilter.value.trim().toLowerCase();
-        const filteredTasks = query
-          ? tasks.filter(function (task) { return task.task_statement.toLowerCase().includes(query); })
-          : tasks;
+        const taskType = taskTypeFilter.value;
+        const filteredTasks = tasks.filter(function (task) {
+          return (!query || task.task_statement.toLowerCase().includes(query))
+            && (taskType === "all" || task.task_type === taskType);
+        });
         if (!tasks.length) {
           taskNote.textContent = "No task statements are available for this occupation in the selected source release.";
           return;
@@ -293,7 +300,8 @@ HTML_TEMPLATE = r"""<!doctype html>
           taskNote.textContent = "No task statements match this filter.";
           return;
         }
-        taskNote.textContent = (query ? filteredTasks.length + " matching" : tasks.length) + " source task statements; showing the first four examples.";
+        const hasFilter = query || taskType !== "all";
+        taskNote.textContent = (hasFilter ? filteredTasks.length + " matching" : tasks.length) + " source task statements; showing the first four examples.";
         filteredTasks.slice(0, 4).forEach(function (task) {
           const item = document.createElement("li");
           item.textContent = task.task_statement;
@@ -409,8 +417,9 @@ HTML_TEMPLATE = r"""<!doctype html>
       metricSelect.addEventListener("change", draw);
       search.addEventListener("input", draw);
       taskFilter.addEventListener("input", function () { renderTasks(rows[selected.index]); });
+      taskTypeFilter.addEventListener("change", function () { renderTasks(rows[selected.index]); });
       deepReviewButton.addEventListener("click", deepReview);
-      reset.addEventListener("click", function () { search.value = ""; taskFilter.value = ""; metricSelect.value = "wage"; selected.index = 0; draw(); });
+      reset.addEventListener("click", function () { search.value = ""; taskFilter.value = ""; taskTypeFilter.value = "all"; metricSelect.value = "wage"; selected.index = 0; draw(); });
       if (llmEnabled) deepReviewStatus.textContent = "Optional review available.";
       updateKpis(); draw();
     }());
