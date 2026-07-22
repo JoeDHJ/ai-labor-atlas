@@ -71,7 +71,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       border-radius: 999px; padding: 7px 11px; font-size: 0.78rem; font-weight: 700;
     }
     .hero-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
     .kpi, .panel, .meaning {
       background: linear-gradient(145deg, rgba(27, 48, 80, 0.92), rgba(13, 27, 48, 0.88));
       border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
@@ -112,6 +112,13 @@ HTML_TEMPLATE = r"""<!doctype html>
     .detail-row { padding-bottom: 9px; border-bottom: 1px solid var(--line); }
     .detail-row strong { font-size: 1.06rem; }
     .interpretation { color: var(--muted); font-size: 0.9rem; }
+    .task-panel { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .task-title { margin: 8px 0 4px; font-size: 1.05rem; }
+    .task-note { margin-bottom: 10px; color: var(--muted); font-size: 0.78rem; }
+    .task-filter-label { display: block; margin: 4px 0 5px; color: var(--muted); font-size: 0.76rem; }
+    .task-filter { width: 100%; margin: 0 0 12px; }
+    .task-list { display: grid; gap: 8px; margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.82rem; }
+    .task-list li::marker { color: var(--cyan); }
     .review-panel { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
     .review-panel[hidden] { display: none; }
     .review-status { margin: 10px 0 0; color: var(--muted); font-size: 0.78rem; }
@@ -126,6 +133,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     .source-note { margin-top: 28px; color: var(--muted); font-size: 0.82rem; }
     .source-note code { color: var(--cyan); }
     .footer-row { margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8rem; }
+    @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .chart-layout { grid-template-columns: 1fr; } }
     @media (max-width: 620px) { .shell { width: min(100% - 26px, 1240px); } .hero { padding-top: 48px; } .kpi-grid, .meaning-grid { grid-template-columns: 1fr; } .panel { padding: 17px; } .chart-svg { min-height: 330px; } }
     @media (prefers-reduced-motion: reduce) { .bubble { transition: none; } }
@@ -149,6 +157,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">occupations with an exposure value</span></article>
       <article class="kpi"><span class="label">Employment-weighted exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">larger occupations count more</span></article>
       <article class="kpi"><span class="label">Wage coverage</span><strong class="kpi-value" id="kpi-wage">Not available</strong><span class="kpi-context">occupations with a wage estimate</span></article>
+      <article class="kpi"><span class="label">Task coverage</span><strong class="kpi-value" id="kpi-tasks">Not available</strong><span class="kpi-context">occupations with task examples</span></article>
     </section>
     <section class="section">
       <div class="section-head">
@@ -191,6 +200,14 @@ HTML_TEMPLATE = r"""<!doctype html>
               <div class="detail-row"><span class="muted">Projected change</span><strong id="detail-growth">—</strong></div>
             </div>
             <p class="interpretation" id="detail-interpretation">Select an occupation to see a plain-language interpretation.</p>
+            <div class="task-panel">
+              <span class="eyebrow">Work examples</span>
+              <h3 class="task-title">What this occupation does</h3>
+              <p class="task-note" id="task-note">Select an occupation to see example task statements.</p>
+              <label class="task-filter-label" for="task-filter">Filter task statements</label>
+              <input class="task-filter" id="task-filter" type="search" placeholder="e.g. analyze or coordinate" />
+              <ul class="task-list" id="task-list"></ul>
+            </div>
             <div class="review-panel">
               <button id="deep-review-button" type="button" disabled>Review this mapping</button>
               <p class="review-status" id="deep-review-status">Optional review available when enabled.</p>
@@ -219,6 +236,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     (function () {
       const payload = JSON.parse(document.getElementById("atlas-data").textContent);
       const rows = payload.rows || [];
+      const tasksByOnet = payload.tasks_by_onet || {};
       const summary = payload.summary || {};
       const chart = document.getElementById("atlas-chart");
       const grid = document.getElementById("grid");
@@ -232,6 +250,9 @@ HTML_TEMPLATE = r"""<!doctype html>
       const deepReviewResult = document.getElementById("deep-review-result");
       const deepReviewSummary = document.getElementById("deep-review-summary");
       const deepReviewEvidence = document.getElementById("deep-review-evidence");
+      const taskNote = document.getElementById("task-note");
+      const taskFilter = document.getElementById("task-filter");
+      const taskList = document.getElementById("task-list");
       const llmEnabled = __LLM_ENABLED__;
       const yAxisTitle = document.getElementById("y-axis-title");
       const selected = { index: 0 };
@@ -255,6 +276,28 @@ HTML_TEMPLATE = r"""<!doctype html>
         return node;
       };
       const setText = function (id, value) { document.getElementById(id).textContent = value; };
+      const renderTasks = function (occupation) {
+        taskList.innerHTML = "";
+        const tasks = tasksByOnet[occupation.onet_soc_code] || [];
+        const query = taskFilter.value.trim().toLowerCase();
+        const filteredTasks = query
+          ? tasks.filter(function (task) { return task.task_statement.toLowerCase().includes(query); })
+          : tasks;
+        if (!tasks.length) {
+          taskNote.textContent = "No task statements are available for this occupation in the selected source release.";
+          return;
+        }
+        if (!filteredTasks.length) {
+          taskNote.textContent = "No task statements match this filter.";
+          return;
+        }
+        taskNote.textContent = filteredTasks.length + " matching source task statements; showing the first four examples.";
+        filteredTasks.slice(0, 4).forEach(function (task) {
+          const item = document.createElement("li");
+          item.textContent = task.task_statement;
+          taskList.appendChild(item);
+        });
+      };
       const htmlNode = function (tag, className, text) {
         const node = document.createElement(tag);
         if (className) node.className = className;
@@ -292,6 +335,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         setText("kpi-exposure", ((Number(summary.exposure_coverage || 0)) * 100).toFixed(1) + "%");
         setText("kpi-weighted", numeric(summary.employment_weighted_exposure) == null ? "Not available" : Number(summary.employment_weighted_exposure).toFixed(2));
         setText("kpi-wage", ((Number(summary.wage_coverage || 0)) * 100).toFixed(1) + "%");
+        setText("kpi-tasks", ((Number(summary.task_occupation_coverage || 0)) * 100).toFixed(1) + "%");
       }
       function draw() {
         const currentMetric = metric[metricSelect.value];
@@ -348,6 +392,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         setText("detail-employment", workers(numeric(selectedRow.employment_2024)));
         setText("detail-growth", percent(numeric(selectedRow.employment_change_2024_2034_pct)));
         setText("detail-interpretation", selectedRow.title ? currentMetric.note : "Select an occupation to see a plain-language interpretation.");
+        renderTasks(selectedRow);
         deepReviewButton.disabled = !llmEnabled || !selectedRow.title;
         deepReviewResult.hidden = true;
         deepReviewSummary.textContent = "";
@@ -355,8 +400,9 @@ HTML_TEMPLATE = r"""<!doctype html>
       }
       metricSelect.addEventListener("change", draw);
       search.addEventListener("input", draw);
+      taskFilter.addEventListener("input", function () { renderTasks(rows[selected.index]); });
       deepReviewButton.addEventListener("click", deepReview);
-      reset.addEventListener("click", function () { search.value = ""; metricSelect.value = "wage"; selected.index = 0; draw(); });
+      reset.addEventListener("click", function () { search.value = ""; taskFilter.value = ""; metricSelect.value = "wage"; selected.index = 0; draw(); });
       if (llmEnabled) deepReviewStatus.textContent = "Optional review available.";
       updateKpis(); draw();
     }());
@@ -370,10 +416,14 @@ def render(
     rows: list[dict[str, str]],
     summary: dict[str, object],
     groups: list[dict[str, object]],
+    tasks: list[dict[str, str]] | None = None,
 ) -> str:
     del groups
+    tasks_by_onet: dict[str, list[dict[str, str]]] = {}
+    for task in tasks or []:
+        tasks_by_onet.setdefault(task.get("onet_soc_code", ""), []).append(task)
     payload = json.dumps(
-        {"rows": rows, "summary": summary},
+        {"rows": rows, "summary": summary, "tasks_by_onet": tasks_by_onet},
         ensure_ascii=False,
         separators=(",", ":"),
     ).replace("<", "\\u003c")
@@ -387,8 +437,9 @@ def write_site(
     rows: list[dict[str, str]],
     summary: dict[str, object],
     groups: list[dict[str, object]],
+    tasks: list[dict[str, str]] | None = None,
 ) -> Path:
     site_dir.mkdir(parents=True, exist_ok=True)
     index = site_dir / "index.html"
-    index.write_text(render(rows, summary, groups), encoding="utf-8")
+    index.write_text(render(rows, summary, groups, tasks), encoding="utf-8")
     return index

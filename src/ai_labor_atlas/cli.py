@@ -11,7 +11,7 @@ from .dashboard import write_site
 from .demo import write_demo
 from .io import read_csv, write_json
 from .llm_review import LLMNotConfiguredError, LLMReviewClient, LLMReviewError
-from .metrics import group_by_major_soc, rank_rows, summarize
+from .metrics import group_by_major_soc, rank_rows, summarize, summarize_tasks
 from .pipeline import build_dataset
 from .sources import download_registered_sources
 
@@ -60,9 +60,13 @@ def main(argv: list[str] | None = None) -> int:
         print("No processed dataset found. Run: atlas build --demo", file=sys.stderr)
         return 2
     rows = read_csv(path)
+    tasks_path = processed_dir / "tasks.csv"
+    tasks = read_csv(tasks_path) if tasks_path.exists() else []
     if args.command == "analyze":
+        summary = summarize(rows)
+        summary.update(summarize_tasks(rows, tasks))
         result = {
-            "summary": summarize(rows),
+            "summary": summary,
             "groups": group_by_major_soc(rows),
             "top": rank_rows(rows)[: args.top],
         }
@@ -81,7 +85,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "serve":
         site_dir = ROOT / "site"
-        write_site(site_dir, rows, summarize(rows), group_by_major_soc(rows))
+        summary = summarize(rows)
+        summary.update(summarize_tasks(rows, tasks))
+        write_site(site_dir, rows, summary, group_by_major_soc(rows), tasks)
 
         class AtlasHandler(SimpleHTTPRequestHandler):
             def __init__(self, *handler_args, **handler_kwargs):

@@ -5,9 +5,15 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from ai_labor_atlas.demo import FIELDS, demo_rows
-from ai_labor_atlas.metrics import group_by_major_soc, summarize
-from ai_labor_atlas.pipeline import _load_oews, _load_projections, build_dataset
+from ai_labor_atlas.dashboard import render
+from ai_labor_atlas.demo import TASK_FIELDS, FIELDS, demo_rows, demo_tasks
+from ai_labor_atlas.metrics import group_by_major_soc, summarize, summarize_tasks
+from ai_labor_atlas.pipeline import (
+    _load_oews,
+    _load_projections,
+    _load_tasks,
+    build_dataset,
+)
 
 try:
     from openpyxl import Workbook
@@ -26,15 +32,72 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(result["rows"], 8)
         self.assertGreater(result["exposure_coverage"], 0.99)
 
+        tasks = demo_tasks()
+        self.assertEqual(set(tasks[0]), set(TASK_FIELDS))
+        task_summary = summarize_tasks(
+            [{key: str(value) for key, value in row.items()} for row in rows],
+            [{key: str(value) for key, value in row.items()} for row in tasks],
+        )
+        self.assertEqual(task_summary["task_rows"], 16)
+        self.assertEqual(task_summary["task_occupation_coverage"], 1.0)
+
     def test_demo_build_is_deterministic(self):
         with tempfile.TemporaryDirectory() as temp:
             processed = Path(temp) / "processed"
             manifest = build_dataset(Path(temp) / "raw", processed, demo=True)
             self.assertEqual(manifest["row_count"], 8)
+            self.assertEqual(manifest["task_row_count"], 16)
             with (processed / "occupations.csv").open(
                 newline="", encoding="utf-8"
             ) as handle:
                 self.assertEqual(len(list(csv.DictReader(handle))), 8)
+            with (processed / "tasks.csv").open(newline="", encoding="utf-8") as handle:
+                self.assertEqual(len(list(csv.DictReader(handle))), 16)
+
+    def test_task_statements_are_loaded_with_provenance(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "Task Statements.txt").write_text(
+                "\t".join(
+                    [
+                        "O*NET-SOC Code",
+                        "Task ID",
+                        "Task",
+                        "Task Type",
+                        "Incumbents Responding",
+                        "Date",
+                        "Domain Source",
+                    ]
+                )
+                + "\n"
+                + "\t".join(
+                    [
+                        "15-1252.00",
+                        "8823",
+                        "Build software systems.",
+                        "Core",
+                        "95",
+                        "08/2023",
+                        "Incumbent",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            tasks = _load_tasks(root)
+            self.assertEqual(len(tasks), 1)
+            self.assertEqual(tasks[0]["task_id"], "8823")
+            self.assertEqual(tasks[0]["source_file"], "Task Statements.txt")
+
+    def test_dashboard_includes_task_filter_and_task_payload(self):
+        rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
+        tasks = [
+            {key: str(value) for key, value in row.items()} for row in demo_tasks()
+        ]
+        page = render(rows, summarize(rows), [], tasks)
+        self.assertIn('id="task-filter"', page)
+        self.assertIn("tasks_by_onet", page)
+        self.assertIn("Design, develop, and test software applications.", page)
 
     def test_grouping(self):
         rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]

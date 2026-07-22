@@ -9,7 +9,7 @@ from pathlib import Path
 from .io import read_json, sha256, write_json
 
 
-USER_AGENT = "ai-labor-atlas/0.2.0 (reproducible research; contact via GitHub issues)"
+USER_AGENT = "ai-labor-atlas/0.3.0 (reproducible research; contact via GitHub issues)"
 
 
 def download_file(url: str, destination: Path, retries: int = 3) -> dict[str, object]:

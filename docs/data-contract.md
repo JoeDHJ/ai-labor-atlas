@@ -31,3 +31,20 @@ Units:
 - `projected_employment_2024_thousands` and `projected_employment_2034_thousands`: thousands of workers from BLS projections.
 - `annual_openings_2024_2034`: workers per year; converted from the BLS table's thousands unit.
 - `median_annual_wage`: U.S. dollars for the stated wage vintage.
+
+The task catalog is stored separately in `tasks.csv`:
+
+```text
+onet_soc_code
+task_id
+task_statement
+task_type
+incumbents_responding
+task_date
+domain_source
+onet_version
+source_file
+task_quality_flags
+```
+
+Task statements describe representative work activities for an occupation. They are not individual job requirements and do not imply that every worker performs every task.

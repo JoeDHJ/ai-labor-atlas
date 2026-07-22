@@ -55,6 +55,25 @@ def summarize(rows: list[dict[str, str]]) -> dict[str, object]:
     }
 
 
+def summarize_tasks(
+    rows: list[dict[str, str]], tasks: list[dict[str, str]]
+) -> dict[str, object]:
+    occupation_codes = {
+        row.get("onet_soc_code", "") for row in rows if row.get("onet_soc_code")
+    }
+    task_codes = {
+        task.get("onet_soc_code", "") for task in tasks if task.get("onet_soc_code")
+    }
+    covered_codes = occupation_codes & task_codes
+    return {
+        "task_rows": len(tasks),
+        "task_occupation_count": len(covered_codes),
+        "task_occupation_coverage": (
+            len(covered_codes) / len(occupation_codes) if occupation_codes else 0.0
+        ),
+    }
+
+
 def group_by_major_soc(rows: list[dict[str, str]]) -> list[dict[str, object]]:
     groups = defaultdict(list)
     for row in rows:
