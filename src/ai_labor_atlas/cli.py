@@ -5,16 +5,19 @@ import json
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlparse
 
 from .dashboard import write_site
 from .demo import write_demo
 from .io import read_csv, write_json
+from .llm_review import LLMNotConfiguredError, LLMReviewClient, LLMReviewError
 from .metrics import group_by_major_soc, rank_rows, summarize
 from .pipeline import build_dataset
 from .sources import download_registered_sources
 
 
 ROOT = Path(__file__).resolve().parents[2]
+LLM_REVIEW_CLIENT = LLMReviewClient()
 
 
 def parser() -> argparse.ArgumentParser:
@@ -80,12 +83,61 @@ def main(argv: list[str] | None = None) -> int:
         site_dir = ROOT / "site"
         write_site(site_dir, rows, summarize(rows), group_by_major_soc(rows))
 
-        def handler(*handler_args, **handler_kwargs):
-            return SimpleHTTPRequestHandler(
-                *handler_args, directory=str(site_dir), **handler_kwargs
-            )
+        class AtlasHandler(SimpleHTTPRequestHandler):
+            def __init__(self, *handler_args, **handler_kwargs):
+                super().__init__(
+                    *handler_args, directory=str(site_dir), **handler_kwargs
+                )
 
-        server = ThreadingHTTPServer(("127.0.0.1", 8765), handler)
+            def _send_json(self, payload: dict[str, object], status: int = 200) -> None:
+                body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+                self.send_response(status)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def do_POST(self) -> None:
+                if urlparse(self.path).path != "/api/deep-review":
+                    self._send_json({"error": "not_found"}, status=404)
+                    return
+                try:
+                    length = int(self.headers.get("Content-Length", "0"))
+                    if length > 80_000:
+                        raise ValueError("request body is too large")
+                    payload = json.loads(self.rfile.read(length).decode("utf-8"))
+                    occupation = payload.get("occupation", {})
+                    candidates = payload.get("candidates", [])
+                    if not isinstance(occupation, dict) or not isinstance(
+                        candidates, list
+                    ):
+                        raise TypeError(
+                            "occupation must be an object and candidates must be a list"
+                        )
+                    result = LLM_REVIEW_CLIENT.review_occupation(
+                        occupation, candidates[:10]
+                    )
+                except LLMNotConfiguredError as exc:
+                    self._send_json(
+                        {"error": "not_configured", "detail": str(exc)}, status=503
+                    )
+                    return
+                except LLMReviewError as exc:
+                    self._send_json(
+                        {"error": "review_failed", "detail": str(exc)}, status=502
+                    )
+                    return
+                except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                    self._send_json(
+                        {"error": "invalid_request", "detail": str(exc)}, status=400
+                    )
+                    return
+                self._send_json(result)
+
+            def log_message(self, format: str, *args: object) -> None:
+                return
+
+        server = ThreadingHTTPServer(("127.0.0.1", 8765), AtlasHandler)
         print("AI Labor Atlas running at http://127.0.0.1:8765")
         try:
             server.serve_forever()

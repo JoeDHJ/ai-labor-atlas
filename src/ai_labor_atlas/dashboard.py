@@ -3,6 +3,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .llm_review import LLMReviewClient
+
+
+LLM_REVIEW_CLIENT = LLMReviewClient()
+
 
 HTML_TEMPLATE = r"""<!doctype html>
 <html lang="en">
@@ -107,6 +112,12 @@ HTML_TEMPLATE = r"""<!doctype html>
     .detail-row { padding-bottom: 9px; border-bottom: 1px solid var(--line); }
     .detail-row strong { font-size: 1.06rem; }
     .interpretation { color: var(--muted); font-size: 0.9rem; }
+    .review-panel { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .review-panel[hidden] { display: none; }
+    .review-status { margin: 10px 0 0; color: var(--muted); font-size: 0.78rem; }
+    .review-summary { margin: 14px 0 0; color: var(--text); font-size: 0.88rem; }
+    .review-evidence { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+    .review-evidence li { padding: 10px 12px; color: var(--muted); background: rgba(85, 214, 194, 0.08); border-left: 2px solid var(--cyan); font-size: 0.8rem; }
     .legend { justify-content: flex-start; margin-top: 10px; color: var(--muted); font-size: 0.8rem; }
     .legend-dot { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 50%; background: var(--blue); }
     .meaning-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -180,6 +191,14 @@ HTML_TEMPLATE = r"""<!doctype html>
               <div class="detail-row"><span class="muted">Projected change</span><strong id="detail-growth">—</strong></div>
             </div>
             <p class="interpretation" id="detail-interpretation">Select an occupation to see a plain-language interpretation.</p>
+            <div class="review-panel">
+              <button id="deep-review-button" type="button" disabled>Review this mapping</button>
+              <p class="review-status" id="deep-review-status">Optional review available when enabled.</p>
+              <div id="deep-review-result" hidden>
+                <p class="review-summary" id="deep-review-summary"></p>
+                <ul class="review-evidence" id="deep-review-evidence"></ul>
+              </div>
+            </div>
           </aside>
         </div>
       </div>
@@ -208,6 +227,12 @@ HTML_TEMPLATE = r"""<!doctype html>
       const metricSelect = document.getElementById("metric-select");
       const search = document.getElementById("occupation-search");
       const reset = document.getElementById("reset-view");
+      const deepReviewButton = document.getElementById("deep-review-button");
+      const deepReviewStatus = document.getElementById("deep-review-status");
+      const deepReviewResult = document.getElementById("deep-review-result");
+      const deepReviewSummary = document.getElementById("deep-review-summary");
+      const deepReviewEvidence = document.getElementById("deep-review-evidence");
+      const llmEnabled = __LLM_ENABLED__;
       const yAxisTitle = document.getElementById("y-axis-title");
       const selected = { index: 0 };
       const ns = "http://www.w3.org/2000/svg";
@@ -230,6 +255,32 @@ HTML_TEMPLATE = r"""<!doctype html>
         return node;
       };
       const setText = function (id, value) { document.getElementById(id).textContent = value; };
+      const htmlNode = function (tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text != null) node.textContent = text;
+        return node;
+      };
+      function renderDeepReview(review) {
+        deepReviewResult.hidden = false;
+        deepReviewSummary.textContent = (review.decision || "review") + " · " + Math.round(Number(review.confidence || 0) * 100) + "% confidence. " + (review.rationale || "No rationale supplied.");
+        deepReviewEvidence.innerHTML = "";
+        (review.evidence || []).forEach(function (item) { deepReviewEvidence.appendChild(htmlNode("li", "", item)); });
+      }
+      async function deepReview() {
+        const selectedRow = rows[selected.index] || {};
+        if (!selectedRow.title) { deepReviewStatus.textContent = "Select an occupation before requesting a review."; return; }
+        deepReviewButton.disabled = true;
+        deepReviewStatus.textContent = "Reviewing the supplied occupation evidence…";
+        try {
+          const response = await fetch("/api/deep-review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ occupation: selectedRow, candidates: [selectedRow] }) });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.detail || "review unavailable");
+          renderDeepReview(payload);
+          deepReviewStatus.textContent = "Review complete. Treat review flags as prompts for verification.";
+        } catch (error) { deepReviewStatus.textContent = "Review unavailable. The descriptive result remains available."; }
+        finally { deepReviewButton.disabled = !llmEnabled; }
+      }
       const filteredRows = function () {
         const query = search.value.trim().toLowerCase();
         return rows.map(function (row, index) { return { row: row, index: index }; }).filter(function (item) {
@@ -297,10 +348,16 @@ HTML_TEMPLATE = r"""<!doctype html>
         setText("detail-employment", workers(numeric(selectedRow.employment_2024)));
         setText("detail-growth", percent(numeric(selectedRow.employment_change_2024_2034_pct)));
         setText("detail-interpretation", selectedRow.title ? currentMetric.note : "Select an occupation to see a plain-language interpretation.");
+        deepReviewButton.disabled = !llmEnabled || !selectedRow.title;
+        deepReviewResult.hidden = true;
+        deepReviewSummary.textContent = "";
+        deepReviewEvidence.innerHTML = "";
       }
       metricSelect.addEventListener("change", draw);
       search.addEventListener("input", draw);
+      deepReviewButton.addEventListener("click", deepReview);
       reset.addEventListener("click", function () { search.value = ""; metricSelect.value = "wage"; selected.index = 0; draw(); });
+      if (llmEnabled) deepReviewStatus.textContent = "Optional review available.";
       updateKpis(); draw();
     }());
   </script>
@@ -320,7 +377,9 @@ def render(
         ensure_ascii=False,
         separators=(",", ":"),
     ).replace("<", "\\u003c")
-    return HTML_TEMPLATE.replace("__ATLAS_DATA__", payload)
+    return HTML_TEMPLATE.replace("__ATLAS_DATA__", payload).replace(
+        "__LLM_ENABLED__", json.dumps(LLM_REVIEW_CLIENT.config.enabled)
+    )
 
 
 def write_site(

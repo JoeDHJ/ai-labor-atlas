@@ -26,6 +26,19 @@ The dashboard connects occupational tasks, AI exposure, wages, employment, and p
 
 The dashboard compares AI exposure with wages, projected employment growth, annual openings, and employment scale. Exposure is a task-applicability indicator—not a probability of job loss—so the page explains the economic meaning and limits of each measure alongside the chart.
 
+### Optional semantic review
+
+The dashboard can send one selected occupation and its deterministic mapping to an OpenAI-compatible chat-completions endpoint for a second, text-based review. The review is advisory: it cannot change the dataset, exposure values, SOC codes, or summary measures. Leave the variables unset to keep the dashboard fully local and rule-based.
+
+```powershell
+$env:AI_LABOR_ATLAS_LLM_API_KEY = "your-key"
+$env:AI_LABOR_ATLAS_LLM_BASE_URL = "https://api.openai.com/v1"
+$env:AI_LABOR_ATLAS_LLM_MODEL = "your-model"
+atlas serve
+```
+
+Candidate evidence is sent only when the review button is used. A local OpenAI-compatible endpoint may be used without an API key.
+
 ## Data sources and vintages
 
 | Layer | Source | Version/vintage | Use |
