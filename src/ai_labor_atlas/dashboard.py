@@ -119,6 +119,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     .task-filter { width: 100%; margin: 0 0 12px; }
     .task-list { display: grid; gap: 8px; margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.82rem; }
     .task-list li::marker { color: var(--cyan); }
+    .task-caveat { margin: 13px 0 0; color: var(--muted); font-size: 0.74rem; }
     .review-panel { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
     .review-panel[hidden] { display: none; }
     .review-status { margin: 10px 0 0; color: var(--muted); font-size: 0.78rem; }
@@ -207,6 +208,7 @@ HTML_TEMPLATE = r"""<!doctype html>
               <label class="task-filter-label" for="task-filter">Filter task statements</label>
               <input class="task-filter" id="task-filter" type="search" placeholder="e.g. analyze or coordinate" />
               <ul class="task-list" id="task-list"></ul>
+              <p class="task-caveat">Source: O*NET 30.3. These are representative work activities, not individual job requirements.</p>
             </div>
             <div class="review-panel">
               <button id="deep-review-button" type="button" disabled>Review this mapping</button>
@@ -291,7 +293,7 @@ HTML_TEMPLATE = r"""<!doctype html>
           taskNote.textContent = "No task statements match this filter.";
           return;
         }
-        taskNote.textContent = filteredTasks.length + " matching source task statements; showing the first four examples.";
+        taskNote.textContent = (query ? filteredTasks.length + " matching" : tasks.length) + " source task statements; showing the first four examples.";
         filteredTasks.slice(0, 4).forEach(function (task) {
           const item = document.createElement("li");
           item.textContent = task.task_statement;
