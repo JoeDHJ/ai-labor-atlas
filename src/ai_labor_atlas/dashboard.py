@@ -185,7 +185,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       </div>
     </section>
     <section class="section">
-      <div class="section-head"><div><span class="eyebrow">Economic meaning</span><h2>What the numbers can — and cannot — say</h2></div></div>
+      <div class="section-head"><div><span class="eyebrow">Economic meaning</span><h2>What the numbers can and cannot say</h2></div></div>
       <div class="meaning-grid">
         <article class="meaning"><h3>AI exposure ≠ job loss</h3><p>The exposure field measures overlap between occupational tasks and AI capabilities. It is an applicability signal, not a probability of displacement.</p></article>
         <article class="meaning"><h3>Wage is a level</h3><p>A wage comparison describes where occupations sit in the labor market. It does not show that AI exposure causes a wage difference.</p></article>
