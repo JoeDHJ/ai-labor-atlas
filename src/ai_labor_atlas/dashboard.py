@@ -353,6 +353,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         const y = function (value) { return 350 - ((value - yMin) / (yMax - yMin)) * 286; };
         const employmentValues = rows.map(function (row) { return numeric(row.employment_2024) || 0; });
         const maxEmployment = Math.max.apply(null, employmentValues.length ? employmentValues : [1]);
+        const showLabels = visible.length <= 24;
         grid.innerHTML = "";
         const ticks = 5;
         for (let i = 0; i <= ticks; i += 1) {
@@ -376,11 +377,16 @@ HTML_TEMPLATE = r"""<!doctype html>
             r: 7 + Math.sqrt((numeric(row.employment_2024) || 0) / maxEmployment) * 24,
             "aria-label": String(row.title || "Occupation")
           });
+          const bubbleTitle = document.createElement("title");
+          bubbleTitle.textContent = String(row.title || "Occupation");
+          circle.appendChild(bubbleTitle);
           circle.addEventListener("click", function () { selected.index = item.index; draw(); });
           marks.appendChild(circle);
-          const label = String(row.title || "").replace(" and ", " & ");
-          const text = make("text", { class: "bubble-label", x: x(exposure) + 9, y: y(outcome) + 4 }, label);
-          labels.appendChild(text);
+          if (showLabels || item.index === selected.index) {
+            const label = String(row.title || "").replace(" and ", " & ");
+            const text = make("text", { class: "bubble-label", x: x(exposure) + 9, y: y(outcome) + 4 }, label);
+            labels.appendChild(text);
+          }
         });
         yAxisTitle.textContent = currentMetric.axis;
         const selectedRow = rows[selected.index] || {};
