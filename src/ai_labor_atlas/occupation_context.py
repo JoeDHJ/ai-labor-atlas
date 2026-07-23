@@ -281,3 +281,87 @@ def suggest_occupations(
             "comments; an empty list means the title evidence is not strong enough."
         ),
     }
+
+
+def build_market_context(
+    occupation: dict[str, Any],
+    tasks: list[dict[str, Any]],
+    bridge: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Expose a small, provenance-preserving market snapshot for consumers."""
+
+    code = str(occupation.get("onet_soc_code", ""))
+    task_rows = [
+        {
+            "task_statement": str(row.get("task_statement", "")),
+            "task_type": str(row.get("task_type", "")),
+            "task_date": str(row.get("task_date", "")),
+        }
+        for row in tasks
+        if str(row.get("onet_soc_code", "")) == code
+        and str(row.get("task_statement", "")).strip()
+    ][:5]
+    alternatives = []
+    bridge_candidates = bridge.get("candidates", []) if isinstance(bridge, dict) else []
+    for candidate in bridge_candidates[:5]:
+        if not isinstance(candidate, dict):
+            continue
+        candidate_occupation = candidate.get("occupation")
+        if not isinstance(candidate_occupation, dict):
+            candidate_occupation = {}
+        candidate_code = str(
+            candidate.get("onet_soc_code") or candidate_occupation.get("onet_soc_code", "")
+        ).strip()
+        candidate_title = str(
+            candidate.get("title") or candidate_occupation.get("title", "")
+        ).strip()
+        if not candidate_code or not candidate_title:
+            continue
+        alternatives.append(
+            {
+                "onet_soc_code": candidate_code,
+                "title": candidate_title,
+                "structured_similarity": candidate.get("structured_similarity"),
+                "software_overlap": candidate.get("software_overlap"),
+                "task_similarity": candidate.get("task_similarity"),
+                "confidence": candidate.get("confidence"),
+                "labor_market": {
+                    "median_annual_wage": candidate_occupation.get("median_annual_wage"),
+                    "annual_openings_2024_2034": candidate_occupation.get(
+                        "annual_openings_2024_2034"
+                    ),
+                    "employment_change_2024_2034_pct": candidate_occupation.get(
+                        "employment_change_2024_2034_pct"
+                    ),
+                },
+                "training_hint": candidate.get("training_hint", ""),
+            }
+        )
+    return {
+        "schema_version": "market_context.v0.1",
+        "occupation_code": code,
+        "title": occupation.get("title", ""),
+        "metrics": {
+            "median_annual_wage": occupation.get("median_annual_wage"),
+            "employment_2024": occupation.get("employment_2024"),
+            "annual_openings_2024_2034": occupation.get("annual_openings_2024_2034"),
+            "employment_change_2024_2034_pct": occupation.get(
+                "employment_change_2024_2034_pct"
+            ),
+            "ai_exposure": occupation.get("ai_exposure"),
+        },
+        "provenance": {
+            "onet_version": occupation.get("onet_version"),
+            "wage_vintage": occupation.get("wage_vintage"),
+            "projection_vintage": occupation.get("projection_vintage"),
+            "ai_exposure_source": occupation.get("ai_exposure_source"),
+            "crosswalk_method": occupation.get("crosswalk_method"),
+            "data_quality_flags": occupation.get("data_quality_flags", ""),
+        },
+        "representative_tasks": task_rows,
+        "adjacent_occupations": alternatives,
+        "interpretation": (
+            "These are descriptive market and task signals. AI exposure is not a job-loss probability, "
+            "wage differences are not causal, and adjacent occupations are not personal recommendations."
+        ),
+    }

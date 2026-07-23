@@ -418,10 +418,11 @@ class OccupationBridge:
                 str(item["occupation"]["title"]).casefold(),
             )
         )
+        safe_limit = max(0, min(int(limit), 12))
         result = {
             "available": True,
             "source": _snapshot(source_row, self.profile_source.get(source_code, "")),
-            "candidates": scored[: max(1, min(limit, 12))],
+            "candidates": scored[:safe_limit],
             "candidate_count": len(scored),
             "method": {
                 "primary": "Weighted normalized distance across O*NET Essential Skills, Transferable Skills, Knowledge, Abilities, and Work Activities importance ratings.",

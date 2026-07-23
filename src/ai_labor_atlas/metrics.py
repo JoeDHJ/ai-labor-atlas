@@ -40,8 +40,31 @@ def summarize(rows: list[dict[str, str]]) -> dict[str, object]:
     exposures = [value for value in exposures if value is not None]
     wages = [number(row.get("median_annual_wage")) for row in rows]
     wages = [value for value in wages if value is not None]
+    onet_codes = {
+        str(row.get("onet_soc_code", "")).strip()
+        for row in rows
+        if str(row.get("onet_soc_code", "")).strip()
+    }
+    soc_codes = {
+        str(row.get("soc_2018_code", "")).strip()
+        for row in rows
+        if str(row.get("soc_2018_code", "")).strip()
+    }
+    onet_row_counts = defaultdict(int)
+    for row in rows:
+        code = str(row.get("onet_soc_code", "")).strip()
+        if code:
+            onet_row_counts[code] += 1
     return {
         "rows": len(rows),
+        "unique_onet_occupation_count": len(onet_codes),
+        "unique_soc_count": len(soc_codes),
+        "crosswalk_expanded_row_count": sum(
+            count for count in onet_row_counts.values() if count > 1
+        ),
+        "crosswalk_expanded_onet_count": sum(
+            1 for count in onet_row_counts.values() if count > 1
+        ),
         "exposure_coverage": coverage(rows, "ai_exposure"),
         "wage_coverage": coverage(rows, "median_annual_wage"),
         "employment_coverage": coverage(rows, "employment_2024"),

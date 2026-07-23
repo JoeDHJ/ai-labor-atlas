@@ -73,3 +73,9 @@ The review object uses schema `occupation_reviews.v0.1` and contains `review_id`
 Reviews are user-generated and may be incomplete, subjective, outdated, or biased. They are not verified facts or representative of all workers. Source links and dates are shown where available. Reviews are contextual comments, not a measurement input, and do not change Atlas indicators or Career Fit scores.
 
 The release check `atlas validate-reviews --input <path>` returns a JSON import report with `valid`, `row_count`, `normalized_row_count`, `invalid_row_count`, `duplicate_review_ids`, `occupation_codes`, `source_counts`, `topic_counts`, and field-level `errors`. The report never prints review excerpts. A file is ready for the dashboard only when `valid` is `true`.
+
+## Market context response
+
+`GET /api/occupation-context?source=<O*NET-SOC code>` also returns `market_context.v0.1`. It keeps the selected occupation's `metrics`, `provenance`, `representative_tasks`, and `adjacent_occupations` separate from worker comments. The metrics are descriptive snapshots; AI exposure is not a job-loss probability, wage levels are not causal effects, and adjacent occupations are not personal recommendations. The provenance fields preserve O*NET, wage, projection, exposure, and crosswalk vintages for downstream consumers.
+
+The release summary reports `rows`, `unique_onet_occupation_count`, `unique_soc_count`, `crosswalk_expanded_row_count`, and `crosswalk_expanded_onet_count`. Coverage and means remain row-based so the expanded mapping unit is explicit; consumers should not describe `rows` as a count of independent occupations.
