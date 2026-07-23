@@ -77,6 +77,8 @@ The dashboard remains fail-closed: a file that does not pass this check is not p
 
 Career Fit can connect to this context through the Atlas server. Set `CAREER_FIT_ATLAS_URL=http://127.0.0.1:8765` before starting Career Fit, then confirm the closest standard occupation in its optional occupation-context panel. Title suggestions are deliberately non-binding because a job title can map to several occupations.
 
+Occupation suggestions use normalized title phrases and compatible role terms. If the supplied title is too broad or does not map cleanly to an Atlas title, the explorer returns no suggestion and asks the user to try a more specific title. This favors a transparent empty result over a plausible but misleading occupation.
+
 The research rationale and application boundaries are summarized in [the literature-to-product map](docs/literature-map.md).
 
 ## What the numbers mean

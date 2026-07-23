@@ -281,6 +281,28 @@ class AtlasTests(unittest.TestCase):
         self.assertTrue(result["requires_confirmation"])
         self.assertTrue(result["candidates"][0]["requires_confirmation"])
 
+    def test_occupation_suggestions_reject_generic_or_incompatible_title_overlap(self):
+        rows = [
+            {key: str(value) for key, value in row.items()}
+            for row in demo_rows()
+        ]
+        analyst = suggest_occupations(rows, "Data Analyst")
+        self.assertEqual(analyst["candidates"], [])
+        product = suggest_occupations(rows, "Product Manager")
+        self.assertNotIn(
+            "Demonstrators and Product Promoters",
+            {item["title"] for item in product["candidates"]},
+        )
+        machine_learning = suggest_occupations(rows, "Machine Learning Engineer")
+        self.assertEqual(machine_learning["candidates"], [])
+
+    def test_occupation_suggestions_normalize_plural_title_phrases(self):
+        rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
+        result = suggest_occupations(rows, "Software Developer")
+        self.assertEqual(result["candidates"][0]["title"], "Software Developers")
+        self.assertEqual(result["candidates"][0]["match_score"], 1.0)
+        self.assertEqual(result["candidates"][0]["basis"], ["title_phrase_match"])
+
     def test_review_summary_exposes_source_and_topic_labels(self):
         context = summarize_reviews([], "15-2051.00")
         self.assertEqual(context["source_labels"]["reddit"], "Reddit")
