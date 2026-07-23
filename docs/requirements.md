@@ -15,6 +15,7 @@ Provide an auditable public tool for exploring how occupational AI exposure indi
 7. Provide a descriptive Career bridge that ranks adjacent occupations using structured O*NET profile distance.
 8. Expose software overlap, shared task evidence, profile provenance, labor-market context, and a training hint separately.
 9. Mark family-average fallbacks and unavailable structured profiles explicitly.
+10. Run a repeatable 50-case by 10-variant release audit covering measurement, crosswalks, occupation mapping, public review validation, and dashboard provenance disclosure; publish the result with the release evidence.
 
 ## Non-goals for 0.1
 

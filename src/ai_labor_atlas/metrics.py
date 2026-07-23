@@ -14,12 +14,26 @@ _AGGREGATED_NUMERIC_FIELDS = (
     "annual_openings_2024_2034",
     "median_annual_wage",
 )
+_NON_NEGATIVE_NUMERIC_FIELDS = frozenset(
+    {
+        "ai_exposure",
+        "employment_2024",
+        "projected_employment_2024_thousands",
+        "projected_employment_2034_thousands",
+        "annual_openings_2024_2034",
+        "median_annual_wage",
+    }
+)
 
 
-def number(value):
+def number(value, field: str | None = None):
     try:
         parsed = float(value) if value not in (None, "") else None
-        return parsed if parsed is None or math.isfinite(parsed) else None
+        if parsed is None or not math.isfinite(parsed):
+            return None
+        if field in _NON_NEGATIVE_NUMERIC_FIELDS and parsed < 0:
+            return None
+        return parsed
     except (TypeError, ValueError):
         return None
 
@@ -36,14 +50,18 @@ def _is_nonfinite(value) -> bool:
 def coverage(rows: list[dict[str, str]], field: str) -> float:
     if not rows:
         return 0.0
-    return sum(number(row.get(field)) is not None for row in rows) / len(rows)
+    return sum(number(row.get(field), field) is not None for row in rows) / len(rows)
 
 
 def _weighted_mean(
     rows: list[dict[str, str]], value_field: str, weight_field: str
 ) -> float | None:
     pairs = [
-        (number(row.get(value_field)), number(row.get(weight_field))) for row in rows
+        (
+            number(row.get(value_field), value_field),
+            number(row.get(weight_field), weight_field),
+        )
+        for row in rows
     ]
     pairs = [
         (value, weight)
@@ -113,9 +131,9 @@ def aggregate_onet_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
 
         for field in _AGGREGATED_NUMERIC_FIELDS:
             pairs = [
-                (number(member.get(field)), weight)
+                (number(member.get(field), field), weight)
                 for member, weight in zip(members, raw_weights)
-                if number(member.get(field)) is not None
+                if number(member.get(field), field) is not None
             ]
             if pairs:
                 pair_weight = sum(weight for _, weight in pairs)
@@ -197,9 +215,9 @@ def aggregate_soc_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
             flags.add("shared_soc_crosswalk")
         for field in _AGGREGATED_NUMERIC_FIELDS:
             values = [
-                number(member.get(field))
+                number(member.get(field), field)
                 for member in members
-                if number(member.get(field)) is not None
+                if number(member.get(field), field) is not None
             ]
             if values:
                 base[field] = mean(values)
@@ -228,9 +246,12 @@ def summarize(rows: list[dict[str, str]]) -> dict[str, object]:
     mapped_soc_rows = [
         row for row in soc_rows if str(row.get("soc_2018_code", "")).strip()
     ]
-    exposures = [number(row.get("ai_exposure")) for row in aggregated_rows]
+    exposures = [number(row.get("ai_exposure"), "ai_exposure") for row in aggregated_rows]
     exposures = [value for value in exposures if value is not None]
-    wages = [number(row.get("median_annual_wage")) for row in aggregated_rows]
+    wages = [
+        number(row.get("median_annual_wage"), "median_annual_wage")
+        for row in aggregated_rows
+    ]
     wages = [value for value in wages if value is not None]
     onet_codes = {
         str(row.get("onet_soc_code", "")).strip()
@@ -327,8 +348,8 @@ def rank_rows(
     return sorted(
         aggregate_onet_rows(rows),
         key=lambda row: (
-            number(row.get(field))
-            if number(row.get(field)) is not None
+            number(row.get(field), field)
+            if number(row.get(field), field) is not None
             else float("-inf")
         ),
         reverse=True,

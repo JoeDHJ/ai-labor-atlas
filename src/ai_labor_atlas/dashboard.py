@@ -694,6 +694,22 @@ def render(
         if any(str(row.get("data_quality_flags", "")).casefold() == "demo_data" for row in display_rows)
         else ""
     )
+    if not dataset_notice:
+        provenance_fields = (
+            "onet_version",
+            "wage_vintage",
+            "projection_vintage",
+            "crosswalk_method",
+            "ai_exposure_source",
+        )
+        if any(
+            not all(str(row.get(field, "")).strip() for field in provenance_fields)
+            for row in display_rows
+        ):
+            dataset_notice = (
+                "DATA QUALITY NOTICE — provenance is incomplete for one or more records; "
+                "validate source versions before using these values."
+            )
     payload = json.dumps(
         {
             "rows": display_rows,

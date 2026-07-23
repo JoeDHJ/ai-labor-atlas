@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import io
+import math
 import re
 import zipfile
 from pathlib import Path
@@ -24,12 +25,15 @@ def _value(row: dict[str, object], *names: str) -> str:
     return ""
 
 
-def _number(value: object) -> float | None:
+def _number(value: object, *, non_negative: bool = False) -> float | None:
     if value in (None, "", "*", "**", "#", "–", "—"):
         return None
     cleaned = re.sub(r"[^0-9.\-]", "", str(value))
     try:
-        return float(cleaned) if cleaned else None
+        parsed = float(cleaned) if cleaned else None
+        if parsed is None or not math.isfinite(parsed):
+            return None
+        return None if non_negative and parsed < 0 else parsed
     except ValueError:
         return None
 
@@ -208,7 +212,9 @@ def _load_aioe(raw_dir: Path) -> dict[str, float]:
     result = {}
     for row in rows:
         code = _value(row, "soc", "soc_code", "soc 2018 code", "occupation code")
-        score = _number(_value(row, "aioe", "ai exposure", "exposure"))
+        score = _number(
+            _value(row, "aioe", "ai exposure", "exposure"), non_negative=True
+        )
         if code and score is not None:
             result[code] = score
     return result
@@ -271,10 +277,12 @@ def _load_oews(raw_dir: Path) -> dict[str, dict[str, float | None]]:
             continue
         result[code] = {
             "employment_2024": _number(
-                _value(row, "tot emp", "total employment", "employment")
+                _value(row, "tot emp", "total employment", "employment"),
+                non_negative=True,
             ),
             "median_annual_wage": _number(
-                _value(row, "a median", "median annual wage", "annual median wage")
+                _value(row, "a median", "median annual wage", "annual median wage"),
+                non_negative=True,
             ),
         }
     return result
@@ -326,7 +334,8 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
                 row,
                 "Occupational openings, 2024-34 annual average",
                 "occupational openings annual average",
-            )
+            ),
+            non_negative=True,
         )
         code = _value(
             row,
@@ -339,10 +348,12 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
             continue
         result[code] = {
             "projected_employment_2024_thousands": _number(
-                _value(row, "Employment, 2024", "employment 2024")
+                _value(row, "Employment, 2024", "employment 2024"),
+                non_negative=True,
             ),
             "projected_employment_2034_thousands": _number(
-                _value(row, "Employment, 2034", "employment 2034")
+                _value(row, "Employment, 2034", "employment 2034"),
+                non_negative=True,
             ),
             "employment_change_2024_2034_pct": _number(
                 _value(
@@ -361,7 +372,8 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
                     row,
                     "Median annual wage, dollars, 2024",
                     "median annual wage dollars 2024",
-                )
+                ),
+                non_negative=True,
             ),
         }
     return result

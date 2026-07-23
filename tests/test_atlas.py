@@ -205,6 +205,28 @@ class AtlasTests(unittest.TestCase):
         self.assertAlmostEqual(weighted["ai_exposure"], 0.9)
         self.assertEqual(weighted["crosswalk_row_count"], 2)
 
+    def test_negative_market_values_are_excluded_but_negative_change_is_valid(self):
+        result = summarize(
+            [
+                {
+                    "onet_soc_code": "A",
+                    "soc_2018_code": "15-1252",
+                    "ai_exposure": "-0.2",
+                    "employment_2024": "-10",
+                    "median_annual_wage": "-1",
+                    "annual_openings_2024_2034": "-2",
+                    "projected_employment_2024_thousands": "-3",
+                    "projected_employment_2034_thousands": "-4",
+                    "employment_change_2024_2034_pct": "-5",
+                }
+            ]
+        )
+        self.assertEqual(result["exposure_coverage"], 0.0)
+        self.assertEqual(result["wage_coverage"], 0.0)
+        self.assertEqual(result["employment_coverage"], 0.0)
+        self.assertIsNone(result["employment_weighted_exposure"])
+        self.assertEqual(result["employment_weighting_row_count"], 1)
+
     def test_missing_crosswalk_is_explicitly_disclosed(self):
         rows = [{"onet_soc_code": "A", "soc_2018_code": ""}]
         aggregated = aggregate_onet_rows(rows)[0]
@@ -541,6 +563,21 @@ class AtlasTests(unittest.TestCase):
         self.assertIn('id="worker-review-source-filter"', page)
         self.assertIn('id="worker-review-topic-filter"', page)
         self.assertIn(REVIEW_DISCLOSURE, page)
+
+    def test_dashboard_discloses_incomplete_provenance(self):
+        row = {key: str(value) for key, value in demo_rows()[0].items()}
+        for field in (
+            "onet_version",
+            "wage_vintage",
+            "projection_vintage",
+            "crosswalk_method",
+            "ai_exposure_source",
+            "data_quality_flags",
+        ):
+            row[field] = ""
+        page = render([row], summarize([row]), [], [])
+        self.assertIn("DATA QUALITY NOTICE", page)
+        self.assertIn("provenance is incomplete", page)
 
     def test_occupation_suggestions_require_confirmation(self):
         rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]

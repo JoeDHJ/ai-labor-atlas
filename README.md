@@ -83,6 +83,8 @@ For a small set of common nonstandard titles, the versioned [editorial candidate
 
 The research rationale and application boundaries are summarized in [the literature-to-product map](docs/literature-map.md).
 
+The full `50 × 10 = 500` deterministic scenario audit, including data-quality, crosswalk, mapping, public-review, and dashboard checks, is documented in [the full audit report](docs/full-500-scenario-audit.md).
+
 ## What the numbers mean
 
 `ai_exposure` is an exposure/applicability indicator, not a probability of job loss, a risk score, or evidence of causality. Wage and employment projections are joined by SOC code with provenance and coverage fields. Crosswalk-expanded rows are preserved with `crosswalk_weight`; multiple SOC targets are summarized only as disclosed weighted-reference estimates, with mapping quality flags retained. When no source allocation is available, `uniform_crosswalk_fallback` is shown. An unmapped occupation is labeled `missing_crosswalk` rather than being presented as a single-SOC observation. The release-level employment-weighted exposure uses each unique 2018 SOC target once, so shared SOC employment is not double-counted. A registered source hash mismatch is reported as `new_upstream_version_requires_review`; the downloader does not write the unverified payload.

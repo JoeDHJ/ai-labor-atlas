@@ -27,11 +27,13 @@ Missing values remain blank and are accompanied by coverage fields. A blank expo
 
 Units:
 
-- `ai_exposure`: source exposure score; it is not a probability of job loss.
-- `employment_2024`: workers from national OEWS.
-- `projected_employment_2024_thousands` and `projected_employment_2034_thousands`: thousands of workers from BLS projections.
-- `annual_openings_2024_2034`: workers per year; converted from the BLS table's thousands unit.
-- `median_annual_wage`: U.S. dollars for the stated wage vintage.
+- `ai_exposure`: source exposure score; it is not a probability of job loss. Negative values are treated as invalid/missing.
+- `employment_2024`: workers from national OEWS. Negative values are treated as invalid/missing.
+- `projected_employment_2024_thousands` and `projected_employment_2034_thousands`: thousands of workers from BLS projections; negative values are treated as invalid/missing.
+- `annual_openings_2024_2034`: workers per year; converted from the BLS table's thousands unit. Negative values are treated as invalid/missing.
+- `median_annual_wage`: U.S. dollars for the stated wage vintage; negative values are treated as invalid/missing.
+- `employment_change_2024_2034_pct`: negative values remain valid because they represent contraction rather than an invalid level.
+- If a dashboard record lacks a source version, vintage, crosswalk method, or exposure source, the page displays a data-quality notice instead of silently presenting it as fully provenanced data.
 - `crosswalk_weight`: explicit weight for a source O*NET occupation's mapped 2018 SOC rows. When the official crosswalk supplies no allocation, the build uses a uniform weight across that occupation's target SOC rows and records the limitation in `data_quality_flags`.
 
 The raw CSV preserves one row per O*NET-to-SOC mapping. Consumers that need one record per O*NET occupation should use the published aggregation contract: numeric market fields are crosswalk-weighted means, `mapping_status` identifies `multiple_soc_crosswalk`, and `soc_2018_codes` lists all target codes. This is a reference estimate, not a direct SOC observation. When the source crosswalk has several targets but no allocation, every expanded row carries `uniform_crosswalk_fallback`; consumers must disclose that limitation. A shared SOC target across multiple O*NET occupations is flagged as `shared_soc_crosswalk`. An occupation without a usable target carries `missing_crosswalk` and `mapping_status: missing_soc_mapping`; it must not be described as a single-SOC observation. Non-finite crosswalk weights are rejected rather than silently treated as missing.
