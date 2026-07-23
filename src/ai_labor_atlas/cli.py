@@ -10,10 +10,14 @@ from urllib.parse import parse_qs, urlparse
 from .dashboard import write_site
 from .demo import write_demo
 from .distance import OccupationBridge
-from .io import read_csv, write_json
+from .io import read_csv, read_json, write_json
 from .llm_review import LLMNotConfiguredError, LLMReviewClient, LLMReviewError
 from .metrics import group_by_major_soc, rank_rows, summarize, summarize_tasks
-from .occupation_context import suggest_occupations
+from .occupation_context import (
+    load_alias_registry,
+    suggest_occupations,
+    validate_alias_registry,
+)
 from .pipeline import build_dataset
 from .reviews import load_reviews, summarize_reviews, validate_review_file
 from .sources import download_registered_sources
@@ -62,11 +66,15 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     if args.command == "build":
-        if args.demo:
-            write_demo(processed_dir / "occupations.csv")
-            build_dataset(raw_dir, processed_dir, demo=True)
-        else:
-            build_dataset(raw_dir, processed_dir, demo=False)
+        try:
+            if args.demo:
+                write_demo(processed_dir / "occupations.csv")
+                build_dataset(raw_dir, processed_dir, demo=True)
+            else:
+                build_dataset(raw_dir, processed_dir, demo=False)
+        except ValueError as exc:
+            print(f"Build validation error: {exc}", file=sys.stderr)
+            return 2
         print(f"built {processed_dir / 'occupations.csv'}")
         return 0
     if args.command == "validate-reviews":
@@ -105,6 +113,20 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(matches[: args.limit], ensure_ascii=False, indent=2))
         return 0
     if args.command == "serve":
+        manifest_path = processed_dir / "data_manifest.json"
+        try:
+            manifest = read_json(manifest_path) if manifest_path.exists() else {}
+            build_mode = (
+                manifest.get("build", {}).get("mode")
+                if isinstance(manifest, dict)
+                and isinstance(manifest.get("build", {}), dict)
+                else None
+            )
+            if build_mode != "demo":
+                validate_alias_registry(load_alias_registry(), rows)
+        except (TypeError, ValueError) as exc:
+            print(f"Occupation alias release error: {exc}", file=sys.stderr)
+            return 2
         try:
             reviews = load_reviews(processed_dir / "reviews.json")
         except ValueError as exc:

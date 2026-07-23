@@ -4,15 +4,20 @@ import json
 import tempfile
 import unittest
 import zipfile
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from ai_labor_atlas.cli import main as cli_main
 from ai_labor_atlas.dashboard import render
 from ai_labor_atlas.demo import TASK_FIELDS, FIELDS, demo_rows, demo_tasks
 from ai_labor_atlas.distance import OccupationBridge
 from ai_labor_atlas.metrics import group_by_major_soc, summarize, summarize_tasks
-from ai_labor_atlas.occupation_context import load_alias_registry, suggest_occupations
+from ai_labor_atlas.occupation_context import (
+    load_alias_registry,
+    suggest_occupations,
+    validate_alias_registry,
+)
 from ai_labor_atlas.pipeline import (
     _load_oews,
     _load_projections,
@@ -296,6 +301,16 @@ class AtlasTests(unittest.TestCase):
         unregistered_title = suggest_occupations(rows, "Machine Learning Specialist")
         self.assertEqual(unregistered_title["candidates"], [])
 
+    def test_alias_hit_with_partial_release_keeps_confirmation_when_empty(self):
+        rows = [
+            {key: str(value) for key, value in row.items()}
+            for row in demo_rows()
+        ]
+        result = suggest_occupations(rows, "Data Analyst")
+        self.assertEqual(result["mapping_status"], "editorial_candidate_crosswalk")
+        self.assertEqual(result["candidates"], [])
+        self.assertTrue(result["requires_confirmation"])
+
     def test_occupation_suggestions_normalize_plural_title_phrases(self):
         rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
         result = suggest_occupations(rows, "Software Developer")
@@ -337,6 +352,65 @@ class AtlasTests(unittest.TestCase):
             "Biofuels/Biodiesel Technology and Product Development Managers",
             {item["title"] for item in result["candidates"]},
         )
+
+    def test_alias_registry_validates_codes_against_current_release(self):
+        registry = load_alias_registry()
+        rows = [
+            {"onet_soc_code": code}
+            for code in {
+                item["onet_soc_code"]
+                for entry in registry.values()
+                for item in entry["candidates"]
+            }
+        ]
+        report = validate_alias_registry(registry, rows)
+        self.assertTrue(report["valid"])
+        self.assertGreater(report["candidate_code_count"], 0)
+
+        with self.assertRaisesRegex(ValueError, "missing from the current Atlas release"):
+            validate_alias_registry(registry, [{"onet_soc_code": "99-9999.00"}])
+
+    def test_alias_registry_rejects_duplicate_candidate_codes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "aliases.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "entries": [
+                            {
+                                "aliases": ["test analyst"],
+                                "label": "Test analyst",
+                                "note": "Confirm from the job tasks.",
+                                "candidates": [
+                                    {
+                                        "onet_soc_code": "15-2051.00",
+                                        "note": "First possible family.",
+                                    },
+                                    {
+                                        "onet_soc_code": "15-2051.00",
+                                        "note": "Duplicate possible family.",
+                                    },
+                                ],
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "duplicate O\\*NET candidate code"):
+                load_alias_registry(path)
+
+    def test_build_reports_alias_validation_error_without_traceback(self):
+        stderr = io.StringIO()
+        with patch(
+            "ai_labor_atlas.cli.build_dataset",
+            side_effect=ValueError("occupation alias registry validation failed"),
+        ):
+            with redirect_stderr(stderr):
+                code = cli_main(["build"])
+        self.assertEqual(code, 2)
+        self.assertIn("Build validation error", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
 
     def test_review_summary_exposes_source_and_topic_labels(self):
         context = summarize_reviews([], "15-2051.00")

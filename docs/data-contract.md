@@ -62,6 +62,8 @@ The primary distance uses weighted normalized importance ratings from O*NET Esse
 
 The response supports pathway discovery. It does not estimate individual ability, hiring probability, wage causality, or future employment. Title suggestions normalize simple singular and plural forms, require compatible role terms, and require all non-role query terms to appear in the title. The service returns no candidate rather than using a generic token such as `machine`, `manager`, or `analyst` as a standalone match. A small editorial alias registry in `config/occupation_aliases_en.json` can return multiple candidate occupation families for common nonstandard titles. These candidates have `match_score: null`, `mapping_status: candidate_family`, an explicit `mapping_note`, and always require user confirmation.
 
+The full-data build validates every alias candidate code against the current O*NET release before writing the processed release. Serving a non-demo release performs the same fail-closed check. A demo release is intentionally allowed to be partial; an alias can therefore be recognized while returning an empty candidate list, which clients must describe as a data-coverage limitation rather than a failed title match.
+
 ## Worker review context response
 
 The local server exposes `GET /api/reviews?occupation=<O*NET-SOC code>` and `GET /api/occupation-context?source=<O*NET-SOC code>`. The latter combines the selected occupation row with the review context used by Career Fit. A title-only suggestion endpoint is available at `GET /api/occupation-context?query=<text>`; it always returns `requires_confirmation: true`.

@@ -95,6 +95,7 @@ def load_alias_registry(path: Path = _ALIAS_PATH) -> dict[str, dict[str, Any]]:
         ):
             raise ValueError("occupation alias entries require aliases and candidates")
         normalized_candidates = []
+        seen_candidate_codes: set[str] = set()
         for candidate in candidates:
             if not isinstance(candidate, dict):
                 raise ValueError("occupation alias candidates must be objects")
@@ -104,6 +105,11 @@ def load_alias_registry(path: Path = _ALIAS_PATH) -> dict[str, dict[str, Any]]:
                 raise ValueError(
                     "occupation alias candidates require an O*NET code and note"
                 )
+            if code in seen_candidate_codes:
+                raise ValueError(
+                    f"duplicate O*NET candidate code {code} in occupation alias entry"
+                )
+            seen_candidate_codes.add(code)
             normalized_candidates.append(
                 {"onet_soc_code": code, "note": note}
             )
@@ -122,6 +128,35 @@ def load_alias_registry(path: Path = _ALIAS_PATH) -> dict[str, dict[str, Any]]:
                 raise ValueError(f"duplicate occupation alias: {alias}")
             registry[key] = {"alias": str(alias).strip(), **normalized_entry}
     return registry
+
+
+def validate_alias_registry(
+    registry: dict[str, dict[str, Any]], rows: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Fail closed when an alias points outside the current Atlas release."""
+
+    release_codes = {
+        str(row.get("onet_soc_code", "")).strip()
+        for row in rows
+        if str(row.get("onet_soc_code", "")).strip()
+    }
+    candidate_codes = {
+        item["onet_soc_code"]
+        for entry in registry.values()
+        for item in entry["candidates"]
+    }
+    missing_codes = sorted(candidate_codes - release_codes)
+    if missing_codes:
+        joined = ", ".join(missing_codes)
+        raise ValueError(
+            "occupation alias registry references O*NET codes missing from the "
+            f"current Atlas release: {joined}"
+        )
+    return {
+        "valid": True,
+        "alias_count": len(registry),
+        "candidate_code_count": len(candidate_codes),
+    }
 
 
 _ALIAS_REGISTRY = load_alias_registry()

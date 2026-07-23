@@ -9,6 +9,7 @@ from typing import Iterable
 
 from .demo import FIELDS, TASK_FIELDS, demo_rows, demo_tasks
 from .io import read_csv, sha256, write_csv, write_json
+from .occupation_context import load_alias_registry, validate_alias_registry
 
 
 def _value(row: dict[str, object], *names: str) -> str:
@@ -446,6 +447,8 @@ def build_dataset(
             "oews_rows": len(oews),
             "projection_rows": len(projections),
         }
+    if not demo:
+        validate_alias_registry(load_alias_registry(), rows)
     count = write_csv(processed_dir / "occupations.csv", rows, FIELDS)
     task_count = write_csv(processed_dir / "tasks.csv", tasks, TASK_FIELDS)
     manifest = {
