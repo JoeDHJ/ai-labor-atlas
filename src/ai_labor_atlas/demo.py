@@ -23,6 +23,19 @@ FIELDS = [
     "data_quality_flags",
 ]
 
+TASK_FIELDS = [
+    "onet_soc_code",
+    "task_id",
+    "task_statement",
+    "task_type",
+    "incumbents_responding",
+    "task_date",
+    "domain_source",
+    "onet_version",
+    "source_file",
+    "task_quality_flags",
+]
+
 
 def demo_rows() -> list[dict[str, object]]:
     occupations = [
@@ -162,3 +175,58 @@ def demo_rows() -> list[dict[str, object]]:
 
 def write_demo(path) -> int:
     return write_csv(path, demo_rows(), FIELDS)
+
+
+def demo_tasks() -> list[dict[str, object]]:
+    task_map = {
+        "15-1252.00": [
+            "Design, develop, and test software applications.",
+            "Analyze user needs and recommend software solutions.",
+        ],
+        "13-2011.00": [
+            "Prepare and examine financial records.",
+            "Explain accounting findings to managers and clients.",
+        ],
+        "29-1141.00": [
+            "Assess patient health and coordinate care plans.",
+            "Communicate treatment information to patients and families.",
+        ],
+        "11-2021.00": [
+            "Plan marketing activities and evaluate campaign performance.",
+            "Coordinate marketing strategy with organizational goals.",
+        ],
+        "25-2021.00": [
+            "Teach courses and evaluate student learning.",
+            "Prepare instructional materials and lead classroom discussion.",
+        ],
+        "41-2031.00": [
+            "Assist customers with purchases and product questions.",
+            "Process sales transactions and maintain merchandise displays.",
+        ],
+        "27-1024.00": [
+            "Develop visual concepts for communications and publications.",
+            "Use design principles to create or revise visual materials.",
+        ],
+        "43-4051.00": [
+            "Respond to customer questions about products or services.",
+            "Record customer interactions and resolve routine complaints.",
+        ],
+    }
+    rows = []
+    for occupation_code, statements in task_map.items():
+        for index, statement in enumerate(statements, start=1):
+            rows.append(
+                {
+                    "onet_soc_code": occupation_code,
+                    "task_id": f"demo-{occupation_code}-{index}",
+                    "task_statement": statement,
+                    "task_type": "Core",
+                    "incumbents_responding": "demo",
+                    "task_date": "demo",
+                    "domain_source": "demo",
+                    "onet_version": "30.3-demo",
+                    "source_file": "demo_task_statements",
+                    "task_quality_flags": "demo_data",
+                }
+            )
+    return rows

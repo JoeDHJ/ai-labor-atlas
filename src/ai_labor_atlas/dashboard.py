@@ -71,7 +71,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       border-radius: 999px; padding: 7px 11px; font-size: 0.78rem; font-weight: 700;
     }
     .hero-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
     .kpi, .panel, .meaning {
       background: linear-gradient(145deg, rgba(27, 48, 80, 0.92), rgba(13, 27, 48, 0.88));
       border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
@@ -105,6 +105,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     .bubble:hover, .bubble.selected { fill: var(--cyan); fill-opacity: 1; }
     .bubble.selected { stroke: var(--text); stroke-width: 3; }
     .bubble-label { fill: var(--text); font-size: 11px; pointer-events: none; }
+    .detail-panel, .task-panel, .task-list { min-width: 0; }
     .detail-panel { min-height: 360px; }
     .detail-name { margin: 8px 0 4px; font-size: 1.42rem; line-height: 1.15; }
     .code-pill { display: inline-flex; color: var(--cyan); background: rgba(85, 214, 194, 0.1); border: 1px solid rgba(85, 214, 194, 0.24); padding: 4px 8px; border-radius: 8px; font-size: 0.78rem; }
@@ -112,12 +113,57 @@ HTML_TEMPLATE = r"""<!doctype html>
     .detail-row { padding-bottom: 9px; border-bottom: 1px solid var(--line); }
     .detail-row strong { font-size: 1.06rem; }
     .interpretation { color: var(--muted); font-size: 0.9rem; }
+    .task-panel { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .task-title { margin: 8px 0 4px; font-size: 1.05rem; }
+    .task-note { margin-bottom: 10px; color: var(--muted); font-size: 0.78rem; }
+    .task-filter-label { display: block; margin: 4px 0 5px; color: var(--muted); font-size: 0.76rem; }
+    .task-filter-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 138px); gap: 9px; margin: 0 0 12px; }
+    .task-filter { width: 100%; min-width: 0; margin: 0; }
+    .task-list { display: grid; gap: 8px; margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.82rem; }
+    .task-list li::marker { color: var(--cyan); }
+    .task-caveat { margin: 13px 0 0; color: var(--muted); font-size: 0.74rem; }
+    .bridge-controls { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .bridge-controls label { display: grid; gap: 6px; min-width: min(420px, 100%); }
+    .bridge-controls select { width: 100%; }
+    .bridge-source { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+    .bridge-source strong { display: block; margin-top: 4px; font-size: 1.18rem; }
+    .bridge-source-meta { color: var(--muted); font-size: .78rem; }
+    .bridge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .bridge-card { display: grid; gap: 10px; padding: 16px; background: rgba(8, 18, 33, .48); border: 1px solid var(--line); border-radius: 15px; }
+    .bridge-rank { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; }
+    .bridge-card h3 { margin-bottom: 0; font-size: 1rem; }
+    .bridge-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+    .bridge-metric { padding: 8px; background: rgba(170, 190, 215, .08); border-radius: 9px; }
+    .bridge-metric span { display: block; color: var(--muted); font-size: .65rem; }
+    .bridge-metric strong { display: block; margin-top: 2px; font-size: .92rem; }
+    .bridge-evidence { margin: 0; padding-left: 17px; color: var(--muted); font-size: .78rem; }
+    .bridge-evidence li::marker { color: var(--cyan); }
+    .bridge-hint { margin: 0; color: var(--text); font-size: .8rem; }
+    .bridge-confidence { color: var(--muted); font-size: .72rem; }
+    .bridge-method { margin-top: 16px; padding-top: 14px; color: var(--muted); border-top: 1px solid var(--line); font-size: .76rem; }
+    .bridge-section[hidden] { display: none; }
     .review-panel { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
     .review-panel[hidden] { display: none; }
     .review-status { margin: 10px 0 0; color: var(--muted); font-size: 0.78rem; }
     .review-summary { margin: 14px 0 0; color: var(--text); font-size: 0.88rem; }
     .review-evidence { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
     .review-evidence li { padding: 10px 12px; color: var(--muted); background: rgba(85, 214, 194, 0.08); border-left: 2px solid var(--cyan); font-size: 0.8rem; }
+    .worker-review-panel { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .worker-review-summary { margin: 6px 0 12px; color: var(--muted); font-size: 0.78rem; }
+    .worker-review-filter-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0 12px; }
+    .worker-review-filter-row label { display: grid; gap: 5px; color: var(--muted); font-size: 0.7rem; }
+    .worker-review-filter-row select { width: 100%; min-width: 0; padding: 7px 8px; font-size: 0.76rem; }
+    .worker-review-list { display: grid; gap: 10px; }
+    .worker-review-card { padding: 12px; background: rgba(8, 18, 33, 0.48); border: 1px solid var(--line); border-radius: 12px; }
+    .worker-review-meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; color: var(--muted); font-size: 0.7rem; }
+    .worker-review-card blockquote { margin: 9px 0 0; color: var(--text); font-size: 0.82rem; line-height: 1.45; }
+    .worker-review-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 9px; }
+    .worker-review-tag { padding: 3px 7px; color: var(--cyan); background: rgba(85, 214, 194, 0.08); border: 1px solid rgba(85, 214, 194, 0.2); border-radius: 999px; font-size: 0.68rem; }
+    .worker-review-source { color: var(--cyan); }
+    .worker-review-empty { margin: 0; color: var(--muted); font-size: 0.8rem; }
+    .review-disclosure { margin-top: 13px; color: var(--muted); font-size: 0.72rem; }
+    .review-disclosure summary { cursor: pointer; color: var(--muted); }
+    .review-disclosure p { max-width: 520px; margin: 8px 0 0; line-height: 1.45; }
     .legend { justify-content: flex-start; margin-top: 10px; color: var(--muted); font-size: 0.8rem; }
     .legend-dot { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 50%; background: var(--blue); }
     .meaning-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -126,8 +172,9 @@ HTML_TEMPLATE = r"""<!doctype html>
     .source-note { margin-top: 28px; color: var(--muted); font-size: 0.82rem; }
     .source-note code { color: var(--cyan); }
     .footer-row { margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8rem; }
-    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .chart-layout { grid-template-columns: 1fr; } }
-    @media (max-width: 620px) { .shell { width: min(100% - 26px, 1240px); } .hero { padding-top: 48px; } .kpi-grid, .meaning-grid { grid-template-columns: 1fr; } .panel { padding: 17px; } .chart-svg { min-height: 330px; } }
+    @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .chart-layout { grid-template-columns: 1fr; } .bridge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 620px) { .shell { width: min(100% - 26px, 1240px); } .hero { padding-top: 48px; } .kpi-grid, .meaning-grid, .bridge-grid { grid-template-columns: 1fr; } .task-filter-row { grid-template-columns: 1fr; } .panel { padding: 17px; } .chart-svg { min-height: 330px; } }
     @media (prefers-reduced-motion: reduce) { .bubble { transition: none; } }
   </style>
 </head>
@@ -149,6 +196,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">occupations with an exposure value</span></article>
       <article class="kpi"><span class="label">Employment-weighted exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">larger occupations count more</span></article>
       <article class="kpi"><span class="label">Wage coverage</span><strong class="kpi-value" id="kpi-wage">Not available</strong><span class="kpi-context">occupations with a wage estimate</span></article>
+      <article class="kpi"><span class="label">Task coverage</span><strong class="kpi-value" id="kpi-tasks">Not available</strong><span class="kpi-context">occupations with task examples</span></article>
     </section>
     <section class="section">
       <div class="section-head">
@@ -191,6 +239,36 @@ HTML_TEMPLATE = r"""<!doctype html>
               <div class="detail-row"><span class="muted">Projected change</span><strong id="detail-growth">—</strong></div>
             </div>
             <p class="interpretation" id="detail-interpretation">Select an occupation to see a plain-language interpretation.</p>
+            <div class="task-panel">
+              <span class="eyebrow">Work examples</span>
+              <h3 class="task-title">What this occupation does</h3>
+              <p class="task-note" id="task-note">Select an occupation to see example task statements.</p>
+              <label class="task-filter-label" for="task-filter">Filter task statements</label>
+              <div class="task-filter-row">
+                <input class="task-filter" id="task-filter" type="search" placeholder="e.g. analyze or coordinate" />
+                <select class="task-filter" id="task-type-filter" aria-label="Task type filter"><option value="all">All task types</option><option value="Core">Core tasks</option><option value="Supplemental">Supplemental tasks</option></select>
+              </div>
+              <ul class="task-list" id="task-list"></ul>
+              <p class="task-caveat">Source: O*NET 30.3. These are representative work activities, not individual job requirements.</p>
+            </div>
+            <div class="worker-review-panel">
+              <span class="eyebrow">Workplace signals</span>
+              <h3 class="task-title">What workers say</h3>
+              <p class="worker-review-summary" id="worker-review-summary">No public review context is loaded for this occupation yet.</p>
+              <div class="worker-review-filter-row">
+                <label for="worker-review-source-filter">Source
+                  <select id="worker-review-source-filter"><option value="all">All sources</option></select>
+                </label>
+                <label for="worker-review-topic-filter">Topic
+                  <select id="worker-review-topic-filter"><option value="all">All topics</option></select>
+                </label>
+              </div>
+              <div class="worker-review-list" id="worker-review-list"></div>
+              <details class="review-disclosure">
+                <summary>About these reviews</summary>
+                <p id="worker-review-disclosure">Reviews are user-generated and may be incomplete, subjective, outdated, or biased. They are not verified facts or representative of all workers. Source links and dates are shown where available.</p>
+              </details>
+            </div>
             <div class="review-panel">
               <button id="deep-review-button" type="button" disabled>Review this mapping</button>
               <p class="review-status" id="deep-review-status">Optional review available when enabled.</p>
@@ -201,6 +279,20 @@ HTML_TEMPLATE = r"""<!doctype html>
             </div>
           </aside>
         </div>
+      </div>
+    </section>
+    <section class="section bridge-section" id="bridge-section">
+      <div class="section-head"><div><span class="eyebrow">Career bridge</span><h2>Where could this work lead?</h2></div><p>Explore adjacent occupations through structured work profiles, shared tools, and representative tasks.</p></div>
+      <div class="panel">
+        <div class="bridge-controls">
+          <label for="bridge-select">Starting occupation
+            <select id="bridge-select" aria-label="Starting occupation"></select>
+          </label>
+          <span class="status" id="bridge-status" aria-live="polite">Select an occupation to explore a descriptive pathway.</span>
+        </div>
+        <div id="bridge-source" class="bridge-source"></div>
+        <div id="bridge-grid" class="bridge-grid"></div>
+        <p id="bridge-method" class="bridge-method"></p>
       </div>
     </section>
     <section class="section">
@@ -219,6 +311,8 @@ HTML_TEMPLATE = r"""<!doctype html>
     (function () {
       const payload = JSON.parse(document.getElementById("atlas-data").textContent);
       const rows = payload.rows || [];
+      const tasksByOnet = payload.tasks_by_onet || {};
+      const reviewsByOnet = payload.reviews_by_onet || {};
       const summary = payload.summary || {};
       const chart = document.getElementById("atlas-chart");
       const grid = document.getElementById("grid");
@@ -232,6 +326,20 @@ HTML_TEMPLATE = r"""<!doctype html>
       const deepReviewResult = document.getElementById("deep-review-result");
       const deepReviewSummary = document.getElementById("deep-review-summary");
       const deepReviewEvidence = document.getElementById("deep-review-evidence");
+      const taskNote = document.getElementById("task-note");
+      const taskFilter = document.getElementById("task-filter");
+      const taskTypeFilter = document.getElementById("task-type-filter");
+      const taskList = document.getElementById("task-list");
+      const workerReviewSummary = document.getElementById("worker-review-summary");
+      const workerReviewList = document.getElementById("worker-review-list");
+      const workerReviewDisclosure = document.getElementById("worker-review-disclosure");
+      const workerReviewSourceFilter = document.getElementById("worker-review-source-filter");
+      const workerReviewTopicFilter = document.getElementById("worker-review-topic-filter");
+      const bridgeSelect = document.getElementById("bridge-select");
+      const bridgeStatus = document.getElementById("bridge-status");
+      const bridgeSource = document.getElementById("bridge-source");
+      const bridgeGrid = document.getElementById("bridge-grid");
+      const bridgeMethod = document.getElementById("bridge-method");
       const llmEnabled = __LLM_ENABLED__;
       const yAxisTitle = document.getElementById("y-axis-title");
       const selected = { index: 0 };
@@ -255,12 +363,160 @@ HTML_TEMPLATE = r"""<!doctype html>
         return node;
       };
       const setText = function (id, value) { document.getElementById(id).textContent = value; };
+      const renderTasks = function (occupation) {
+        taskList.innerHTML = "";
+        const tasks = tasksByOnet[occupation.onet_soc_code] || [];
+        const query = taskFilter.value.trim().toLowerCase();
+        const taskType = taskTypeFilter.value;
+        const filteredTasks = tasks.filter(function (task) {
+          return (!query || task.task_statement.toLowerCase().includes(query))
+            && (taskType === "all" || task.task_type === taskType);
+        });
+        if (!tasks.length) {
+          taskNote.textContent = "No task statements are available for this occupation in the selected source release.";
+          return;
+        }
+        if (!filteredTasks.length) {
+          taskNote.textContent = "No task statements match this filter.";
+          return;
+        }
+        const hasFilter = query || taskType !== "all";
+        taskNote.textContent = (hasFilter ? filteredTasks.length + " matching" : tasks.length) + " source task statements; showing the first four examples.";
+        filteredTasks.slice(0, 4).forEach(function (task) {
+          const item = document.createElement("li");
+          item.textContent = task.task_statement;
+          taskList.appendChild(item);
+        });
+      };
       const htmlNode = function (tag, className, text) {
         const node = document.createElement(tag);
         if (className) node.className = className;
         if (text != null) node.textContent = text;
         return node;
       };
+      const reviewSourceLabel = function (value) {
+        return { user_submitted: "User submitted", reddit: "Reddit", indeed: "Indeed", other: "Other public source" }[value] || "Public source";
+      };
+      const reviewScopeLabel = function (value) {
+        return { occupation: "Occupation context", employer_role: "Employer and role", job_posting: "Specific job posting" }[value] || "Scope not specified";
+      };
+      const reviewTopicLabel = function (value) {
+        return { pay_benefits: "Pay and benefits", interview_management: "Interview and management", work_environment: "Work environment", workload: "Workload", growth: "Growth", tasks_tools: "Tasks and tools", other: "Other" }[value] || value;
+      };
+      function renderWorkerReviews(occupation) {
+        workerReviewList.innerHTML = "";
+        const context = reviewsByOnet[occupation.onet_soc_code] || {};
+        const reviews = context.reviews || [];
+        const sourceLabels = context.source_labels || {};
+        const topicLabels = context.topic_labels || {};
+        workerReviewDisclosure.textContent = context.disclosure || "Reviews are user-generated and may be incomplete, subjective, outdated, or biased. They are not verified facts or representative of all workers. Source links and dates are shown where available.";
+        const sourceValue = workerReviewSourceFilter.value;
+        const topicValue = workerReviewTopicFilter.value;
+        workerReviewSourceFilter.innerHTML = "";
+        const allSources = htmlNode("option", "", "All sources"); allSources.value = "all"; workerReviewSourceFilter.appendChild(allSources);
+        Object.keys(context.source_counts || {}).forEach(function (value) {
+          workerReviewSourceFilter.appendChild(htmlNode("option", "", sourceLabels[value] || reviewSourceLabel(value))).value = value;
+        });
+        workerReviewTopicFilter.innerHTML = "";
+        const allTopics = htmlNode("option", "", "All topics"); allTopics.value = "all"; workerReviewTopicFilter.appendChild(allTopics);
+        Object.keys(context.topic_counts || {}).forEach(function (value) {
+          workerReviewTopicFilter.appendChild(htmlNode("option", "", topicLabels[value] || reviewTopicLabel(value))).value = value;
+        });
+        workerReviewSourceFilter.value = sourceValue || "all";
+        workerReviewTopicFilter.value = topicValue || "all";
+        if (!reviews.length) {
+          workerReviewSourceFilter.disabled = true;
+          workerReviewTopicFilter.disabled = true;
+          workerReviewSummary.textContent = "No public review context is loaded for this occupation yet.";
+          workerReviewList.appendChild(htmlNode("p", "worker-review-empty", "When available, this space keeps different work experiences together with their source, date, and scope."));
+          return;
+        }
+        workerReviewSourceFilter.disabled = false;
+        workerReviewTopicFilter.disabled = false;
+        const filteredReviews = reviews.filter(function (review) {
+          return (sourceValue === "all" || !sourceValue || review.source === sourceValue)
+            && (topicValue === "all" || !topicValue || (review.topics || []).includes(topicValue));
+        });
+        const totalReviewCount = Number(context.total_review_count || reviews.length);
+        const totalText = totalReviewCount > reviews.length ? " of " + totalReviewCount : "";
+        workerReviewSummary.textContent = filteredReviews.length + totalText + " public comment" + (totalReviewCount === 1 ? "" : "s") + " shown. There is no overall occupation rating.";
+        if (context.is_truncated) workerReviewSummary.textContent += " The display is limited to the most recent " + reviews.length + ".";
+        if (!filteredReviews.length) {
+          workerReviewList.appendChild(htmlNode("p", "worker-review-empty", "No comments match these filters. Try showing all sources and topics."));
+          return;
+        }
+        filteredReviews.slice(0, 3).forEach(function (review) {
+          const card = htmlNode("article", "worker-review-card");
+          const meta = htmlNode("div", "worker-review-meta");
+          const source = review.source_url ? document.createElement("a") : htmlNode("span", "worker-review-source");
+          source.className = "worker-review-source";
+          source.textContent = reviewSourceLabel(review.source);
+          if (review.source_url) { source.href = review.source_url; source.target = "_blank"; source.rel = "noreferrer"; }
+          const details = [reviewScopeLabel(review.review_scope), review.review_date || "Date not provided"];
+          if (review.rating != null) details.push("Rating " + review.rating + "/5");
+          if (review.author_display) details.push("By " + review.author_display);
+          meta.append(source, htmlNode("span", "", details.join(" · ")));
+          card.appendChild(meta);
+          const contextLine = [review.job_title, review.employer, review.location].filter(Boolean).join(" · ");
+          if (contextLine) card.appendChild(htmlNode("p", "worker-review-meta", contextLine));
+          card.appendChild(document.createElement("blockquote")).textContent = review.excerpt;
+          const tags = htmlNode("div", "worker-review-tags");
+          (review.topics || []).forEach(function (topic) { tags.appendChild(htmlNode("span", "worker-review-tag", topicLabels[topic] || reviewTopicLabel(topic))); });
+          if (tags.childNodes.length) card.appendChild(tags);
+          workerReviewList.appendChild(card);
+        });
+      }
+      const bridgePercent = function (value) { return value == null ? "Not available" : Math.round(Number(value) * 100) + "%"; };
+      const bridgeMetric = function (label, value) {
+        const node = htmlNode("div", "bridge-metric");
+        node.append(htmlNode("span", "", label), htmlNode("strong", "", value));
+        return node;
+      };
+      function renderBridge(result) {
+        bridgeSource.innerHTML = ""; bridgeGrid.innerHTML = ""; bridgeMethod.textContent = "";
+        if (!result || !result.available) {
+          bridgeStatus.textContent = result && result.message ? result.message : "Structured occupation profiles are not available in this build.";
+          bridgeGrid.appendChild(htmlNode("p", "task-note", "Add the O*NET 30.3 structured files to explore occupation bridges."));
+          return;
+        }
+        const source = result.source || {};
+        const sourceCopy = htmlNode("div", "");
+        sourceCopy.append(htmlNode("span", "eyebrow", "Starting point"), htmlNode("strong", "", source.title || "Occupation"), htmlNode("span", "bridge-source-meta", (source.profile_source === "family_average" ? "Family-average O*NET profile" : "Exact O*NET profile") + " · " + (source.onet_soc_code || "Code unavailable")));
+        const sourceStats = htmlNode("div", "bridge-source-meta");
+        sourceStats.textContent = "Wage " + money(source.median_annual_wage) + " · Projected change " + percent(source.employment_change_2024_2034_pct);
+        bridgeSource.append(sourceCopy, sourceStats);
+        (result.candidates || []).forEach(function (item, index) {
+          const occupation = item.occupation || {};
+          const card = htmlNode("article", "bridge-card");
+          const rank = htmlNode("div", "bridge-rank"); rank.append(htmlNode("span", "", "Bridge " + (index + 1)), htmlNode("span", "", (item.confidence || "Limited") + " evidence"));
+          card.append(rank, htmlNode("h3", "", occupation.title || "Adjacent occupation"));
+          const metrics = htmlNode("div", "bridge-metrics");
+          metrics.append(bridgeMetric("Profile similarity", bridgePercent(item.structured_similarity)), bridgeMetric("Software overlap", bridgePercent(item.software_overlap)), bridgeMetric("Task evidence", bridgePercent(item.task_similarity)));
+          card.append(metrics);
+          const labor = htmlNode("p", "bridge-source-meta", "Wage " + money(occupation.median_annual_wage) + " · Openings " + workers(occupation.annual_openings_2024_2034) + " · Growth " + percent(occupation.employment_change_2024_2034_pct));
+          card.append(labor);
+          const evidence = htmlNode("ul", "bridge-evidence");
+          const shared = item.shared_task_evidence || [];
+          if (!shared.length) evidence.appendChild(htmlNode("li", "", "No short shared-task example was identified."));
+          shared.forEach(function (statement) { evidence.appendChild(htmlNode("li", "", statement)); });
+          card.append(evidence, htmlNode("p", "bridge-hint", item.training_hint || "Use the shared tasks to choose a focused work sample."));
+          bridgeGrid.appendChild(card);
+        });
+        bridgeMethod.textContent = (result.method && result.method.interpretation ? result.method.interpretation + " " : "") + (result.method && result.method.primary ? result.method.primary : "");
+        bridgeStatus.textContent = "Showing " + (result.candidates || []).length + " descriptive pathway options from " + (result.candidate_count || 0).toLocaleString("en-US") + " profiled occupations.";
+      }
+      async function loadBridge(code) {
+        bridgeStatus.textContent = "Loading the structured occupation bridge…";
+        try {
+          const response = await fetch("/api/bridge?source=" + encodeURIComponent(code));
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.message || "bridge unavailable");
+          renderBridge(result);
+        } catch (error) {
+          bridgeStatus.textContent = "The bridge is unavailable. The occupation explorer remains available.";
+          bridgeGrid.innerHTML = "";
+        }
+      }
       function renderDeepReview(review) {
         deepReviewResult.hidden = false;
         deepReviewSummary.textContent = (review.decision || "review") + " · " + Math.round(Number(review.confidence || 0) * 100) + "% confidence. " + (review.rationale || "No rationale supplied.");
@@ -292,6 +548,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         setText("kpi-exposure", ((Number(summary.exposure_coverage || 0)) * 100).toFixed(1) + "%");
         setText("kpi-weighted", numeric(summary.employment_weighted_exposure) == null ? "Not available" : Number(summary.employment_weighted_exposure).toFixed(2));
         setText("kpi-wage", ((Number(summary.wage_coverage || 0)) * 100).toFixed(1) + "%");
+        setText("kpi-tasks", ((Number(summary.task_occupation_coverage || 0)) * 100).toFixed(1) + "%");
       }
       function draw() {
         const currentMetric = metric[metricSelect.value];
@@ -309,6 +566,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         const y = function (value) { return 350 - ((value - yMin) / (yMax - yMin)) * 286; };
         const employmentValues = rows.map(function (row) { return numeric(row.employment_2024) || 0; });
         const maxEmployment = Math.max.apply(null, employmentValues.length ? employmentValues : [1]);
+        const showLabels = visible.length <= 24;
         grid.innerHTML = "";
         const ticks = 5;
         for (let i = 0; i <= ticks; i += 1) {
@@ -332,11 +590,16 @@ HTML_TEMPLATE = r"""<!doctype html>
             r: 7 + Math.sqrt((numeric(row.employment_2024) || 0) / maxEmployment) * 24,
             "aria-label": String(row.title || "Occupation")
           });
+          const bubbleTitle = document.createElement("title");
+          bubbleTitle.textContent = String(row.title || "Occupation");
+          circle.appendChild(bubbleTitle);
           circle.addEventListener("click", function () { selected.index = item.index; draw(); });
           marks.appendChild(circle);
-          const label = String(row.title || "").replace(" and ", " & ");
-          const text = make("text", { class: "bubble-label", x: x(exposure) + 9, y: y(outcome) + 4 }, label);
-          labels.appendChild(text);
+          if (showLabels || item.index === selected.index) {
+            const label = String(row.title || "").replace(" and ", " & ");
+            const text = make("text", { class: "bubble-label", x: x(exposure) + 9, y: y(outcome) + 4 }, label);
+            labels.appendChild(text);
+          }
         });
         yAxisTitle.textContent = currentMetric.axis;
         const selectedRow = rows[selected.index] || {};
@@ -348,6 +611,8 @@ HTML_TEMPLATE = r"""<!doctype html>
         setText("detail-employment", workers(numeric(selectedRow.employment_2024)));
         setText("detail-growth", percent(numeric(selectedRow.employment_change_2024_2034_pct)));
         setText("detail-interpretation", selectedRow.title ? currentMetric.note : "Select an occupation to see a plain-language interpretation.");
+        renderTasks(selectedRow);
+        renderWorkerReviews(selectedRow);
         deepReviewButton.disabled = !llmEnabled || !selectedRow.title;
         deepReviewResult.hidden = true;
         deepReviewSummary.textContent = "";
@@ -355,10 +620,20 @@ HTML_TEMPLATE = r"""<!doctype html>
       }
       metricSelect.addEventListener("change", draw);
       search.addEventListener("input", draw);
+      taskFilter.addEventListener("input", function () { renderTasks(rows[selected.index]); });
+      taskTypeFilter.addEventListener("change", function () { renderTasks(rows[selected.index]); });
+      workerReviewSourceFilter.addEventListener("change", function () { renderWorkerReviews(rows[selected.index]); });
+      workerReviewTopicFilter.addEventListener("change", function () { renderWorkerReviews(rows[selected.index]); });
+      rows.slice().sort(function (left, right) { return String(left.title || "").localeCompare(String(right.title || "")); }).forEach(function (row) {
+        const option = document.createElement("option"); option.value = row.onet_soc_code || ""; option.textContent = row.title || row.onet_soc_code || "Occupation"; bridgeSelect.appendChild(option);
+      });
+      const defaultBridge = payload.bridge || null;
+      if (defaultBridge && defaultBridge.source && defaultBridge.source.onet_soc_code) bridgeSelect.value = defaultBridge.source.onet_soc_code;
+      bridgeSelect.addEventListener("change", function () { loadBridge(bridgeSelect.value); });
       deepReviewButton.addEventListener("click", deepReview);
-      reset.addEventListener("click", function () { search.value = ""; metricSelect.value = "wage"; selected.index = 0; draw(); });
+      reset.addEventListener("click", function () { search.value = ""; taskFilter.value = ""; taskTypeFilter.value = "all"; metricSelect.value = "wage"; selected.index = 0; draw(); });
       if (llmEnabled) deepReviewStatus.textContent = "Optional review available.";
-      updateKpis(); draw();
+      updateKpis(); draw(); renderBridge(defaultBridge);
     }());
   </script>
 </body>
@@ -370,10 +645,30 @@ def render(
     rows: list[dict[str, str]],
     summary: dict[str, object],
     groups: list[dict[str, object]],
+    tasks: list[dict[str, str]] | None = None,
+    bridge: dict[str, object] | None = None,
+    reviews: list[dict[str, object]] | None = None,
 ) -> str:
     del groups
+    tasks_by_onet: dict[str, list[dict[str, str]]] = {}
+    for task in tasks or []:
+        tasks_by_onet.setdefault(task.get("onet_soc_code", ""), []).append(task)
+    reviews_by_onet = {}
+    if reviews:
+        from .reviews import summarize_reviews
+
+        for row in rows:
+            code = row.get("onet_soc_code", "")
+            if code:
+                reviews_by_onet[code] = summarize_reviews(reviews, code)
     payload = json.dumps(
-        {"rows": rows, "summary": summary},
+        {
+            "rows": rows,
+            "summary": summary,
+            "tasks_by_onet": tasks_by_onet,
+            "reviews_by_onet": reviews_by_onet,
+            "bridge": bridge,
+        },
         ensure_ascii=False,
         separators=(",", ":"),
     ).replace("<", "\\u003c")
@@ -387,8 +682,11 @@ def write_site(
     rows: list[dict[str, str]],
     summary: dict[str, object],
     groups: list[dict[str, object]],
+    tasks: list[dict[str, str]] | None = None,
+    bridge: dict[str, object] | None = None,
+    reviews: list[dict[str, object]] | None = None,
 ) -> Path:
     site_dir.mkdir(parents=True, exist_ok=True)
     index = site_dir / "index.html"
-    index.write_text(render(rows, summary, groups), encoding="utf-8")
+    index.write_text(render(rows, summary, groups, tasks, bridge, reviews), encoding="utf-8")
     return index

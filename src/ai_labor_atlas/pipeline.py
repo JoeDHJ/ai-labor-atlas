@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 from typing import Iterable
 
-from .demo import FIELDS, demo_rows
+from .demo import FIELDS, TASK_FIELDS, demo_rows, demo_tasks
 from .io import read_csv, sha256, write_csv, write_json
 
 
@@ -79,6 +79,46 @@ def _load_onet(raw_dir: Path) -> list[dict[str, object]]:
                 "onet_soc_code": code,
                 "title": _value(row, "Title"),
                 "description": _value(row, "Description"),
+            }
+        )
+    return rows
+
+
+def _load_tasks(raw_dir: Path) -> list[dict[str, str]]:
+    task_file = _find_file(raw_dir, ["Task Statements.txt", "task statements.txt"])
+    if not task_file:
+        zip_path = raw_dir / "onet_30_3_text.zip"
+        if zip_path.exists():
+            _extract_onet_zip(zip_path, raw_dir / "onet_30_3_text")
+            task_file = _find_file(
+                raw_dir / "onet_30_3_text",
+                ["Task Statements.txt", "task statements.txt"],
+            )
+    if not task_file:
+        raise FileNotFoundError(
+            "O*NET task data not found. Put Task Statements.txt or onet_30_3_text.zip in data/raw."
+        )
+    rows = []
+    for row in _read_tsv(task_file):
+        code = _value(row, "O*NET-SOC Code", "O*NET SOC Code")
+        task_id = _value(row, "Task ID", "task id")
+        statement = _value(row, "Task", "Task Statement", "task statement")
+        if not code or not task_id or not statement:
+            continue
+        rows.append(
+            {
+                "onet_soc_code": code,
+                "task_id": task_id,
+                "task_statement": statement,
+                "task_type": _value(row, "Task Type", "task type"),
+                "incumbents_responding": _value(
+                    row, "Incumbents Responding", "incumbents responding"
+                ),
+                "task_date": _value(row, "Date", "task date"),
+                "domain_source": _value(row, "Domain Source", "domain source"),
+                "onet_version": "30.3",
+                "source_file": task_file.name,
+                "task_quality_flags": "",
             }
         )
     return rows
@@ -332,9 +372,15 @@ def build_dataset(
     processed_dir.mkdir(parents=True, exist_ok=True)
     if demo:
         rows = demo_rows()
+        tasks = demo_tasks()
         source_flags = {"mode": "demo", "rows": len(rows)}
     else:
         onet = _load_onet(raw_dir)
+        tasks = _load_tasks(raw_dir)
+        occupation_codes = {str(item["onet_soc_code"]) for item in onet}
+        for task in tasks:
+            if task["onet_soc_code"] not in occupation_codes:
+                task["task_quality_flags"] = "task_without_occupation_record"
         crosswalk = _load_crosswalk(raw_dir)
         aioe = _load_aioe(raw_dir)
         oews = _load_oews(raw_dir)
@@ -389,17 +435,27 @@ def build_dataset(
             "mode": "public_raw",
             "rows": len(rows),
             "onet_rows": len(onet),
+            "task_rows": len(tasks),
+            "task_occupations": len({task["onet_soc_code"] for task in tasks}),
+            "task_unknown_occupation_rows": sum(
+                task["task_quality_flags"] == "task_without_occupation_record"
+                for task in tasks
+            ),
             "crosswalk_sources": len(crosswalk),
             "aioe_rows": len(aioe),
             "oews_rows": len(oews),
             "projection_rows": len(projections),
         }
     count = write_csv(processed_dir / "occupations.csv", rows, FIELDS)
+    task_count = write_csv(processed_dir / "tasks.csv", tasks, TASK_FIELDS)
     manifest = {
         "schema": FIELDS,
         "row_count": count,
+        "task_schema": TASK_FIELDS,
+        "task_row_count": task_count,
         "build": source_flags,
         "sha256": sha256(processed_dir / "occupations.csv"),
+        "tasks_sha256": sha256(processed_dir / "tasks.csv"),
     }
     write_json(processed_dir / "data_manifest.json", manifest)
     return manifest

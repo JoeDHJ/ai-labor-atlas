@@ -5,14 +5,17 @@ import json
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .dashboard import write_site
 from .demo import write_demo
+from .distance import OccupationBridge
 from .io import read_csv, write_json
 from .llm_review import LLMNotConfiguredError, LLMReviewClient, LLMReviewError
-from .metrics import group_by_major_soc, rank_rows, summarize
+from .metrics import group_by_major_soc, rank_rows, summarize, summarize_tasks
+from .occupation_context import suggest_occupations
 from .pipeline import build_dataset
+from .reviews import load_reviews, summarize_reviews, validate_review_file
 from .sources import download_registered_sources
 
 
@@ -33,6 +36,17 @@ def parser() -> argparse.ArgumentParser:
     search = sub.add_parser("search", help="search occupation titles and descriptions")
     search.add_argument("query")
     search.add_argument("--limit", type=int, default=20)
+    validate = sub.add_parser(
+        "validate-reviews",
+        help="validate a public worker review import before serving",
+    )
+    validate.add_argument(
+        "--input",
+        type=Path,
+        default=Path("data/processed/reviews.json"),
+        metavar="PATH",
+        help="JSON review import; defaults to data/processed/reviews.json",
+    )
     sub.add_parser("serve", help="serve a dependency-free local dashboard")
     return root
 
@@ -55,14 +69,25 @@ def main(argv: list[str] | None = None) -> int:
             build_dataset(raw_dir, processed_dir, demo=False)
         print(f"built {processed_dir / 'occupations.csv'}")
         return 0
+    if args.command == "validate-reviews":
+        review_path = (
+            args.input if args.input.is_absolute() else ROOT / args.input
+        )
+        report = validate_review_file(review_path)
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return 0 if report["valid"] else 2
     path = processed_dir / "occupations.csv"
     if not path.exists():
         print("No processed dataset found. Run: atlas build --demo", file=sys.stderr)
         return 2
     rows = read_csv(path)
+    tasks_path = processed_dir / "tasks.csv"
+    tasks = read_csv(tasks_path) if tasks_path.exists() else []
     if args.command == "analyze":
+        summary = summarize(rows)
+        summary.update(summarize_tasks(rows, tasks))
         result = {
-            "summary": summarize(rows),
+            "summary": summary,
             "groups": group_by_major_soc(rows),
             "top": rank_rows(rows)[: args.top],
         }
@@ -80,8 +105,32 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(matches[: args.limit], ensure_ascii=False, indent=2))
         return 0
     if args.command == "serve":
+        try:
+            reviews = load_reviews(processed_dir / "reviews.json")
+        except ValueError as exc:
+            print(f"Review import error: {exc}", file=sys.stderr)
+            return 2
         site_dir = ROOT / "site"
-        write_site(site_dir, rows, summarize(rows), group_by_major_soc(rows))
+        summary = summarize(rows)
+        summary.update(summarize_tasks(rows, tasks))
+        bridge_engine = OccupationBridge(raw_dir, rows, tasks)
+        default_code = next(
+            (
+                row["onet_soc_code"]
+                for row in rows
+                if row.get("title", "").casefold() == "data scientists"
+            ),
+            rows[0].get("onet_soc_code", "") if rows else "",
+        )
+        write_site(
+            site_dir,
+            rows,
+            summary,
+            group_by_major_soc(rows),
+            tasks,
+            bridge_engine.bridge(default_code) if default_code else None,
+            reviews,
+        )
 
         class AtlasHandler(SimpleHTTPRequestHandler):
             def __init__(self, *handler_args, **handler_kwargs):
@@ -133,6 +182,99 @@ def main(argv: list[str] | None = None) -> int:
                     )
                     return
                 self._send_json(result)
+
+            def do_GET(self) -> None:
+                parsed = urlparse(self.path)
+                if parsed.path == "/favicon.ico":
+                    self.send_response(204)
+                    self.end_headers()
+                    return
+                if parsed.path == "/api/bridge":
+                    source = parse_qs(parsed.query).get("source", [""])[0]
+                    if not source:
+                        self._send_json(
+                            {
+                                "error": "invalid_request",
+                                "detail": "source is required",
+                            },
+                            status=400,
+                        )
+                        return
+                    self._send_json(bridge_engine.bridge(source))
+                    return
+                if parsed.path == "/api/reviews":
+                    source = parse_qs(parsed.query).get("occupation", [""])[0]
+                    if not source:
+                        self._send_json(
+                            {
+                                "error": "invalid_request",
+                                "detail": "occupation is required",
+                            },
+                            status=400,
+                        )
+                        return
+                    if not any(row.get("onet_soc_code") == source for row in rows):
+                        self._send_json(
+                            {
+                                "error": "not_found",
+                                "detail": "occupation code is not in this Atlas release",
+                            },
+                            status=404,
+                        )
+                        return
+                    self._send_json(summarize_reviews(reviews, source))
+                    return
+                if parsed.path == "/api/occupation-context":
+                    params = parse_qs(parsed.query)
+                    source = params.get("source", [""])[0]
+                    if source:
+                        if params.get("query", [""])[0]:
+                            self._send_json(
+                                {
+                                    "error": "invalid_request",
+                                    "detail": "provide exactly one of source or query",
+                                },
+                                status=400,
+                            )
+                            return
+                        occupation = next(
+                            (
+                                row
+                                for row in rows
+                                if row.get("onet_soc_code") == source
+                            ),
+                            None,
+                        )
+                        if occupation is None:
+                            self._send_json(
+                                {
+                                    "error": "not_found",
+                                    "detail": "occupation code is not in this Atlas release",
+                                },
+                                status=404,
+                            )
+                            return
+                        self._send_json(
+                            {
+                                "schema_version": "occupation_context.v0.1",
+                                "occupation": occupation,
+                                "reviews": summarize_reviews(reviews, source),
+                                "requires_confirmation": False,
+                                "mapping_status": "user_confirmed",
+                                "interpretation": "Worker comments are contextual evidence. They do not change Career Fit scores or Atlas measures.",
+                            }
+                        )
+                        return
+                    query = params.get("query", [""])[0]
+                    try:
+                        self._send_json(suggest_occupations(rows, query))
+                    except ValueError as exc:
+                        self._send_json(
+                            {"error": "invalid_request", "detail": str(exc)},
+                            status=400,
+                        )
+                    return
+                super().do_GET()
 
             def log_message(self, format: str, *args: object) -> None:
                 return
