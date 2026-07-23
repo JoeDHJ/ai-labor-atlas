@@ -412,6 +412,48 @@ class AtlasTests(unittest.TestCase):
         self.assertIn("Build validation error", stderr.getvalue())
         self.assertNotIn("Traceback", stderr.getvalue())
 
+    def test_build_fails_closed_before_writing_invalid_release(self):
+        invalid_registry = {
+            "data analyst": {
+                "candidates": [{"onet_soc_code": "15-9999.00"}]
+            }
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            raw_dir = root / "raw"
+            processed_dir = root / "processed"
+            with patch(
+                "ai_labor_atlas.pipeline._load_onet",
+                return_value=[
+                    {
+                        "onet_soc_code": "15-2051.00",
+                        "title": "Data Scientists",
+                        "description": "Model data.",
+                    }
+                ],
+            ), patch(
+                "ai_labor_atlas.pipeline._load_tasks", return_value=[]
+            ), patch(
+                "ai_labor_atlas.pipeline._load_crosswalk",
+                return_value={"15-2051.00": ["15-2051.00"]},
+            ), patch(
+                "ai_labor_atlas.pipeline._load_aioe", return_value={}
+            ), patch(
+                "ai_labor_atlas.pipeline._load_oews", return_value={}
+            ), patch(
+                "ai_labor_atlas.pipeline._load_projections", return_value={}
+            ), patch(
+                "ai_labor_atlas.pipeline.load_alias_registry",
+                return_value=invalid_registry,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "missing from the current Atlas release: 15-9999.00",
+                ):
+                    build_dataset(raw_dir, processed_dir, demo=False)
+            self.assertFalse((processed_dir / "occupations.csv").exists())
+            self.assertFalse((processed_dir / "data_manifest.json").exists())
+
     def test_review_summary_exposes_source_and_topic_labels(self):
         context = summarize_reviews([], "15-2051.00")
         self.assertEqual(context["source_labels"]["reddit"], "Reddit")
