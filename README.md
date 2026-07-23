@@ -57,7 +57,7 @@ Candidate evidence is sent only when the review button is used. A local OpenAI-c
 
 O*NET-derived files must retain attribution to O*NET and the U.S. Department of Labor, Employment and Training Administration, and must identify modifications. AIOE raw redistribution is disabled by default until its repository license is verified.
 
-The full local build uses the registered public files rather than the demo rows. The current validation snapshot contains 1,016 unique O*NET occupations and 18,796 source task statements across 923 occupations, with 79.0% exposure coverage, 94.1% wage coverage, and 94.6% employment coverage. Release summaries distinguish unique O*NET occupations, unique SOC codes, and rows expanded by the official crosswalk so mapping records are not mistaken for independent occupations. The dashboard shows representative task statements for the selected occupation and supports keyword filtering within that task list. Missing source values remain missing in the output.
+The full local build uses the registered public files rather than the demo rows. The current validation snapshot contains 1,016 unique O*NET occupations and 18,796 source task statements across 923 occupations, with 79.0% exposure coverage, 94.1% wage coverage, and 94.6% employment coverage. Release summaries distinguish unique O*NET occupations, unique SOC codes, raw crosswalk-expanded rows, and the one-record-per-O*NET aggregation used for top-line coverage and means. The dashboard shows representative task statements for the selected occupation and supports keyword filtering within that task list. Missing source values remain missing in the output.
 
 The occupation bridge uses O*NET 30.3 Essential Skills, Transferable Skills, Knowledge, Abilities, Work Activities, and Software Skills. Exact profiles are preferred; when a parent occupation has no direct structured rating, a family-average profile is marked in the result. This fallback is a data-coverage aid, not an exact occupational equivalence.
 
@@ -85,7 +85,7 @@ The research rationale and application boundaries are summarized in [the literat
 
 ## What the numbers mean
 
-`ai_exposure` is an exposure/applicability indicator, not a probability of job loss, a risk score, or evidence of causality. Wage and employment projections are joined by SOC code with provenance and coverage fields. Many-to-one crosswalks are preserved and summarized rather than silently collapsed. A registered source hash mismatch is reported as `new_upstream_version_requires_review`; the downloader does not write the unverified payload.
+`ai_exposure` is an exposure/applicability indicator, not a probability of job loss, a risk score, or evidence of causality. Wage and employment projections are joined by SOC code with provenance and coverage fields. Crosswalk-expanded rows are preserved with `crosswalk_weight`; multiple SOC targets are summarized only as disclosed weighted-reference estimates, with mapping quality flags retained. When no source allocation is available, `uniform_crosswalk_fallback` is shown. An unmapped occupation is labeled `missing_crosswalk` rather than being presented as a single-SOC observation. The release-level employment-weighted exposure uses each unique 2018 SOC target once, so shared SOC employment is not double-counted. A registered source hash mismatch is reported as `new_upstream_version_requires_review`; the downloader does not write the unverified payload.
 
 ## Repository map
 

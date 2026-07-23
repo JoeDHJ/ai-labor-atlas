@@ -12,7 +12,7 @@ from .demo import write_demo
 from .distance import OccupationBridge
 from .io import read_csv, read_json, write_json
 from .llm_review import LLMNotConfiguredError, LLMReviewClient, LLMReviewError
-from .metrics import group_by_major_soc, rank_rows, summarize, summarize_tasks
+from .metrics import aggregate_onet_rows, group_by_major_soc, rank_rows, summarize, summarize_tasks
 from .occupation_context import (
     build_market_context,
     load_alias_registry,
@@ -26,6 +26,18 @@ from .sources import SOURCE_INTEGRITY_FAILURE, download_registered_sources
 
 ROOT = Path(__file__).resolve().parents[2]
 LLM_REVIEW_CLIENT = LLMReviewClient()
+
+
+def _read_json_body(headers, reader, max_bytes: int) -> dict[str, object]:
+    """Read a bounded JSON request body without accepting invalid lengths."""
+
+    length = int(headers.get("Content-Length", "0"))
+    if length < 0 or length > max_bytes:
+        raise ValueError("request body is too large")
+    payload = json.loads(reader(length).decode("utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("request body must be a JSON object")
+    return payload
 
 
 def parser() -> argparse.ArgumentParser:
@@ -196,10 +208,7 @@ def main(argv: list[str] | None = None) -> int:
                     self._send_json({"error": "not_found"}, status=404)
                     return
                 try:
-                    length = int(self.headers.get("Content-Length", "0"))
-                    if length > 80_000:
-                        raise ValueError("request body is too large")
-                    payload = json.loads(self.rfile.read(length).decode("utf-8"))
+                    payload = _read_json_body(self.headers, self.rfile.read, 80_000)
                     occupation = payload.get("occupation", {})
                     candidates = payload.get("candidates", [])
                     if not isinstance(occupation, dict) or not isinstance(
@@ -282,13 +291,13 @@ def main(argv: list[str] | None = None) -> int:
                                 status=400,
                             )
                             return
-                        occupation = next(
-                            (
-                                row
-                                for row in rows
-                                if row.get("onet_soc_code") == source
-                            ),
-                            None,
+                        matching_rows = [
+                            row for row in rows if row.get("onet_soc_code") == source
+                        ]
+                        occupation = (
+                            aggregate_onet_rows(matching_rows)[0]
+                            if matching_rows
+                            else None
                         )
                         if occupation is None:
                             self._send_json(
@@ -301,12 +310,13 @@ def main(argv: list[str] | None = None) -> int:
                             return
                         self._send_json(
                             {
-                                "schema_version": "occupation_context.v0.2",
+                                "schema_version": "occupation_context.v0.3",
                                 "occupation": occupation,
                                 "market_context": build_market_context(
                                     occupation,
                                     tasks,
                                     bridge_engine.bridge(source),
+                                    occupation_rows=matching_rows,
                                 ),
                                 "reviews": summarize_reviews(reviews, source),
                                 "requires_confirmation": False,

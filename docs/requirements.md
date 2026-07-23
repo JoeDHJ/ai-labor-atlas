@@ -11,7 +11,7 @@ Provide an auditable public tool for exploring how occupational AI exposure indi
 3. Join national OEWS May 2025 and BLS 2024-2034 projections where a valid SOC key exists.
 4. Treat AIOE as an exposure/applicability measure and preserve missingness.
 5. Support deterministic demo data, public-data download, validation, build, search, analysis, and local serving.
-6. Preserve many-to-one crosswalks and report coverage instead of silently selecting one row.
+6. Preserve every crosswalk row, store an explicit mapping weight, aggregate multiple SOC targets only through a disclosed weighted-reference contract, and report coverage without silently selecting one row.
 7. Provide a descriptive Career bridge that ranks adjacent occupations using structured O*NET profile distance.
 8. Expose software overlap, shared task evidence, profile provenance, labor-market context, and a training hint separately.
 9. Mark family-average fallbacks and unavailable structured profiles explicitly.

@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 
 class LLMReviewError(RuntimeError):
@@ -44,10 +46,47 @@ class LLMConfig:
 
     @property
     def enabled(self) -> bool:
-        local_endpoint = self.base_url.startswith(
-            ("http://127.0.0.1", "http://localhost", "http://[::1]")
+        try:
+            parsed = urlparse(self.base_url)
+            hostname = (parsed.hostname or "").casefold()
+        except ValueError:
+            return False
+        local_endpoint = parsed.scheme == "http" and hostname in {
+            "127.0.0.1",
+            "localhost",
+            "::1",
+        }
+        secure_endpoint = parsed.scheme == "https" or local_endpoint
+        return bool(
+            self.model
+            and secure_endpoint
+            and (self.api_key or local_endpoint)
         )
-        return bool(self.model and (self.api_key or local_endpoint))
+
+
+_EMAIL = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.I)
+_PHONE = re.compile(
+    r"(?<!\d)(?:\+?1[\s.-]?)?(?:\(?\d{3}\)?[\s.-])\d{3}[\s.-]\d{4}(?!\d)"
+)
+_US_SSN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
+_URL = re.compile(r"\bhttps?://[^\s<>]+", re.I)
+
+
+def _redact_text(value: str) -> str:
+    value = _URL.sub("[redacted URL]", value)
+    value = _EMAIL.sub("[redacted email]", value)
+    value = _PHONE.sub("[redacted phone]", value)
+    return _US_SSN.sub("[redacted government ID]", value)
+
+
+def _redact_payload(value: Any) -> Any:
+    if isinstance(value, str):
+        return _redact_text(value)
+    if isinstance(value, list):
+        return [_redact_payload(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _redact_payload(item) for key, item in value.items()}
+    return value
 
 
 def _json_object(text: str) -> dict[str, Any]:
@@ -131,7 +170,9 @@ class LLMReviewClient:
             "accept, review, or reject. confidence must be between 0 and 1."
         )
         user = json.dumps(
-            {"occupation": occupation, "candidate_mappings": candidates},
+            _redact_payload(
+                {"occupation": occupation, "candidate_mappings": candidates}
+            ),
             ensure_ascii=False,
         )
         result = self.complete_json(system, user)

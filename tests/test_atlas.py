@@ -8,11 +8,11 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-from ai_labor_atlas.cli import main as cli_main
+from ai_labor_atlas.cli import _read_json_body, main as cli_main
 from ai_labor_atlas.dashboard import render
 from ai_labor_atlas.demo import TASK_FIELDS, FIELDS, demo_rows, demo_tasks
 from ai_labor_atlas.distance import OccupationBridge
-from ai_labor_atlas.metrics import group_by_major_soc, summarize, summarize_tasks
+from ai_labor_atlas.metrics import aggregate_onet_rows, group_by_major_soc, summarize, summarize_tasks
 from ai_labor_atlas.occupation_context import (
     build_market_context,
     load_alias_registry,
@@ -41,6 +41,16 @@ except ImportError:  # pragma: no cover - optional Excel dependency
 
 
 class AtlasTests(unittest.TestCase):
+    def test_deep_review_body_reader_rejects_invalid_content_lengths(self):
+        headers = {"Content-Length": "2"}
+        self.assertEqual(
+            _read_json_body(headers, lambda length: b"{}", 80_000), {}
+        )
+        with self.assertRaises(ValueError):
+            _read_json_body({"Content-Length": "-1"}, lambda length: b"{}", 80_000)
+        with self.assertRaises(ValueError):
+            _read_json_body({"Content-Length": "80001"}, lambda length: b"{}", 80_000)
+
     def test_demo_has_contract_and_summary(self):
         rows = demo_rows()
         self.assertEqual(len(rows), 8)
@@ -80,12 +90,39 @@ class AtlasTests(unittest.TestCase):
                 ]
             },
         )
-        self.assertEqual(context["schema_version"], "market_context.v0.1")
+        self.assertEqual(context["schema_version"], "market_context.v0.2")
         self.assertIn("median_annual_wage", context["metrics"])
         self.assertTrue(context["representative_tasks"])
         self.assertEqual(context["adjacent_occupations"][0]["onet_soc_code"], rows[1]["onet_soc_code"])
         self.assertEqual(context["adjacent_occupations"][0]["title"], rows[1]["title"])
         self.assertIn("not a job-loss probability", context["interpretation"])
+
+    def test_multiple_soc_mapping_is_aggregated_and_disclosed(self):
+        first = {key: str(value) for key, value in demo_rows()[0].items()}
+        second = dict(first)
+        second.update(
+            {
+                "soc_2018_code": "15-2051",
+                "crosswalk_weight": "0.4",
+                "median_annual_wage": "90000",
+                "ai_exposure": "0.95",
+            }
+        )
+        first["crosswalk_weight"] = "0.6"
+        rows = [first, second]
+        aggregated = aggregate_onet_rows(rows)
+        self.assertEqual(len(aggregated), 1)
+        self.assertEqual(aggregated[0]["mapping_status"], "multiple_soc_crosswalk")
+        self.assertEqual(aggregated[0]["soc_2018_codes"], ["15-1252", "15-2051"])
+        self.assertAlmostEqual(float(aggregated[0]["median_annual_wage"]), 115848.0)
+        context = build_market_context(first, [], occupation_rows=rows)
+        self.assertEqual(context["mapping"]["status"], "multiple_soc_crosswalk")
+        self.assertEqual(context["mapping"]["soc_2018_codes"], ["15-1252", "15-2051"])
+        self.assertIn("multiple SOC mappings", context["interpretation"])
+        summary = summarize(rows)
+        self.assertEqual(summary["unique_onet_occupation_count"], 1)
+        self.assertEqual(summary["aggregated_onet_occupation_count"], 1)
+        self.assertEqual(summary["multiple_soc_occupation_count"], 1)
 
     def test_summary_distinguishes_expanded_crosswalk_rows_from_unique_occupations(self):
         rows = [
@@ -98,6 +135,146 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(result["unique_onet_occupation_count"], 2)
         self.assertEqual(result["crosswalk_expanded_row_count"], 2)
         self.assertEqual(result["crosswalk_expanded_onet_count"], 1)
+
+    def test_employment_weighted_exposure_deduplicates_shared_soc_targets(self):
+        rows = [
+            {
+                "onet_soc_code": "A",
+                "soc_2018_code": "15-1252",
+                "ai_exposure": "0.50",
+                "employment_2024": "100",
+            },
+            {
+                "onet_soc_code": "B",
+                "soc_2018_code": "15-1252",
+                "ai_exposure": "0.50",
+                "employment_2024": "100",
+            },
+            {
+                "onet_soc_code": "C",
+                "soc_2018_code": "15-2051",
+                "ai_exposure": "1.00",
+                "employment_2024": "900",
+            },
+        ]
+        result = summarize(rows)
+        self.assertAlmostEqual(result["employment_weighted_exposure"], 0.95)
+        self.assertEqual(result["employment_weighting_unit"], "unique_soc_2018")
+        self.assertEqual(result["employment_weighting_row_count"], 2)
+        self.assertEqual(result["shared_soc_count"], 1)
+
+    def test_crosswalk_fallback_and_invalid_weights_fail_closed(self):
+        rows = [
+            {"onet_soc_code": "A", "soc_2018_code": "15-1252"},
+            {"onet_soc_code": "A", "soc_2018_code": "15-2051"},
+        ]
+        aggregated = aggregate_onet_rows(rows)
+        self.assertIn("uniform_crosswalk_fallback", aggregated[0]["data_quality_flags"])
+        context = build_market_context(rows[0], [], occupation_rows=rows)
+        self.assertIn("uniform_crosswalk_fallback", context["mapping"]["data_quality_flags"])
+        with self.assertRaises(ValueError):
+            aggregate_onet_rows(
+                [
+                    {"onet_soc_code": "A", "soc_2018_code": "15-1252", "crosswalk_weight": "-0.1"},
+                    {"onet_soc_code": "A", "soc_2018_code": "15-2051", "crosswalk_weight": "1.1"},
+                ]
+            )
+        for bad_weight in ("nan", "inf", "-inf"):
+            with self.assertRaises(ValueError):
+                aggregate_onet_rows(
+                    [
+                        {
+                            "onet_soc_code": "A",
+                            "soc_2018_code": "15-1252",
+                            "crosswalk_weight": bad_weight,
+                        }
+                    ]
+                )
+        with self.assertRaises(ValueError):
+            aggregate_onet_rows(
+                [
+                    {"onet_soc_code": "A", "soc_2018_code": "15-1252", "crosswalk_weight": "not-a-number"}
+                ]
+            )
+        weighted = aggregate_onet_rows(
+            [
+                {"onet_soc_code": "A", "soc_2018_code": "15-1252", "crosswalk_weight": "0", "ai_exposure": "0.1"},
+                {"onet_soc_code": "A", "soc_2018_code": "15-2051", "crosswalk_weight": "1", "ai_exposure": "0.9"},
+            ]
+        )[0]
+        self.assertAlmostEqual(weighted["ai_exposure"], 0.9)
+        self.assertEqual(weighted["crosswalk_row_count"], 2)
+
+    def test_missing_crosswalk_is_explicitly_disclosed(self):
+        rows = [{"onet_soc_code": "A", "soc_2018_code": ""}]
+        aggregated = aggregate_onet_rows(rows)[0]
+        self.assertEqual(aggregated["mapping_status"], "missing_soc_mapping")
+        self.assertIn("missing_crosswalk", aggregated["data_quality_flags"])
+        context = build_market_context(rows[0], [], occupation_rows=rows)
+        self.assertEqual(context["mapping"]["status"], "missing_soc_mapping")
+        self.assertEqual(
+            context["mapping"]["crosswalk_weighting"], "no SOC mapping is available"
+        )
+        self.assertIn("missing_crosswalk", context["mapping"]["data_quality_flags"])
+
+    def test_worker_review_source_url_and_public_summary_filter_pii(self):
+        row = {
+            "review_id": "review-1",
+            "onet_soc_code": "15-1252.00",
+            "excerpt": "A useful team environment.",
+            "source_url": "https://example.com/post?contact=worker@example.com",
+        }
+        with self.assertRaisesRegex(ValueError, "source_url"):
+            normalize_review(row)
+        safe = normalize_review({**row, "source_url": "https://example.com/post"})
+        summary = summarize_reviews(
+            [
+                safe,
+                {
+                    **safe,
+                    "review_id": "review-2",
+                    "excerpt": "Call me at 415-555-0199",
+                },
+            ],
+            "15-1252.00",
+        )
+        self.assertEqual(summary["review_count"], 1)
+
+    def test_missing_soc_is_excluded_from_employment_weighted_kpi(self):
+        missing_only = summarize(
+            [
+                {
+                    "onet_soc_code": "A",
+                    "soc_2018_code": "",
+                    "ai_exposure": "0.70",
+                    "employment_2024": "1000",
+                }
+            ]
+        )
+        self.assertIsNone(missing_only["employment_weighted_exposure"])
+        self.assertEqual(missing_only["employment_weighting_row_count"], 0)
+        self.assertEqual(
+            missing_only["employment_weighting_excluded_missing_soc_count"], 1
+        )
+        mixed = summarize(
+            [
+                {
+                    "onet_soc_code": "A",
+                    "soc_2018_code": "",
+                    "ai_exposure": "0.70",
+                    "employment_2024": "1000",
+                },
+                {
+                    "onet_soc_code": "B",
+                    "soc_2018_code": "15-1252",
+                    "ai_exposure": "0.20",
+                    "employment_2024": "100",
+                },
+            ]
+        )
+        self.assertAlmostEqual(mixed["employment_weighted_exposure"], 0.20)
+        self.assertEqual(mixed["employment_weighting_row_count"], 1)
+        self.assertEqual(mixed["employment_weighting_excluded_missing_soc_count"], 1)
 
     def test_download_rejects_unexpected_source_hash_before_writing(self):
         class Response:
@@ -186,6 +363,8 @@ class AtlasTests(unittest.TestCase):
         self.assertIn("DEMO DATASET", page)
         self.assertIn('role: "button"', page)
         self.assertIn('tabindex: "0"', page)
+        self.assertIn("O*NET-mapped employment", page)
+        self.assertIn("not a unique-SOC total", page)
 
     def test_worker_review_contract_preserves_source_and_does_not_score_reviews(self):
         review = normalize_review(
@@ -211,6 +390,23 @@ class AtlasTests(unittest.TestCase):
         self.assertIn("biased", context["disclosure"])
         self.assertEqual(context["total_review_count"], 1)
         self.assertFalse(context["is_truncated"])
+
+    def test_review_import_rejects_common_contact_pii(self):
+        base = {
+            "review_id": "review-pii",
+            "onet_soc_code": "15-2051.00",
+            "source": "user_submitted",
+            "excerpt": "Contact me at worker@example.com about this job.",
+        }
+        with self.assertRaisesRegex(ValueError, "excerpt"):
+            normalize_review(base)
+        base["excerpt"] = "Call 555-123-4567 about this job."
+        with self.assertRaisesRegex(ValueError, "excerpt"):
+            normalize_review(base)
+        base["excerpt"] = "The work was interesting."
+        base["author_display"] = "555-12-3456"
+        with self.assertRaisesRegex(ValueError, "author_display"):
+            normalize_review(base)
 
     def test_review_loader_missing_file_is_empty_and_invalid_source_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp:

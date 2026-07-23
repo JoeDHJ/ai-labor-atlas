@@ -383,19 +383,36 @@ def build_dataset(
             if task["onet_soc_code"] not in occupation_codes:
                 task["task_quality_flags"] = "task_without_occupation_record"
         crosswalk = _load_crosswalk(raw_dir)
+        soc_to_onet: dict[str, set[str]] = {}
+        for source_code, targets in crosswalk.items():
+            for target_code in set(targets):
+                soc_to_onet.setdefault(target_code, set()).add(source_code)
         aioe = _load_aioe(raw_dir)
         oews = _load_oews(raw_dir)
         projections = _load_projections(raw_dir)
         rows = []
         for item in onet:
-            codes = crosswalk.get(str(item["onet_soc_code"]), [""])
+            codes = [
+                code
+                for code in list(
+                    dict.fromkeys(crosswalk.get(str(item["onet_soc_code"]), [""]))
+                )
+                if str(code).strip()
+            ]
+            codes = codes or [""]
+            crosswalk_weight = 1.0 / len([code for code in codes if code]) if any(codes) else 1.0
             for soc_code in codes or [""]:
                 wage = oews.get(soc_code, {})
                 projection = projections.get(soc_code, {})
                 exposure = aioe.get(soc_code)
                 flags = []
-                if len(codes) > 1:
-                    flags.append("many_to_many_or_many_to_one_crosswalk")
+                if len([code for code in codes if code]) > 1:
+                    flags.append("multiple_soc_crosswalk")
+                    flags.append("uniform_crosswalk_fallback")
+                if not soc_code:
+                    flags.append("missing_crosswalk")
+                if soc_code and len(soc_to_onet.get(soc_code, set())) > 1:
+                    flags.append("shared_soc_crosswalk")
                 if exposure is None:
                     flags.append("missing_aioe")
                 if not wage:
@@ -406,6 +423,7 @@ def build_dataset(
                     {
                         "onet_soc_code": item["onet_soc_code"],
                         "soc_2018_code": soc_code,
+                        "crosswalk_weight": crosswalk_weight,
                         "title": item["title"],
                         "description": item["description"],
                         "ai_exposure": exposure,
