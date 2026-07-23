@@ -79,6 +79,8 @@ Career Fit can connect to this context through the Atlas server. Set `CAREER_FIT
 
 Occupation suggestions use normalized title phrases and compatible role terms. If the supplied title is too broad or does not map cleanly to an Atlas title, the explorer returns no suggestion and asks the user to try a more specific title. This favors a transparent empty result over a plausible but misleading occupation.
 
+For a small set of common nonstandard titles, the versioned [editorial candidate crosswalk](config/occupation_aliases_en.json) provides multiple possible occupation families. These are leads for user review, not official O*NET equivalences or automatic classifications; each candidate includes a mapping note and requires confirmation.
+
 The research rationale and application boundaries are summarized in [the literature-to-product map](docs/literature-map.md).
 
 ## What the numbers mean

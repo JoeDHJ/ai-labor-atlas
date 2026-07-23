@@ -12,7 +12,7 @@ from ai_labor_atlas.dashboard import render
 from ai_labor_atlas.demo import TASK_FIELDS, FIELDS, demo_rows, demo_tasks
 from ai_labor_atlas.distance import OccupationBridge
 from ai_labor_atlas.metrics import group_by_major_soc, summarize, summarize_tasks
-from ai_labor_atlas.occupation_context import suggest_occupations
+from ai_labor_atlas.occupation_context import load_alias_registry, suggest_occupations
 from ai_labor_atlas.pipeline import (
     _load_oews,
     _load_projections,
@@ -293,8 +293,8 @@ class AtlasTests(unittest.TestCase):
             "Demonstrators and Product Promoters",
             {item["title"] for item in product["candidates"]},
         )
-        machine_learning = suggest_occupations(rows, "Machine Learning Engineer")
-        self.assertEqual(machine_learning["candidates"], [])
+        unregistered_title = suggest_occupations(rows, "Machine Learning Specialist")
+        self.assertEqual(unregistered_title["candidates"], [])
 
     def test_occupation_suggestions_normalize_plural_title_phrases(self):
         rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
@@ -302,6 +302,41 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(result["candidates"][0]["title"], "Software Developers")
         self.assertEqual(result["candidates"][0]["match_score"], 1.0)
         self.assertEqual(result["candidates"][0]["basis"], ["title_phrase_match"])
+
+    def test_alias_registry_returns_reviewable_candidate_families(self):
+        rows = [
+            {"onet_soc_code": "15-2051.00", "title": "Data Scientists"},
+            {"onet_soc_code": "15-1252.00", "title": "Software Developers"},
+        ]
+        registry = load_alias_registry()
+        self.assertIn("machine learning engineer", registry)
+        result = suggest_occupations(rows, "ML Engineer")
+        self.assertEqual(result["mapping_status"], "editorial_candidate_crosswalk")
+        self.assertTrue(result["requires_confirmation"])
+        self.assertIsNone(result["candidates"][0]["match_score"])
+        self.assertEqual(
+            {item["onet_soc_code"] for item in result["candidates"]},
+            {"15-2051.00", "15-1252.00"},
+        )
+        self.assertTrue(all(item["mapping_note"] for item in result["candidates"]))
+
+    def test_alias_layer_overrides_broad_product_manager_overlap(self):
+        rows = [
+            {
+                "onet_soc_code": "11-2021.00",
+                "title": "Marketing Managers",
+            },
+            {
+                "onet_soc_code": "11-1021.00",
+                "title": "General and Operations Managers",
+            },
+        ]
+        result = suggest_occupations(rows, "Product Manager")
+        self.assertEqual(result["mapping_status"], "editorial_candidate_crosswalk")
+        self.assertNotIn(
+            "Biofuels/Biodiesel Technology and Product Development Managers",
+            {item["title"] for item in result["candidates"]},
+        )
 
     def test_review_summary_exposes_source_and_topic_labels(self):
         context = summarize_reviews([], "15-2051.00")

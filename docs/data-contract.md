@@ -60,7 +60,7 @@ The local server exposes `GET /api/bridge?source=<O*NET-SOC code>`. The response
 
 The primary distance uses weighted normalized importance ratings from O*NET Essential Skills, Transferable Skills, Knowledge, Abilities, and Work Activities. Software overlap is a separate set-overlap signal and lightly regularizes the ranking. Task-text overlap is supplemental evidence only. A `family_average` profile is used only when the parent O*NET code has no direct structured rating and is visibly labeled.
 
-The response supports pathway discovery. It does not estimate individual ability, hiring probability, wage causality, or future employment. Title suggestions normalize simple singular and plural forms, require compatible role terms, and require all non-role query terms to appear in the title. The service returns no candidate rather than using a generic token such as `machine`, `manager`, or `analyst` as a standalone match.
+The response supports pathway discovery. It does not estimate individual ability, hiring probability, wage causality, or future employment. Title suggestions normalize simple singular and plural forms, require compatible role terms, and require all non-role query terms to appear in the title. The service returns no candidate rather than using a generic token such as `machine`, `manager`, or `analyst` as a standalone match. A small editorial alias registry in `config/occupation_aliases_en.json` can return multiple candidate occupation families for common nonstandard titles. These candidates have `match_score: null`, `mapping_status: candidate_family`, an explicit `mapping_note`, and always require user confirmation.
 
 ## Worker review context response
 
