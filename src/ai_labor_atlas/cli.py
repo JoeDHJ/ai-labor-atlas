@@ -14,13 +14,14 @@ from .io import read_csv, read_json, write_json
 from .llm_review import LLMNotConfiguredError, LLMReviewClient, LLMReviewError
 from .metrics import group_by_major_soc, rank_rows, summarize, summarize_tasks
 from .occupation_context import (
+    build_market_context,
     load_alias_registry,
     suggest_occupations,
     validate_alias_registry,
 )
 from .pipeline import build_dataset
 from .reviews import load_reviews, summarize_reviews, validate_review_file
-from .sources import download_registered_sources
+from .sources import SOURCE_INTEGRITY_FAILURE, download_registered_sources
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -64,7 +65,11 @@ def main(argv: list[str] | None = None) -> int:
             ROOT / "config" / "source_registry.json", raw_dir
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0
+        return 2 if any(
+            item.get("status") == SOURCE_INTEGRITY_FAILURE
+            for item in result.get("results", [])
+            if isinstance(item, dict)
+        ) else 0
     if args.command == "build":
         try:
             if args.demo:
@@ -131,6 +136,24 @@ def main(argv: list[str] | None = None) -> int:
             reviews = load_reviews(processed_dir / "reviews.json")
         except ValueError as exc:
             print(f"Review import error: {exc}", file=sys.stderr)
+            return 2
+        release_codes = {
+            str(row.get("onet_soc_code", "")).strip()
+            for row in rows
+            if str(row.get("onet_soc_code", "")).strip()
+        }
+        review_codes = {
+            str(review.get("onet_soc_code", "")).strip()
+            for review in reviews
+            if str(review.get("onet_soc_code", "")).strip()
+        }
+        unknown_review_codes = sorted(review_codes - release_codes)
+        if unknown_review_codes:
+            print(
+                "Review import error: occupation codes missing from this Atlas release: "
+                + ", ".join(unknown_review_codes),
+                file=sys.stderr,
+            )
             return 2
         site_dir = ROOT / "site"
         summary = summarize(rows)
@@ -278,8 +301,13 @@ def main(argv: list[str] | None = None) -> int:
                             return
                         self._send_json(
                             {
-                                "schema_version": "occupation_context.v0.1",
+                                "schema_version": "occupation_context.v0.2",
                                 "occupation": occupation,
+                                "market_context": build_market_context(
+                                    occupation,
+                                    tasks,
+                                    bridge_engine.bridge(source),
+                                ),
                                 "reviews": summarize_reviews(reviews, source),
                                 "requires_confirmation": False,
                                 "mapping_status": "user_confirmed",

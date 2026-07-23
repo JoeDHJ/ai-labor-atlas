@@ -14,6 +14,7 @@ from ai_labor_atlas.demo import TASK_FIELDS, FIELDS, demo_rows, demo_tasks
 from ai_labor_atlas.distance import OccupationBridge
 from ai_labor_atlas.metrics import group_by_major_soc, summarize, summarize_tasks
 from ai_labor_atlas.occupation_context import (
+    build_market_context,
     load_alias_registry,
     suggest_occupations,
     validate_alias_registry,
@@ -31,6 +32,7 @@ from ai_labor_atlas.reviews import (
     summarize_reviews,
     validate_review_file,
 )
+from ai_labor_atlas.sources import download_file, sha256_bytes
 
 try:
     from openpyxl import Workbook
@@ -47,6 +49,8 @@ class AtlasTests(unittest.TestCase):
             [{key: str(value) for key, value in row.items()} for row in rows]
         )
         self.assertEqual(result["rows"], 8)
+        self.assertEqual(result["unique_onet_occupation_count"], 8)
+        self.assertEqual(result["unique_soc_count"], 8)
         self.assertGreater(result["exposure_coverage"], 0.99)
 
         tasks = demo_tasks()
@@ -57,6 +61,66 @@ class AtlasTests(unittest.TestCase):
         )
         self.assertEqual(task_summary["task_rows"], 16)
         self.assertEqual(task_summary["task_occupation_coverage"], 1.0)
+
+    def test_market_context_keeps_metrics_tasks_and_interpretation_separate(self):
+        rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
+        tasks = [{key: str(value) for key, value in row.items()} for row in demo_tasks()]
+        context = build_market_context(
+            rows[0],
+            tasks,
+            {
+                "candidates": [
+                    {
+                        "occupation": rows[1],
+                        "structured_similarity": 0.8,
+                        "software_overlap": 0.4,
+                        "task_similarity": 0.3,
+                        "confidence": "Moderate",
+                    }
+                ]
+            },
+        )
+        self.assertEqual(context["schema_version"], "market_context.v0.1")
+        self.assertIn("median_annual_wage", context["metrics"])
+        self.assertTrue(context["representative_tasks"])
+        self.assertEqual(context["adjacent_occupations"][0]["onet_soc_code"], rows[1]["onet_soc_code"])
+        self.assertEqual(context["adjacent_occupations"][0]["title"], rows[1]["title"])
+        self.assertIn("not a job-loss probability", context["interpretation"])
+
+    def test_summary_distinguishes_expanded_crosswalk_rows_from_unique_occupations(self):
+        rows = [
+            {"onet_soc_code": "15-1252.00", "soc_2018_code": "15-1252"},
+            {"onet_soc_code": "15-1252.00", "soc_2018_code": "15-1252"},
+            {"onet_soc_code": "15-2051.00", "soc_2018_code": "15-2051"},
+        ]
+        result = summarize(rows)
+        self.assertEqual(result["rows"], 3)
+        self.assertEqual(result["unique_onet_occupation_count"], 2)
+        self.assertEqual(result["crosswalk_expanded_row_count"], 2)
+        self.assertEqual(result["crosswalk_expanded_onet_count"], 1)
+
+    def test_download_rejects_unexpected_source_hash_before_writing(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self):
+                return b"unexpected payload"
+
+        with tempfile.TemporaryDirectory() as temp, patch(
+            "ai_labor_atlas.sources.urllib.request.urlopen", return_value=Response()
+        ):
+            destination = Path(temp) / "source.zip"
+            result = download_file(
+                "https://example.test/source.zip",
+                destination,
+                expected_sha256=sha256_bytes(b"registered payload"),
+            )
+        self.assertEqual(result["status"], "new_upstream_version_requires_review")
+        self.assertFalse(destination.exists())
 
     def test_demo_build_is_deterministic(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -119,6 +183,9 @@ class AtlasTests(unittest.TestCase):
         self.assertIn("Design, develop, and test software applications.", page)
         self.assertIn('id="bridge-select"', page)
         self.assertIn("Career bridge", page)
+        self.assertIn("DEMO DATASET", page)
+        self.assertIn('role: "button"', page)
+        self.assertIn('tabindex: "0"', page)
 
     def test_worker_review_contract_preserves_source_and_does_not_score_reviews(self):
         review = normalize_review(

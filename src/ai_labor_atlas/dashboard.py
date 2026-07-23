@@ -102,7 +102,8 @@ HTML_TEMPLATE = r"""<!doctype html>
     .axis-label, .tick-label { fill: var(--muted); font-size: 12px; }
     .axis-title { fill: var(--muted); font-size: 13px; font-weight: 600; }
     .bubble { fill: var(--blue); fill-opacity: 0.76; stroke: var(--bg); stroke-width: 2; cursor: pointer; transition: cx 360ms ease, cy 360ms ease, r 360ms ease, fill 180ms ease, fill-opacity 180ms ease; }
-    .bubble:hover, .bubble.selected { fill: var(--cyan); fill-opacity: 1; }
+    .bubble:hover, .bubble.selected, .bubble:focus { fill: var(--cyan); fill-opacity: 1; }
+    .bubble:focus { outline: none; stroke: var(--text); stroke-width: 3; }
     .bubble.selected { stroke: var(--text); stroke-width: 3; }
     .bubble-label { fill: var(--text); font-size: 11px; pointer-events: none; }
     .detail-panel, .task-panel, .task-list { min-width: 0; }
@@ -164,6 +165,8 @@ HTML_TEMPLATE = r"""<!doctype html>
     .review-disclosure { margin-top: 13px; color: var(--muted); font-size: 0.72rem; }
     .review-disclosure summary { cursor: pointer; color: var(--muted); }
     .review-disclosure p { max-width: 520px; margin: 8px 0 0; line-height: 1.45; }
+    .dataset-notice { margin: 0 0 18px; padding: 10px 12px; color: var(--amber); background: rgba(255, 199, 107, .1); border: 1px solid rgba(255, 199, 107, .35); border-radius: 10px; font-size: .8rem; }
+    .dataset-notice:empty { display: none; }
     .legend { justify-content: flex-start; margin-top: 10px; color: var(--muted); font-size: 0.8rem; }
     .legend-dot { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 50%; background: var(--blue); }
     .meaning-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -191,6 +194,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         <p>This explorer connects occupational tasks, an AI exposure indicator, wages, employment, and projections. It helps you ask better questions about changing work - it does not forecast layoffs.</p>
       </div>
     </section>
+    <div class="dataset-notice" role="status">__DATASET_NOTICE__</div>
     <section class="kpi-grid" aria-label="Atlas overview">
       <article class="kpi"><span class="label">Occupations</span><strong class="kpi-value" id="kpi-rows">Not available</strong><span class="kpi-context">occupations included</span></article>
       <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">occupations with an exposure value</span></article>
@@ -226,7 +230,7 @@ HTML_TEMPLATE = r"""<!doctype html>
               <text class="axis-title" x="430" y="426" text-anchor="middle">AI exposure</text>
               <text id="y-axis-title" class="axis-title" transform="translate(18 220) rotate(-90)" text-anchor="middle">Median annual wage</text>
             </svg>
-            <div class="legend"><span><span class="legend-dot"></span>Bubble area = employment</span><span>Click a bubble to inspect an occupation</span></div>
+            <div class="legend"><span><span class="legend-dot"></span>Bubble area = employment</span><span>Click or focus a bubble, then press Enter or Space to inspect an occupation</span></div>
           </div>
           <aside class="detail-panel">
             <span class="eyebrow">Selected occupation</span>
@@ -588,12 +592,22 @@ HTML_TEMPLATE = r"""<!doctype html>
             class: "bubble" + (item.index === selected.index ? " selected" : ""),
             cx: x(exposure), cy: y(outcome),
             r: 7 + Math.sqrt((numeric(row.employment_2024) || 0) / maxEmployment) * 24,
-            "aria-label": String(row.title || "Occupation")
+            role: "button",
+            tabindex: "0",
+            "aria-pressed": item.index === selected.index ? "true" : "false",
+            "aria-label": "Select " + String(row.title || "Occupation")
           });
           const bubbleTitle = document.createElement("title");
           bubbleTitle.textContent = String(row.title || "Occupation");
           circle.appendChild(bubbleTitle);
-          circle.addEventListener("click", function () { selected.index = item.index; draw(); });
+          const selectOccupation = function () { selected.index = item.index; draw(); };
+          circle.addEventListener("click", selectOccupation);
+          circle.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              selectOccupation();
+            }
+          });
           marks.appendChild(circle);
           if (showLabels || item.index === selected.index) {
             const label = String(row.title || "").replace(" and ", " & ");
@@ -661,6 +675,11 @@ def render(
             code = row.get("onet_soc_code", "")
             if code:
                 reviews_by_onet[code] = summarize_reviews(reviews, code)
+    dataset_notice = (
+        "DEMO DATASET — values are synthetic examples for interface testing; do not use for labor-market decisions."
+        if any(str(row.get("data_quality_flags", "")).casefold() == "demo_data" for row in rows)
+        else ""
+    )
     payload = json.dumps(
         {
             "rows": rows,
@@ -672,8 +691,10 @@ def render(
         ensure_ascii=False,
         separators=(",", ":"),
     ).replace("<", "\\u003c")
-    return HTML_TEMPLATE.replace("__ATLAS_DATA__", payload).replace(
-        "__LLM_ENABLED__", json.dumps(LLM_REVIEW_CLIENT.config.enabled)
+    return (
+        HTML_TEMPLATE.replace("__ATLAS_DATA__", payload)
+        .replace("__LLM_ENABLED__", json.dumps(LLM_REVIEW_CLIENT.config.enabled))
+        .replace("__DATASET_NOTICE__", dataset_notice)
     )
 
 
