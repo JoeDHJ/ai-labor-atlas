@@ -30,7 +30,7 @@ dashboard to share a different persistent location.
 
 ## Explore the dashboard
 
-The dashboard connects occupational tasks, AI exposure, wages, employment, and projections in one visual view. Run the project locally to explore the interactive experience.
+The dashboard brings occupational tasks, AI exposure, wages, employment, and outlook together in one visual workspace for comparing roles and exploring changing work.
 
 ![AI Labor Atlas dashboard](docs/assets/atlas-dashboard.png)
 
@@ -38,7 +38,7 @@ The dashboard connects occupational tasks, AI exposure, wages, employment, and p
 
 ![AI Labor Atlas career bridge](docs/assets/atlas-career-bridge.png)
 
-The dashboard compares AI exposure with wages, projected employment growth, annual openings, and employment scale. Exposure is a task-applicability indicator—not a probability of job loss—so the page explains the economic meaning and limits of each measure alongside the chart.
+The dashboard compares AI exposure with wages, projected employment growth, annual openings, and employment scale. It pairs the visual comparison with plain-language metric guidance so users can explore the economic context behind each occupation.
 
 The Career bridge view helps users explore adjacent occupations. It uses structured O*NET importance ratings as the primary profile distance, then shows software overlap, supplemental task evidence, labor-market context, and a practical training hint. The bridge is a descriptive pathway tool. It is not a personal ability estimate, a hiring-probability model, or an employment forecast.
 

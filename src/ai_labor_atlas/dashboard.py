@@ -187,20 +187,20 @@ HTML_TEMPLATE = r"""<!doctype html>
   <main class="shell">
     <header class="topbar">
       <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">AI Labor Atlas</span></div>
-      <span class="micro">Descriptive research explorer</span>
+      <span class="micro">Occupational intelligence explorer</span>
     </header>
     <section class="hero">
       <div class="hero-copy">
         <div class="hero-badge">U.S. occupations | task-level evidence</div>
-        <h1>Where does AI overlap with work?</h1>
-        <p>This explorer connects occupational tasks, an AI exposure indicator, wages, employment, and projections. It helps you ask better questions about changing work - it does not forecast layoffs.</p>
+        <h1>See how AI is reshaping the work behind occupations.</h1>
+        <p>Connect occupational tasks, AI exposure, wages, employment, and outlook to uncover patterns, compare roles, and explore informed career pathways.</p>
       </div>
     </section>
     <div class="dataset-notice" role="status">__DATASET_NOTICE__</div>
     <section class="kpi-grid" aria-label="Atlas overview">
       <article class="kpi"><span class="label">O*NET occupations</span><strong class="kpi-value" id="kpi-rows">Not available</strong><span class="kpi-context">one record per O*NET occupation after mapping aggregation</span></article>
       <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">aggregated occupations with an exposure value</span></article>
-      <article class="kpi"><span class="label">SOC-employment-weighted relative AI exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">0--100 display scale; not a probability or job-loss forecast</span></article>
+      <article class="kpi"><span class="label">SOC-employment-weighted relative AI exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">0--100 comparison scale, normalized for clear exploration</span></article>
       <article class="kpi"><span class="label">Wage coverage</span><strong class="kpi-value" id="kpi-wage">Not available</strong><span class="kpi-context">occupations with a wage estimate</span></article>
       <article class="kpi"><span class="label">Task coverage</span><strong class="kpi-value" id="kpi-tasks">Not available</strong><span class="kpi-context">occupations with task examples</span></article>
     </section>
@@ -312,7 +312,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       </div>
       <p class="source-note">Source note: The dashboard combines occupational task information, AIOE estimates, and wage, employment, and projection data. AIOE is shown here as a 0--100 relative display scale derived from the signed source values in this release. It preserves ordering but is not a probability, replacement risk, or forecast that a job will disappear. Missing values remain visible rather than being treated as zero. When one O*NET occupation maps to multiple SOC codes, occupation-level reference metrics use the disclosed crosswalk weights; the employment-weighted exposure KPI uses each unique 2018 SOC target once and the selected occupation shows any mapping warning.</p>
     </section>
-    <footer class="footer-row"><span>Occupational evidence for clearer questions about changing work.</span><span>Descriptive analysis, not a forecast of individual job outcomes.</span></footer>
+    <footer class="footer-row"><span>Occupational evidence for clearer decisions about changing work.</span><span>Built from tasks, labor-market data, and transparent methods.</span></footer>
   </main>
   <script id="atlas-data" type="application/json">__ATLAS_DATA__</script>
   <script>
