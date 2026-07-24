@@ -200,7 +200,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     <section class="kpi-grid" aria-label="Atlas overview">
       <article class="kpi"><span class="label">O*NET occupations</span><strong class="kpi-value" id="kpi-rows">Not available</strong><span class="kpi-context">one record per O*NET occupation after mapping aggregation</span></article>
       <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">aggregated occupations with an exposure value</span></article>
-      <article class="kpi"><span class="label">SOC-employment-weighted exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">unique 2018 SOC units; shared mappings are deduplicated</span></article>
+      <article class="kpi"><span class="label">SOC-employment-weighted relative AI exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">0--100 display scale; not a probability or job-loss forecast</span></article>
       <article class="kpi"><span class="label">Wage coverage</span><strong class="kpi-value" id="kpi-wage">Not available</strong><span class="kpi-context">occupations with a wage estimate</span></article>
       <article class="kpi"><span class="label">Task coverage</span><strong class="kpi-value" id="kpi-tasks">Not available</strong><span class="kpi-context">occupations with task examples</span></article>
     </section>
@@ -229,7 +229,7 @@ HTML_TEMPLATE = r"""<!doctype html>
               <title id="chart-title">Occupation AI exposure comparison</title>
               <desc id="chart-desc">Bubble chart comparing AI exposure with an economic outcome. Bubble area represents employment.</desc>
               <g id="grid"></g><g id="marks"></g><g id="labels"></g>
-              <text class="axis-title" x="430" y="426" text-anchor="middle">AI exposure</text>
+              <text class="axis-title" x="430" y="426" text-anchor="middle">Relative AI exposure (0--100)</text>
               <text id="y-axis-title" class="axis-title" transform="translate(18 220) rotate(-90)" text-anchor="middle">Median annual wage</text>
             </svg>
             <div class="legend"><span><span class="legend-dot"></span>Bubble area = O*NET-mapped employment</span><span>Click or focus a bubble, then press Enter or Space to inspect an occupation</span></div>
@@ -241,7 +241,7 @@ HTML_TEMPLATE = r"""<!doctype html>
             <span class="code-pill" id="detail-code">—</span>
             <p class="detail-mapping" id="detail-mapping">SOC mapping details will appear after selection.</p>
             <div class="detail-list">
-              <div class="detail-row"><span class="muted">AI exposure</span><strong id="detail-exposure">—</strong></div>
+              <div class="detail-row"><span class="muted">Relative AI exposure</span><strong id="detail-exposure">—</strong></div>
               <div class="detail-row"><span class="muted" id="detail-outcome-label">Median wage</span><strong id="detail-outcome">—</strong></div>
               <div class="detail-row"><span class="muted">Employment</span><strong id="detail-employment">—</strong></div>
               <div class="detail-row"><span class="muted">Projected change</span><strong id="detail-growth">—</strong></div>
@@ -310,7 +310,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         <article class="meaning"><h3>Wage is a level</h3><p>A wage comparison describes where occupations sit in the labor market. It does not show that AI exposure causes a wage difference.</p></article>
         <article class="meaning"><h3>Projections are a baseline</h3><p>Employment projections summarize a published scenario. They help frame scale and direction, but do not isolate the effect of AI.</p></article>
       </div>
-      <p class="source-note">Source note: The dashboard combines occupational task information, AI exposure estimates, and wage, employment, and projection data. Missing values remain visible rather than being treated as zero. When one O*NET occupation maps to multiple SOC codes, occupation-level reference metrics use the disclosed crosswalk weights; the employment-weighted exposure KPI uses each unique 2018 SOC target once and the selected occupation shows any mapping warning.</p>
+      <p class="source-note">Source note: The dashboard combines occupational task information, AIOE estimates, and wage, employment, and projection data. AIOE is shown here as a 0--100 relative display scale derived from the signed source values in this release. It preserves ordering but is not a probability, replacement risk, or forecast that a job will disappear. Missing values remain visible rather than being treated as zero. When one O*NET occupation maps to multiple SOC codes, occupation-level reference metrics use the disclosed crosswalk weights; the employment-weighted exposure KPI uses each unique 2018 SOC target once and the selected occupation shows any mapping warning.</p>
     </section>
     <footer class="footer-row"><span>Occupational evidence for clearer questions about changing work.</span><span>Descriptive analysis, not a forecast of individual job outcomes.</span></footer>
   </main>
@@ -528,7 +528,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       }
       function renderDeepReview(review) {
         deepReviewResult.hidden = false;
-        deepReviewSummary.textContent = (review.decision || "review") + " · " + Math.round(Number(review.confidence || 0) * 100) + "% confidence. " + (review.rationale || "No rationale supplied.");
+        deepReviewSummary.textContent = (review.decision || "review") + " · support level: " + (review.support_level || "limited") + ". This is a review cue, not a probability. " + (review.rationale || "No rationale supplied.");
         deepReviewEvidence.innerHTML = "";
         (review.evidence || []).forEach(function (item) { deepReviewEvidence.appendChild(htmlNode("li", "", item)); });
       }
@@ -555,7 +555,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       function updateKpis() {
         setText("kpi-rows", Number(summary.aggregated_onet_occupation_count || summary.unique_onet_occupation_count || 0).toLocaleString("en-US"));
         setText("kpi-exposure", ((Number(summary.exposure_coverage || 0)) * 100).toFixed(1) + "%");
-        setText("kpi-weighted", numeric(summary.employment_weighted_exposure) == null ? "Not available" : Number(summary.employment_weighted_exposure).toFixed(2));
+        setText("kpi-weighted", numeric(summary.employment_weighted_exposure) == null ? "Not available" : Math.round(Number(summary.employment_weighted_exposure)) + "/100");
         setText("kpi-wage", ((Number(summary.wage_coverage || 0)) * 100).toFixed(1) + "%");
         setText("kpi-tasks", ((Number(summary.task_occupation_coverage || 0)) * 100).toFixed(1) + "%");
       }
@@ -563,15 +563,15 @@ HTML_TEMPLATE = r"""<!doctype html>
         const currentMetric = metric[metricSelect.value];
         const visible = filteredRows();
         if (visible.length && !visible.some(function (item) { return item.index === selected.index; })) selected.index = visible[0].index;
-        const exposureValues = visible.map(function (item) { return numeric(item.row.ai_exposure); }).filter(function (value) { return value != null; });
         const outcomeValues = visible.map(function (item) { return numeric(item.row[currentMetric.field]); }).filter(function (value) { return value != null; });
-        const xMax = Math.max(1, Math.ceil((Math.max.apply(null, exposureValues.length ? exposureValues : [1]) * 1.08) * 10) / 10);
+        const xMin = 0;
+        const xMax = 100;
         let yMin = Math.min.apply(null, outcomeValues.length ? outcomeValues : [0]);
         let yMax = Math.max.apply(null, outcomeValues.length ? outcomeValues : [1]);
         if (yMin === yMax) { yMin -= 1; yMax += 1; }
         const yPad = (yMax - yMin) * 0.08;
         yMin -= yPad; yMax += yPad;
-        const x = function (value) { return 78 + (value / xMax) * 670; };
+        const x = function (value) { return 78 + ((value - xMin) / (xMax - xMin)) * 670; };
         const y = function (value) { return 350 - ((value - yMin) / (yMax - yMin)) * 286; };
         const employmentValues = rows.map(function (row) { return numeric(row.employment_2024) || 0; });
         const maxEmployment = Math.max.apply(null, employmentValues.length ? employmentValues : [1]);
@@ -579,7 +579,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         grid.innerHTML = "";
         const ticks = 5;
         for (let i = 0; i <= ticks; i += 1) {
-          const xTick = (xMax / ticks) * i;
+          const xTick = xMin + ((xMax - xMin) / ticks) * i;
           const yTick = yMin + ((yMax - yMin) / ticks) * i;
           grid.appendChild(make("line", { class: "grid-line", x1: x(xTick), x2: x(xTick), y1: 64, y2: 350 }));
           grid.appendChild(make("text", { class: "tick-label", x: x(xTick), y: 371, "text-anchor": "middle" }, xTick.toFixed(1)));
@@ -630,14 +630,18 @@ HTML_TEMPLATE = r"""<!doctype html>
         if (mappingFlags.includes("uniform_crosswalk_fallback")) mappingWarnings.push("Uniform crosswalk fallback; no source allocation was available.");
         if (mappingFlags.includes("shared_soc_crosswalk")) mappingWarnings.push("Shared SOC target; top-line SOC weighting deduplicates this target.");
         if (mappingFlags.includes("missing_crosswalk")) mappingWarnings.push("No SOC mapping is available; SOC-linked market fields are not available.");
+        if (mappingFlags.includes("aioe_crosswalk_ambiguous")) mappingWarnings.push("AIOE is intentionally withheld because the official SOC 2010-to-2018 bridge splits or merges this occupation; no allocation was invented.");
         const mappingWarning = mappingWarnings.length ? " " + mappingWarnings.join(" ") : "";
         setText("detail-mapping", (socCodes.length > 1 ? "Reference metrics weighted across " + socCodes.length + " SOC mappings: " + socCodes.join(", ") + "." : "SOC mapping: " + (socCodes[0] || "not available") + ".") + mappingWarning);
-        setText("detail-exposure", numeric(selectedRow.ai_exposure) == null ? "Not available" : numeric(selectedRow.ai_exposure).toFixed(2));
+        setText("detail-exposure", numeric(selectedRow.ai_exposure) == null ? "Not available" : Math.round(numeric(selectedRow.ai_exposure)) + "/100");
         setText("detail-outcome-label", currentMetric.label);
         setText("detail-outcome", currentMetric.format(numeric(selectedRow[currentMetric.field])));
         setText("detail-employment", workers(numeric(selectedRow.employment_2024)));
         setText("detail-growth", percent(numeric(selectedRow.employment_change_2024_2034_pct)));
-        setText("detail-interpretation", selectedRow.title ? currentMetric.note : "Select an occupation to see a plain-language interpretation.");
+        const aioeUnavailable = mappingFlags.includes("aioe_crosswalk_ambiguous")
+          ? "AIOE is not shown for this occupation because a SOC split or merge makes a direct score misleading without an allocation source. "
+          : "AI exposure is a relative 0--100 display scale that preserves the source ordering. It is not a probability, replacement risk, or forecast that this job will disappear. ";
+        setText("detail-interpretation", selectedRow.title ? aioeUnavailable + currentMetric.note : "Select an occupation to see a plain-language interpretation.");
         renderTasks(selectedRow);
         renderWorkerReviews(selectedRow);
         deepReviewButton.disabled = !llmEnabled || !selectedRow.title;
@@ -700,10 +704,16 @@ def render(
             "wage_vintage",
             "projection_vintage",
             "crosswalk_method",
-            "ai_exposure_source",
         )
         if any(
             not all(str(row.get(field, "")).strip() for field in provenance_fields)
+            for row in display_rows
+        ) or any(
+            row.get("ai_exposure") not in (None, "")
+            and not all(
+                str(row.get(field, "")).strip()
+                for field in ("ai_exposure_source", "ai_exposure_soc_vintage")
+            )
             for row in display_rows
         ):
             dataset_notice = (

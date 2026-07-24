@@ -23,6 +23,7 @@ from ai_labor_atlas.metrics import (
     summarize_tasks,
 )
 from ai_labor_atlas.occupation_context import build_market_context, suggest_occupations
+from ai_labor_atlas.pipeline import _bridge_aioe_to_soc_2018
 from ai_labor_atlas.reviews import normalize_review
 
 
@@ -139,7 +140,7 @@ def _summary_case(case_id: str, rows: list[dict[str, str]], variant: str) -> tup
         ]
     elif case_id == "summary_negative_employment_fail_closed":
         rows = [{**_row(rows), "employment_2024": "-10"}]
-    elif case_id == "summary_negative_market_metrics_fail_closed":
+    elif case_id == "summary_negative_aioe_and_market_metrics":
         rows = [{**_row(rows), "ai_exposure": "-0.2", "median_annual_wage": "-1"}]
     result = summarize(rows)
     checks = {
@@ -151,7 +152,7 @@ def _summary_case(case_id: str, rows: list[dict[str, str]], variant: str) -> tup
         "summary_shared_soc_deduplicated": result["shared_soc_count"] == 1 and result["employment_weighting_row_count"] == 2,
         "summary_duplicate_onet_expansion": result["unique_onet_occupation_count"] == 1 and result["crosswalk_expanded_row_count"] == 2,
         "summary_negative_employment_fail_closed": result["employment_coverage"] == 0.0,
-        "summary_negative_market_metrics_fail_closed": result["exposure_coverage"] == 0.0 and result["wage_coverage"] == 0.0,
+        "summary_negative_aioe_and_market_metrics": result["exposure_coverage"] == 0.0 and result["exposure_min"] is None and result["wage_coverage"] == 0.0,
     }
     if case_id == "summary_weighted_multiple_soc":
         expected = abs(aggregate_onet_rows(rows)[0]["ai_exposure"] - 0.65) < 1e-9
@@ -272,7 +273,17 @@ def _context_case(case_id: str, rows: list[dict[str, str]], tasks: list[dict[str
         return not result["representative_tasks"], str(result)
     if case_id == "context_invalid_bridge_filtered":
         result = build_market_context(rows[0], [], bridge={"candidates": [{"bad": "candidate"}, {"occupation": rows[1], "structured_similarity": 0.8}]})
-        return len(result["adjacent_occupations"]) == 1 and result["adjacent_occupations"][0]["title"] == rows[1]["title"].strip(), str(result)
+        scores, flags, metadata = _bridge_aioe_to_soc_2018(
+            {"13-1021": 0.25, "29-2099": 0.5, "29-9099": 0.75},
+            {"13-1021", "29-2036", "29-2099", "29-9021", "29-9093", "29-9099"},
+        )
+        bridge_ok = (
+            scores == {"13-1021": 0.25}
+            and "aioe_crosswalk_ambiguous" in flags.get("29-2099", set())
+            and "aioe_crosswalk_ambiguous" in flags.get("29-9099", set())
+            and metadata["source_soc_vintage"] == "2010"
+        )
+        return len(result["adjacent_occupations"]) == 1 and result["adjacent_occupations"][0]["title"] == rows[1]["title"].strip() and bridge_ok, str(result)
     if case_id == "tasks_empty_coverage_zero":
         result = summarize_tasks(rows, [])
         return result["task_rows"] == 0 and result["task_occupation_coverage"] == 0.0, str(result)
@@ -299,7 +310,7 @@ def _base_cases() -> list[tuple[str, str]]:
         ("summary_duplicate_onet_expansion", "summary"),
         ("summary_weighted_multiple_soc", "summary"),
         ("summary_negative_employment_fail_closed", "summary"),
-        ("summary_negative_market_metrics_fail_closed", "summary"),
+        ("summary_negative_aioe_and_market_metrics", "summary"),
         ("crosswalk_missing_weights_fallback", "weight"),
         ("crosswalk_partial_missing_weights_fallback", "weight"),
         ("crosswalk_explicit_zero_preserved", "weight"),

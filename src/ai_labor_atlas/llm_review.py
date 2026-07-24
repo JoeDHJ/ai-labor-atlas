@@ -18,6 +18,20 @@ class LLMNotConfiguredError(LLMReviewError):
     """Raised when no approved model endpoint has been configured."""
 
 
+_SUPPORT_LEVELS = {"limited", "moderate", "strong"}
+
+
+def _support_level(value: Any) -> str:
+    label = str(value or "").strip().lower()
+    if label in _SUPPORT_LEVELS:
+        return label
+    try:
+        numeric = min(1.0, max(0.0, float(value)))
+    except (TypeError, ValueError):
+        return "limited"
+    return "strong" if numeric >= 0.75 else "moderate" if numeric >= 0.4 else "limited"
+
+
 @dataclass(frozen=True)
 class LLMConfig:
     api_key: str
@@ -166,8 +180,8 @@ class LLMReviewClient:
         system = (
             "You are a cautious occupational coding reviewer. Use only the supplied "
             "evidence. Do not invent SOC codes. Return JSON only with keys: decision, "
-            "confidence, selected_soc_code, rationale, evidence. decision must be "
-            "accept, review, or reject. confidence must be between 0 and 1."
+            "support_level, selected_soc_code, rationale, evidence. decision must be "
+            "accept, review, or reject. support_level must be limited, moderate, or strong."
         )
         user = json.dumps(
             _redact_payload(
@@ -179,11 +193,6 @@ class LLMReviewClient:
         decision = str(result.get("decision", "review")).lower()
         if decision not in {"accept", "review", "reject"}:
             decision = "review"
-        confidence = result.get("confidence", 0)
-        try:
-            confidence = min(1.0, max(0.0, float(confidence)))
-        except (TypeError, ValueError):
-            confidence = 0.0
         selected = result.get("selected_soc_code")
         if selected is not None:
             selected = str(selected)
@@ -200,7 +209,9 @@ class LLMReviewClient:
             evidence = [str(evidence)]
         return {
             "decision": decision,
-            "confidence": confidence,
+            "support_level": _support_level(
+                result.get("support_level", result.get("confidence"))
+            ),
             "selected_soc_code": selected,
             "rationale": str(result.get("rationale", ""))[:1200],
             "evidence": [str(item)[:400] for item in evidence[:5]],

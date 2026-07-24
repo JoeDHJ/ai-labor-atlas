@@ -27,6 +27,14 @@ from .sources import SOURCE_INTEGRITY_FAILURE, download_registered_sources
 
 LLM_REVIEW_CLIENT = LLMReviewClient()
 
+AIOE_DISPLAY_METADATA = {
+    "scale": "0-100 relative display scale",
+    "interpretation": (
+        "Higher means relatively higher AIOE within this release. It is not a "
+        "probability, replacement risk, or forecast of job loss."
+    ),
+}
+
 
 def _non_negative_int(value: str) -> int:
     parsed = int(value)
@@ -139,6 +147,7 @@ def _main(argv: list[str] | None = None) -> int:
             "summary": summary,
             "groups": group_by_major_soc(rows),
             "top": rank_rows(rows)[: args.top],
+            "ai_exposure_display": AIOE_DISPLAY_METADATA,
         }
         write_json(processed_dir / "analysis.json", result)
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -146,11 +155,19 @@ def _main(argv: list[str] | None = None) -> int:
     if args.command == "search":
         query = args.query.casefold()
         matches = [
-            row
+            {
+                **row,
+                "ai_exposure_interpretation": AIOE_DISPLAY_METADATA[
+                    "interpretation"
+                ],
+            }
             for row in rows
             if query
             in f"{row.get('title', '')} {row.get('description', '')}".casefold()
         ]
+        # Keep the established list-shaped CLI contract: scripts commonly pipe this
+        # command to JSON tooling.  Each result carries the plain-language AIOE
+        # interpretation so people do not have to infer what the 0–100 display means.
         print(json.dumps(matches[: args.limit], ensure_ascii=False, indent=2))
         return 0
     if args.command == "serve":
