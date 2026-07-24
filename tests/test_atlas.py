@@ -338,6 +338,17 @@ class AtlasTests(unittest.TestCase):
             code = cli_main(["download"])
         self.assertEqual(code, 2)
 
+    def test_download_cli_reports_filesystem_error_without_traceback(self):
+        stderr = io.StringIO()
+        with patch(
+            "ai_labor_atlas.cli.download_registered_sources",
+            side_effect=PermissionError("read-only data directory"),
+        ), redirect_stderr(stderr):
+            code = cli_main(["download"])
+        self.assertEqual(code, 2)
+        self.assertIn("Download error: read-only data directory", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
+
     def test_demo_build_is_deterministic(self):
         with tempfile.TemporaryDirectory() as temp:
             processed = Path(temp) / "processed"

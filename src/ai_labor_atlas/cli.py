@@ -81,9 +81,13 @@ def main(argv: list[str] | None = None) -> int:
     raw_dir = atlas_data_root / "raw"
     processed_dir = atlas_data_root / "processed"
     if args.command == "download":
-        result = download_registered_sources(
-            config_path("source_registry.json"), raw_dir
-        )
+        try:
+            result = download_registered_sources(
+                config_path("source_registry.json"), raw_dir
+            )
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"Download error: {exc}", file=sys.stderr)
+            return 2
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2 if any(
             item.get("status") in {SOURCE_INTEGRITY_FAILURE, "failed"}
