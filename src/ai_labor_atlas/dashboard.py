@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from .llm_review import LLMReviewClient
+from .metrics import aggregate_onet_rows
 
 
 LLM_REVIEW_CLIENT = LLMReviewClient()
@@ -110,6 +111,7 @@ HTML_TEMPLATE = r"""<!doctype html>
     .detail-panel { min-height: 360px; }
     .detail-name { margin: 8px 0 4px; font-size: 1.42rem; line-height: 1.15; }
     .code-pill { display: inline-flex; color: var(--cyan); background: rgba(85, 214, 194, 0.1); border: 1px solid rgba(85, 214, 194, 0.24); padding: 4px 8px; border-radius: 8px; font-size: 0.78rem; }
+    .detail-mapping { margin: 8px 0 0; color: var(--muted); font-size: .76rem; line-height: 1.4; }
     .detail-list { display: grid; gap: 10px; margin: 24px 0; }
     .detail-row { padding-bottom: 9px; border-bottom: 1px solid var(--line); }
     .detail-row strong { font-size: 1.06rem; }
@@ -196,9 +198,9 @@ HTML_TEMPLATE = r"""<!doctype html>
     </section>
     <div class="dataset-notice" role="status">__DATASET_NOTICE__</div>
     <section class="kpi-grid" aria-label="Atlas overview">
-      <article class="kpi"><span class="label">Occupations</span><strong class="kpi-value" id="kpi-rows">Not available</strong><span class="kpi-context">occupations included</span></article>
-      <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">occupations with an exposure value</span></article>
-      <article class="kpi"><span class="label">Employment-weighted exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">larger occupations count more</span></article>
+      <article class="kpi"><span class="label">O*NET occupations</span><strong class="kpi-value" id="kpi-rows">Not available</strong><span class="kpi-context">one record per O*NET occupation after mapping aggregation</span></article>
+      <article class="kpi"><span class="label">Exposure coverage</span><strong class="kpi-value" id="kpi-exposure">Not available</strong><span class="kpi-context">aggregated occupations with an exposure value</span></article>
+      <article class="kpi"><span class="label">SOC-employment-weighted exposure</span><strong class="kpi-value" id="kpi-weighted">Not available</strong><span class="kpi-context">unique 2018 SOC units; shared mappings are deduplicated</span></article>
       <article class="kpi"><span class="label">Wage coverage</span><strong class="kpi-value" id="kpi-wage">Not available</strong><span class="kpi-context">occupations with a wage estimate</span></article>
       <article class="kpi"><span class="label">Task coverage</span><strong class="kpi-value" id="kpi-tasks">Not available</strong><span class="kpi-context">occupations with task examples</span></article>
     </section>
@@ -230,12 +232,14 @@ HTML_TEMPLATE = r"""<!doctype html>
               <text class="axis-title" x="430" y="426" text-anchor="middle">AI exposure</text>
               <text id="y-axis-title" class="axis-title" transform="translate(18 220) rotate(-90)" text-anchor="middle">Median annual wage</text>
             </svg>
-            <div class="legend"><span><span class="legend-dot"></span>Bubble area = employment</span><span>Click or focus a bubble, then press Enter or Space to inspect an occupation</span></div>
+            <div class="legend"><span><span class="legend-dot"></span>Bubble area = O*NET-mapped employment</span><span>Click or focus a bubble, then press Enter or Space to inspect an occupation</span></div>
+            <p class="source-note">Each point is one aggregated O*NET occupation. Bubble size is an O*NET view; a shared SOC target may appear in more than one point and is not a unique-SOC total.</p>
           </div>
           <aside class="detail-panel">
             <span class="eyebrow">Selected occupation</span>
             <h3 class="detail-name" id="detail-title">Select an occupation</h3>
             <span class="code-pill" id="detail-code">—</span>
+            <p class="detail-mapping" id="detail-mapping">SOC mapping details will appear after selection.</p>
             <div class="detail-list">
               <div class="detail-row"><span class="muted">AI exposure</span><strong id="detail-exposure">—</strong></div>
               <div class="detail-row"><span class="muted" id="detail-outcome-label">Median wage</span><strong id="detail-outcome">—</strong></div>
@@ -275,7 +279,7 @@ HTML_TEMPLATE = r"""<!doctype html>
             </div>
             <div class="review-panel">
               <button id="deep-review-button" type="button" disabled>Review this mapping</button>
-              <p class="review-status" id="deep-review-status">Optional review available when enabled.</p>
+              <p class="review-status" id="deep-review-status">Optional review available when enabled. If enabled, it sends the selected occupation and mapping to the configured endpoint.</p>
               <div id="deep-review-result" hidden>
                 <p class="review-summary" id="deep-review-summary"></p>
                 <ul class="review-evidence" id="deep-review-evidence"></ul>
@@ -306,7 +310,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         <article class="meaning"><h3>Wage is a level</h3><p>A wage comparison describes where occupations sit in the labor market. It does not show that AI exposure causes a wage difference.</p></article>
         <article class="meaning"><h3>Projections are a baseline</h3><p>Employment projections summarize a published scenario. They help frame scale and direction, but do not isolate the effect of AI.</p></article>
       </div>
-      <p class="source-note">Source note: The dashboard combines occupational task information, AI exposure estimates, and wage, employment, and projection data. Missing values remain visible rather than being treated as zero.</p>
+      <p class="source-note">Source note: The dashboard combines occupational task information, AI exposure estimates, and wage, employment, and projection data. Missing values remain visible rather than being treated as zero. When one O*NET occupation maps to multiple SOC codes, occupation-level reference metrics use the disclosed crosswalk weights; the employment-weighted exposure KPI uses each unique 2018 SOC target once and the selected occupation shows any mapping warning.</p>
     </section>
     <footer class="footer-row"><span>Occupational evidence for clearer questions about changing work.</span><span>Descriptive analysis, not a forecast of individual job outcomes.</span></footer>
   </main>
@@ -346,6 +350,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       const bridgeMethod = document.getElementById("bridge-method");
       const llmEnabled = __LLM_ENABLED__;
       const yAxisTitle = document.getElementById("y-axis-title");
+      const detailMapping = document.getElementById("detail-mapping");
       const selected = { index: 0 };
       const ns = "http://www.w3.org/2000/svg";
       const numeric = function (value) { const result = Number(value); return Number.isFinite(result) ? result : null; };
@@ -548,7 +553,7 @@ HTML_TEMPLATE = r"""<!doctype html>
         });
       };
       function updateKpis() {
-        setText("kpi-rows", Number(summary.rows || 0).toLocaleString("en-US"));
+        setText("kpi-rows", Number(summary.aggregated_onet_occupation_count || summary.unique_onet_occupation_count || 0).toLocaleString("en-US"));
         setText("kpi-exposure", ((Number(summary.exposure_coverage || 0)) * 100).toFixed(1) + "%");
         setText("kpi-weighted", numeric(summary.employment_weighted_exposure) == null ? "Not available" : Number(summary.employment_weighted_exposure).toFixed(2));
         setText("kpi-wage", ((Number(summary.wage_coverage || 0)) * 100).toFixed(1) + "%");
@@ -618,7 +623,15 @@ HTML_TEMPLATE = r"""<!doctype html>
         yAxisTitle.textContent = currentMetric.axis;
         const selectedRow = rows[selected.index] || {};
         setText("detail-title", selectedRow.title || "Select an occupation");
-        setText("detail-code", selectedRow.soc_2018_code || "SOC unavailable");
+        const socCodes = Array.isArray(selectedRow.soc_2018_codes) ? selectedRow.soc_2018_codes : String(selectedRow.soc_2018_code || "").split(";").filter(Boolean);
+        setText("detail-code", selectedRow.onet_soc_code || "O*NET unavailable");
+        const mappingFlags = String(selectedRow.data_quality_flags || "").split(";").filter(Boolean);
+        const mappingWarnings = [];
+        if (mappingFlags.includes("uniform_crosswalk_fallback")) mappingWarnings.push("Uniform crosswalk fallback; no source allocation was available.");
+        if (mappingFlags.includes("shared_soc_crosswalk")) mappingWarnings.push("Shared SOC target; top-line SOC weighting deduplicates this target.");
+        if (mappingFlags.includes("missing_crosswalk")) mappingWarnings.push("No SOC mapping is available; SOC-linked market fields are not available.");
+        const mappingWarning = mappingWarnings.length ? " " + mappingWarnings.join(" ") : "";
+        setText("detail-mapping", (socCodes.length > 1 ? "Reference metrics weighted across " + socCodes.length + " SOC mappings: " + socCodes.join(", ") + "." : "SOC mapping: " + (socCodes[0] || "not available") + ".") + mappingWarning);
         setText("detail-exposure", numeric(selectedRow.ai_exposure) == null ? "Not available" : numeric(selectedRow.ai_exposure).toFixed(2));
         setText("detail-outcome-label", currentMetric.label);
         setText("detail-outcome", currentMetric.format(numeric(selectedRow[currentMetric.field])));
@@ -646,7 +659,7 @@ HTML_TEMPLATE = r"""<!doctype html>
       bridgeSelect.addEventListener("change", function () { loadBridge(bridgeSelect.value); });
       deepReviewButton.addEventListener("click", deepReview);
       reset.addEventListener("click", function () { search.value = ""; taskFilter.value = ""; taskTypeFilter.value = "all"; metricSelect.value = "wage"; selected.index = 0; draw(); });
-      if (llmEnabled) deepReviewStatus.textContent = "Optional review available.";
+      if (llmEnabled) deepReviewStatus.textContent = "Optional review sends the selected occupation and mapping to the configured endpoint. Use only an endpoint you trust.";
       updateKpis(); draw(); renderBridge(defaultBridge);
     }());
   </script>
@@ -664,6 +677,7 @@ def render(
     reviews: list[dict[str, object]] | None = None,
 ) -> str:
     del groups
+    display_rows = aggregate_onet_rows(rows)
     tasks_by_onet: dict[str, list[dict[str, str]]] = {}
     for task in tasks or []:
         tasks_by_onet.setdefault(task.get("onet_soc_code", ""), []).append(task)
@@ -671,18 +685,34 @@ def render(
     if reviews:
         from .reviews import summarize_reviews
 
-        for row in rows:
+        for row in display_rows:
             code = row.get("onet_soc_code", "")
             if code:
                 reviews_by_onet[code] = summarize_reviews(reviews, code)
     dataset_notice = (
         "DEMO DATASET — values are synthetic examples for interface testing; do not use for labor-market decisions."
-        if any(str(row.get("data_quality_flags", "")).casefold() == "demo_data" for row in rows)
+        if any(str(row.get("data_quality_flags", "")).casefold() == "demo_data" for row in display_rows)
         else ""
     )
+    if not dataset_notice:
+        provenance_fields = (
+            "onet_version",
+            "wage_vintage",
+            "projection_vintage",
+            "crosswalk_method",
+            "ai_exposure_source",
+        )
+        if any(
+            not all(str(row.get(field, "")).strip() for field in provenance_fields)
+            for row in display_rows
+        ):
+            dataset_notice = (
+                "DATA QUALITY NOTICE — provenance is incomplete for one or more records; "
+                "validate source versions before using these values."
+            )
     payload = json.dumps(
         {
-            "rows": rows,
+            "rows": display_rows,
             "summary": summary,
             "tasks_by_onet": tasks_by_onet,
             "reviews_by_onet": reviews_by_onet,

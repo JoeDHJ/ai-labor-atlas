@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .metrics import aggregate_onet_rows
+
 
 _STOPWORDS = {
     "and",
@@ -200,10 +202,11 @@ def suggest_occupations(
     query = query.strip()
     if not query:
         raise ValueError("query is required")
+    candidate_rows = aggregate_onet_rows(rows)
     alias = _ALIAS_REGISTRY.get(_alias_key(query))
     if alias:
         rows_by_code = {
-            str(row.get("onet_soc_code", "")): row for row in rows
+            str(row.get("onet_soc_code", "")): row for row in candidate_rows
         }
         candidates = []
         for item in alias["candidates"]:
@@ -223,7 +226,7 @@ def suggest_occupations(
                 }
             )
         return {
-            "schema_version": "occupation_context.v0.1",
+            "schema_version": "occupation_context.v0.3",
             "query": query,
             "candidates": candidates[: max(0, limit)],
             "requires_confirmation": True,
@@ -238,7 +241,7 @@ def suggest_occupations(
     query_sequence = _token_sequence(query)
     query_tokens = set(query_sequence)
     ranked = []
-    for row in rows:
+    for row in candidate_rows:
         title = str(row.get("title", ""))
         title_sequence = _token_sequence(title)
         title_tokens = set(title_sequence)
@@ -270,7 +273,7 @@ def suggest_occupations(
         )
     ranked.sort(key=lambda item: (-item["match_score"], item["title"]))
     return {
-        "schema_version": "occupation_context.v0.1",
+        "schema_version": "occupation_context.v0.3",
         "query": query,
         "candidates": ranked[: max(0, limit)],
         "requires_confirmation": True,
@@ -287,10 +290,19 @@ def build_market_context(
     occupation: dict[str, Any],
     tasks: list[dict[str, Any]],
     bridge: dict[str, Any] | None = None,
+    occupation_rows: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Expose a small, provenance-preserving market snapshot for consumers."""
+    """Expose a provenance-preserving market snapshot for one O*NET occupation.
 
-    code = str(occupation.get("onet_soc_code", ""))
+    ``occupation_rows`` should contain every crosswalk row for the selected
+    O*NET code.  When several SOC targets exist, the metrics are explicitly
+    crosswalk-weighted and the mapping warning is carried to the consumer.
+    """
+
+    source_rows = occupation_rows or [occupation]
+    aggregated = aggregate_onet_rows(source_rows)
+    selected = aggregated[0] if aggregated else dict(occupation)
+    code = str(selected.get("onet_soc_code") or occupation.get("onet_soc_code", ""))
     task_rows = [
         {
             "task_statement": str(row.get("task_statement", "")),
@@ -337,31 +349,64 @@ def build_market_context(
                 "training_hint": candidate.get("training_hint", ""),
             }
         )
+    soc_codes = selected.get("soc_2018_codes", [])
+    if not isinstance(soc_codes, list):
+        soc_codes = [
+            value.strip()
+            for value in str(selected.get("soc_2018_code", "")).split(";")
+            if value.strip()
+        ]
+    mapping_status = str(selected.get("mapping_status", "single_soc_crosswalk"))
+    row_count = int(selected.get("crosswalk_row_count") or len(source_rows) or 1)
+    quality_flags = [
+        flag.strip()
+        for flag in str(selected.get("data_quality_flags", "")).split(";")
+        if flag.strip()
+    ]
+    weighting_note = (
+        "no SOC mapping is available"
+        if "missing_crosswalk" in quality_flags
+        else "uniform fallback; no source crosswalk allocation was available"
+        if "uniform_crosswalk_fallback" in quality_flags
+        else "explicit crosswalk weights"
+    )
     return {
-        "schema_version": "market_context.v0.1",
+        "schema_version": "market_context.v0.2",
         "occupation_code": code,
-        "title": occupation.get("title", ""),
+        "title": selected.get("title", occupation.get("title", "")),
         "metrics": {
-            "median_annual_wage": occupation.get("median_annual_wage"),
-            "employment_2024": occupation.get("employment_2024"),
-            "annual_openings_2024_2034": occupation.get("annual_openings_2024_2034"),
-            "employment_change_2024_2034_pct": occupation.get(
+            "median_annual_wage": selected.get("median_annual_wage"),
+            "employment_2024": selected.get("employment_2024"),
+            "annual_openings_2024_2034": selected.get("annual_openings_2024_2034"),
+            "employment_change_2024_2034_pct": selected.get(
                 "employment_change_2024_2034_pct"
             ),
-            "ai_exposure": occupation.get("ai_exposure"),
+            "ai_exposure": selected.get("ai_exposure"),
         },
         "provenance": {
-            "onet_version": occupation.get("onet_version"),
-            "wage_vintage": occupation.get("wage_vintage"),
-            "projection_vintage": occupation.get("projection_vintage"),
-            "ai_exposure_source": occupation.get("ai_exposure_source"),
-            "crosswalk_method": occupation.get("crosswalk_method"),
-            "data_quality_flags": occupation.get("data_quality_flags", ""),
+            "onet_version": selected.get("onet_version"),
+            "wage_vintage": selected.get("wage_vintage"),
+            "projection_vintage": selected.get("projection_vintage"),
+            "ai_exposure_source": selected.get("ai_exposure_source"),
+            "crosswalk_method": selected.get("crosswalk_method"),
+            "data_quality_flags": selected.get("data_quality_flags", ""),
+        },
+        "mapping": {
+            "status": mapping_status,
+            "onet_soc_code": code,
+            "soc_2018_codes": soc_codes,
+            "row_count": row_count,
+            "aggregation_method": selected.get(
+                "aggregation_method", "direct_soc_record"
+            ),
+            "crosswalk_weighting": weighting_note,
+            "data_quality_flags": quality_flags,
         },
         "representative_tasks": task_rows,
         "adjacent_occupations": alternatives,
         "interpretation": (
             "These are descriptive market and task signals. AI exposure is not a job-loss probability, "
-            "wage differences are not causal, and adjacent occupations are not personal recommendations."
+            "wage differences are not causal, adjacent occupations are not personal recommendations, "
+            "and multiple SOC mappings are weighted reference estimates rather than a direct occupation statistic."
         ),
     }

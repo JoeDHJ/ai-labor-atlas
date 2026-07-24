@@ -44,6 +44,11 @@ TOPIC_LABELS = {
 }
 _DATE_FIELDS = ("review_date", "date", "created_at")
 _ONET_CODE = re.compile(r"^\d{2}-\d{4}\.\d{2}$")
+_EMAIL = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE)
+_PHONE = re.compile(
+    r"(?<!\d)(?:\+?1[\s.-]?)?(?:\(?\d{3}\)?[\s.-])\d{3}[\s.-]\d{4}(?!\d)"
+)
+_US_SSN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 MAX_EXCERPT_LENGTH = 2_000
 MAX_VALIDATION_ERRORS = 50
 
@@ -71,7 +76,15 @@ def _source_url(value: Any) -> str:
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise ValueError("source_url must be an http(s) URL")
+    _reject_common_pii("source_url", url)
     return url
+
+
+def _reject_common_pii(field: str, value: str) -> None:
+    if _EMAIL.search(value) or _PHONE.search(value) or _US_SSN.search(value):
+        raise ValueError(
+            f"{field} must not contain an email address, phone number, or government ID"
+        )
 
 
 def normalize_review(row: dict[str, Any]) -> dict[str, Any]:
@@ -95,8 +108,11 @@ def normalize_review(row: dict[str, Any]) -> dict[str, Any]:
     if len(excerpt) > MAX_EXCERPT_LENGTH:
         raise ValueError(f"excerpt must be at most {MAX_EXCERPT_LENGTH} characters")
     for field in ("author_display", "employer", "job_title", "location"):
-        if len(_text(row.get(field))) > 200:
+        value = _text(row.get(field))
+        if len(value) > 200:
             raise ValueError(f"{field} is too long")
+        _reject_common_pii(field, value)
+    _reject_common_pii("excerpt", excerpt)
     source = _text(row.get("source")).casefold() or "other"
     if source not in SOURCE_LABELS:
         raise ValueError(f"unsupported review source: {source}")
@@ -313,9 +329,15 @@ def summarize_reviews(
 ) -> dict[str, Any]:
     """Create the public occupation context without a sentiment or truth score."""
 
+    safe_reviews: list[dict[str, Any]] = []
+    for review in reviews:
+        try:
+            safe_reviews.append(normalize_review(review))
+        except (TypeError, ValueError):
+            continue
     all_items = [
         review
-        for review in reviews
+        for review in safe_reviews
         if review.get("onet_soc_code") == occupation_code
     ]
     all_items.sort(key=lambda review: review.get("review_date", ""), reverse=True)

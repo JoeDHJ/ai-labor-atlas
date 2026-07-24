@@ -20,7 +20,7 @@ Place an optional local file at `data/processed/reviews.json`. The file may be a
 }
 ```
 
-`source_url`, `review_date`, `rating`, employer, job title, location, and author display name are optional. `rating` is shown only as supplied; it is never averaged. The importer uses a public-field allowlist so private contact details and importer-only notes do not reach the dashboard.
+`source_url`, `review_date`, `rating`, employer, job title, location, and author display name are optional. `rating` is shown only as supplied; it is never averaged. The importer uses a public-field allowlist, rejects common email/phone/US SSN patterns in public text fields, and never copies importer-only notes to the dashboard. Maintainers must still manually redact names, identifying combinations, and sensitive narratives; automated checks cannot reliably detect every identity clue.
 
 The dashboard keeps comments from different sources and scopes visible together. A positive, negative, or mixed experience may be useful to a job seeker, but no comment is treated as a verified fact or as representative of all workers. Source, date, scope, and link remain attached wherever available.
 
@@ -34,7 +34,7 @@ Run the release check before copying an import into the processed data directory
 python -m ai_labor_atlas.cli validate-reviews --input path\to\reviews.json
 ```
 
-The command prints a JSON report with `valid`, row counts, duplicate IDs, occupation coverage, source counts, topic counts, and actionable row numbers. It does not print review excerpts. Exit code `0` means the strict dashboard loader can accept the complete file; exit code `2` means the file must be corrected first. A missing default import is reported as an empty optional layer rather than an error.
+The command prints a JSON report with `valid`, row counts, duplicate IDs, occupation coverage, source counts, topic counts, and actionable row numbers. It does not print review excerpts. Common contact/US SSN patterns are validation errors, but maintainers must also perform a human PII review. Exit code `0` means the strict dashboard loader can accept the complete file; exit code `2` means the file must be corrected first. A missing default import is reported as an empty optional layer rather than an error.
 
 ## Source and rights boundary
 

@@ -6,6 +6,7 @@ from .io import write_csv
 FIELDS = [
     "onet_soc_code",
     "soc_2018_code",
+    "crosswalk_weight",
     "title",
     "description",
     "ai_exposure",
@@ -153,6 +154,7 @@ def demo_rows() -> list[dict[str, object]]:
             {
                 "onet_soc_code": code,
                 "soc_2018_code": soc,
+                "crosswalk_weight": 1.0,
                 "title": title,
                 "description": f"Demo occupation profile for {title}.",
                 "ai_exposure": exposure,

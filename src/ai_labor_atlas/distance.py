@@ -78,9 +78,12 @@ TASK_STOPWORDS = {
 TOKEN_RE = re.compile(r"[a-z0-9]{3,}")
 
 
-def _number(value: object) -> float | None:
+def _number(value: object, *, non_negative: bool = False) -> float | None:
     try:
-        return float(value) if value not in (None, "") else None
+        parsed = float(value) if value not in (None, "") else None
+        if parsed is None or not math.isfinite(parsed):
+            return None
+        return None if non_negative and parsed < 0 else parsed
     except (TypeError, ValueError):
         return None
 
@@ -125,13 +128,17 @@ def _snapshot(row: dict[str, str], profile_source: str = "") -> dict[str, object
         "onet_soc_code": row.get("onet_soc_code", ""),
         "title": row.get("title", ""),
         "soc_2018_code": row.get("soc_2018_code", ""),
-        "ai_exposure": _number(row.get("ai_exposure")),
-        "median_annual_wage": _number(row.get("median_annual_wage")),
-        "employment_2024": _number(row.get("employment_2024")),
+        "ai_exposure": _number(row.get("ai_exposure"), non_negative=True),
+        "median_annual_wage": _number(
+            row.get("median_annual_wage"), non_negative=True
+        ),
+        "employment_2024": _number(row.get("employment_2024"), non_negative=True),
         "employment_change_2024_2034_pct": _number(
             row.get("employment_change_2024_2034_pct")
         ),
-        "annual_openings_2024_2034": _number(row.get("annual_openings_2024_2034")),
+        "annual_openings_2024_2034": _number(
+            row.get("annual_openings_2024_2034"), non_negative=True
+        ),
         "profile_source": profile_source,
     }
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import io
+import math
 import re
 import zipfile
 from pathlib import Path
@@ -24,12 +25,15 @@ def _value(row: dict[str, object], *names: str) -> str:
     return ""
 
 
-def _number(value: object) -> float | None:
+def _number(value: object, *, non_negative: bool = False) -> float | None:
     if value in (None, "", "*", "**", "#", "–", "—"):
         return None
     cleaned = re.sub(r"[^0-9.\-]", "", str(value))
     try:
-        return float(cleaned) if cleaned else None
+        parsed = float(cleaned) if cleaned else None
+        if parsed is None or not math.isfinite(parsed):
+            return None
+        return None if non_negative and parsed < 0 else parsed
     except ValueError:
         return None
 
@@ -208,7 +212,9 @@ def _load_aioe(raw_dir: Path) -> dict[str, float]:
     result = {}
     for row in rows:
         code = _value(row, "soc", "soc_code", "soc 2018 code", "occupation code")
-        score = _number(_value(row, "aioe", "ai exposure", "exposure"))
+        score = _number(
+            _value(row, "aioe", "ai exposure", "exposure"), non_negative=True
+        )
         if code and score is not None:
             result[code] = score
     return result
@@ -271,10 +277,12 @@ def _load_oews(raw_dir: Path) -> dict[str, dict[str, float | None]]:
             continue
         result[code] = {
             "employment_2024": _number(
-                _value(row, "tot emp", "total employment", "employment")
+                _value(row, "tot emp", "total employment", "employment"),
+                non_negative=True,
             ),
             "median_annual_wage": _number(
-                _value(row, "a median", "median annual wage", "annual median wage")
+                _value(row, "a median", "median annual wage", "annual median wage"),
+                non_negative=True,
             ),
         }
     return result
@@ -326,7 +334,8 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
                 row,
                 "Occupational openings, 2024-34 annual average",
                 "occupational openings annual average",
-            )
+            ),
+            non_negative=True,
         )
         code = _value(
             row,
@@ -339,10 +348,12 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
             continue
         result[code] = {
             "projected_employment_2024_thousands": _number(
-                _value(row, "Employment, 2024", "employment 2024")
+                _value(row, "Employment, 2024", "employment 2024"),
+                non_negative=True,
             ),
             "projected_employment_2034_thousands": _number(
-                _value(row, "Employment, 2034", "employment 2034")
+                _value(row, "Employment, 2034", "employment 2034"),
+                non_negative=True,
             ),
             "employment_change_2024_2034_pct": _number(
                 _value(
@@ -361,7 +372,8 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
                     row,
                     "Median annual wage, dollars, 2024",
                     "median annual wage dollars 2024",
-                )
+                ),
+                non_negative=True,
             ),
         }
     return result
@@ -383,19 +395,36 @@ def build_dataset(
             if task["onet_soc_code"] not in occupation_codes:
                 task["task_quality_flags"] = "task_without_occupation_record"
         crosswalk = _load_crosswalk(raw_dir)
+        soc_to_onet: dict[str, set[str]] = {}
+        for source_code, targets in crosswalk.items():
+            for target_code in set(targets):
+                soc_to_onet.setdefault(target_code, set()).add(source_code)
         aioe = _load_aioe(raw_dir)
         oews = _load_oews(raw_dir)
         projections = _load_projections(raw_dir)
         rows = []
         for item in onet:
-            codes = crosswalk.get(str(item["onet_soc_code"]), [""])
+            codes = [
+                code
+                for code in list(
+                    dict.fromkeys(crosswalk.get(str(item["onet_soc_code"]), [""]))
+                )
+                if str(code).strip()
+            ]
+            codes = codes or [""]
+            crosswalk_weight = 1.0 / len([code for code in codes if code]) if any(codes) else 1.0
             for soc_code in codes or [""]:
                 wage = oews.get(soc_code, {})
                 projection = projections.get(soc_code, {})
                 exposure = aioe.get(soc_code)
                 flags = []
-                if len(codes) > 1:
-                    flags.append("many_to_many_or_many_to_one_crosswalk")
+                if len([code for code in codes if code]) > 1:
+                    flags.append("multiple_soc_crosswalk")
+                    flags.append("uniform_crosswalk_fallback")
+                if not soc_code:
+                    flags.append("missing_crosswalk")
+                if soc_code and len(soc_to_onet.get(soc_code, set())) > 1:
+                    flags.append("shared_soc_crosswalk")
                 if exposure is None:
                     flags.append("missing_aioe")
                 if not wage:
@@ -406,6 +435,7 @@ def build_dataset(
                     {
                         "onet_soc_code": item["onet_soc_code"],
                         "soc_2018_code": soc_code,
+                        "crosswalk_weight": crosswalk_weight,
                         "title": item["title"],
                         "description": item["description"],
                         "ai_exposure": exposure,
