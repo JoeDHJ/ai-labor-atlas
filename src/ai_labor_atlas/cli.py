@@ -75,7 +75,7 @@ def parser() -> argparse.ArgumentParser:
     return root
 
 
-def main(argv: list[str] | None = None) -> int:
+def _main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     atlas_data_root = data_root()
     raw_dir = atlas_data_root / "raw"
@@ -371,6 +371,14 @@ def main(argv: list[str] | None = None) -> int:
             server.server_close()
         return 0
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        return _main(argv)
+    except (OSError, TypeError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

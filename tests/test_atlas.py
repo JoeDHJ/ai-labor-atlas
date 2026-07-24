@@ -917,6 +917,17 @@ class AtlasTests(unittest.TestCase):
             cli_main(["search", "software", "--limit", "-1"])
         self.assertEqual(search_error.exception.code, 2)
 
+    def test_cli_reports_analyze_filesystem_error_without_traceback(self):
+        stderr = io.StringIO()
+        with patch(
+            "ai_labor_atlas.cli.read_csv",
+            side_effect=PermissionError("read-only processed dataset"),
+        ), patch("pathlib.Path.exists", return_value=True), redirect_stderr(stderr):
+            code = cli_main(["analyze"])
+        self.assertEqual(code, 2)
+        self.assertIn("Error: read-only processed dataset", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
+
     @unittest.skipUnless(Workbook, "openpyxl is required for Excel parser tests")
     def test_bls_excel_inputs_are_parsed_with_explicit_units(self):
         with tempfile.TemporaryDirectory() as temp:
