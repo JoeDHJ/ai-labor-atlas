@@ -11,7 +11,7 @@ Requires Python 3.10 or newer.
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[excel]"
+python -m pip install "ai-labor-atlas[excel]"
 python -m ai_labor_atlas.cli build --demo
 python -m ai_labor_atlas.cli analyze
 python -m ai_labor_atlas.cli search software
@@ -19,6 +19,10 @@ python -m ai_labor_atlas.cli serve
 ```
 
 The demonstration dataset is deterministic so the examples are easy to explore and reproduce. Research users can find the public source coverage and attribution notes in the sections below.
+
+Contributors working from a clone can instead use
+`python -m pip install -e ".[excel]"`. Maintainers can find the token-free
+release procedure in [docs/publishing.md](docs/publishing.md).
 
 Atlas reads and writes `data/` under the current working directory. Set
 `AI_LABOR_ATLAS_DATA_DIR` to an absolute directory when you want builds and the
