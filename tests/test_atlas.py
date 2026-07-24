@@ -321,6 +321,34 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(result["status"], "new_upstream_version_requires_review")
         self.assertFalse(destination.exists())
 
+    def test_download_cli_returns_nonzero_when_a_source_failed(self):
+        result = {
+            "results": [
+                {
+                    "id": "bls_oews",
+                    "status": "failed",
+                    "error": "HTTP Error 403: Forbidden",
+                }
+            ]
+        }
+        with patch(
+            "ai_labor_atlas.cli.download_registered_sources",
+            return_value=result,
+        ), redirect_stdout(io.StringIO()):
+            code = cli_main(["download"])
+        self.assertEqual(code, 2)
+
+    def test_download_cli_reports_filesystem_error_without_traceback(self):
+        stderr = io.StringIO()
+        with patch(
+            "ai_labor_atlas.cli.download_registered_sources",
+            side_effect=PermissionError("read-only data directory"),
+        ), redirect_stderr(stderr):
+            code = cli_main(["download"])
+        self.assertEqual(code, 2)
+        self.assertIn("Download error: read-only data directory", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
+
     def test_demo_build_is_deterministic(self):
         with tempfile.TemporaryDirectory() as temp:
             processed = Path(temp) / "processed"
@@ -555,6 +583,18 @@ class AtlasTests(unittest.TestCase):
         self.assertTrue(report["valid"])
         self.assertEqual(report["occupation_count"], 1)
 
+    def test_validate_reviews_cli_rejects_missing_explicit_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "missing-reviews.json"
+            output = io.StringIO()
+            with redirect_stdout(output):
+                code = cli_main(["validate-reviews", "--input", str(path)])
+        self.assertEqual(code, 2)
+        report = json.loads(output.getvalue())
+        self.assertFalse(report["present"])
+        self.assertFalse(report["valid"])
+        self.assertIn("does not exist", report["errors"][0]["message"])
+
     def test_dashboard_includes_transparent_worker_review_slot(self):
         rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
         page = render(rows, summarize(rows), [], demo_tasks())
@@ -754,6 +794,49 @@ class AtlasTests(unittest.TestCase):
             self.assertFalse((processed_dir / "occupations.csv").exists())
             self.assertFalse((processed_dir / "data_manifest.json").exists())
 
+    def test_full_build_fails_closed_when_required_layers_are_empty(self):
+        valid_registry = {
+            "data scientist": {
+                "candidates": [{"onet_soc_code": "15-2051.00"}]
+            }
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            raw_dir = root / "raw"
+            processed_dir = root / "processed"
+            with patch(
+                "ai_labor_atlas.pipeline._load_onet",
+                return_value=[
+                    {
+                        "onet_soc_code": "15-2051.00",
+                        "title": "Data Scientists",
+                        "description": "Model data.",
+                    }
+                ],
+            ), patch(
+                "ai_labor_atlas.pipeline._load_tasks", return_value=[]
+            ), patch(
+                "ai_labor_atlas.pipeline._load_crosswalk",
+                return_value={"15-2051.00": ["15-2051"]},
+            ), patch(
+                "ai_labor_atlas.pipeline._load_aioe",
+                return_value={"15-2051": 0.75},
+            ), patch(
+                "ai_labor_atlas.pipeline._load_oews", return_value={}
+            ), patch(
+                "ai_labor_atlas.pipeline._load_projections", return_value={}
+            ), patch(
+                "ai_labor_atlas.pipeline.load_alias_registry",
+                return_value=valid_registry,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "O\\*NET tasks, BLS OEWS, BLS Employment Projections",
+                ):
+                    build_dataset(raw_dir, processed_dir, demo=False)
+            self.assertFalse((processed_dir / "occupations.csv").exists())
+            self.assertFalse((processed_dir / "data_manifest.json").exists())
+
     def test_review_summary_exposes_source_and_topic_labels(self):
         context = summarize_reviews([], "15-2051.00")
         self.assertEqual(context["source_labels"]["reddit"], "Reddit")
@@ -825,6 +908,25 @@ class AtlasTests(unittest.TestCase):
         rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
         groups = group_by_major_soc(rows)
         self.assertTrue(any(group["soc_major"] == "15" for group in groups))
+
+    def test_cli_rejects_negative_result_limits(self):
+        with self.assertRaises(SystemExit) as analyze_error:
+            cli_main(["analyze", "--top", "-1"])
+        self.assertEqual(analyze_error.exception.code, 2)
+        with self.assertRaises(SystemExit) as search_error:
+            cli_main(["search", "software", "--limit", "-1"])
+        self.assertEqual(search_error.exception.code, 2)
+
+    def test_cli_reports_analyze_filesystem_error_without_traceback(self):
+        stderr = io.StringIO()
+        with patch(
+            "ai_labor_atlas.cli.read_csv",
+            side_effect=PermissionError("read-only processed dataset"),
+        ), patch("pathlib.Path.exists", return_value=True), redirect_stderr(stderr):
+            code = cli_main(["analyze"])
+        self.assertEqual(code, 2)
+        self.assertIn("Error: read-only processed dataset", stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
 
     @unittest.skipUnless(Workbook, "openpyxl is required for Excel parser tests")
     def test_bls_excel_inputs_are_parsed_with_explicit_units(self):

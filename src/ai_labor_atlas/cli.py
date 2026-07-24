@@ -21,11 +21,18 @@ from .occupation_context import (
 )
 from .pipeline import build_dataset
 from .reviews import load_reviews, summarize_reviews, validate_review_file
+from .runtime import config_path, data_root
 from .sources import SOURCE_INTEGRITY_FAILURE, download_registered_sources
 
 
-ROOT = Path(__file__).resolve().parents[2]
 LLM_REVIEW_CLIENT = LLMReviewClient()
+
+
+def _non_negative_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 0:
+        raise argparse.ArgumentTypeError("must be zero or greater")
+    return parsed
 
 
 def _read_json_body(headers, reader, max_bytes: int) -> dict[str, object]:
@@ -49,10 +56,10 @@ def parser() -> argparse.ArgumentParser:
         "--demo", action="store_true", help="build deterministic demo data"
     )
     analyze = sub.add_parser("analyze", help="summarize processed occupation data")
-    analyze.add_argument("--top", type=int, default=10)
+    analyze.add_argument("--top", type=_non_negative_int, default=10)
     search = sub.add_parser("search", help="search occupation titles and descriptions")
     search.add_argument("query")
-    search.add_argument("--limit", type=int, default=20)
+    search.add_argument("--limit", type=_non_negative_int, default=20)
     validate = sub.add_parser(
         "validate-reviews",
         help="validate a public worker review import before serving",
@@ -68,17 +75,22 @@ def parser() -> argparse.ArgumentParser:
     return root
 
 
-def main(argv: list[str] | None = None) -> int:
+def _main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
-    raw_dir = ROOT / "data" / "raw"
-    processed_dir = ROOT / "data" / "processed"
+    atlas_data_root = data_root()
+    raw_dir = atlas_data_root / "raw"
+    processed_dir = atlas_data_root / "processed"
     if args.command == "download":
-        result = download_registered_sources(
-            ROOT / "config" / "source_registry.json", raw_dir
-        )
+        try:
+            result = download_registered_sources(
+                config_path("source_registry.json"), raw_dir
+            )
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"Download error: {exc}", file=sys.stderr)
+            return 2
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2 if any(
-            item.get("status") == SOURCE_INTEGRITY_FAILURE
+            item.get("status") in {SOURCE_INTEGRITY_FAILURE, "failed"}
             for item in result.get("results", [])
             if isinstance(item, dict)
         ) else 0
@@ -89,15 +101,27 @@ def main(argv: list[str] | None = None) -> int:
                 build_dataset(raw_dir, processed_dir, demo=True)
             else:
                 build_dataset(raw_dir, processed_dir, demo=False)
-        except ValueError as exc:
+        except (FileNotFoundError, PermissionError, RuntimeError, ValueError) as exc:
             print(f"Build validation error: {exc}", file=sys.stderr)
             return 2
         print(f"built {processed_dir / 'occupations.csv'}")
         return 0
     if args.command == "validate-reviews":
-        review_path = (
-            args.input if args.input.is_absolute() else ROOT / args.input
-        )
+        review_path = args.input if args.input.is_absolute() else Path.cwd() / args.input
+        if not review_path.exists():
+            report = validate_review_file(review_path)
+            report["valid"] = False
+            report["error_count"] = 1
+            report["errors"] = [
+                {
+                    "row": None,
+                    "field": "file",
+                    "message": f"review import does not exist: {review_path}",
+                }
+            ]
+            report["note"] = "Create the file or pass the path to an existing import."
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+            return 2
         report = validate_review_file(review_path)
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return 0 if report["valid"] else 2
@@ -167,7 +191,7 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 2
-        site_dir = ROOT / "site"
+        site_dir = atlas_data_root / "site"
         summary = summarize(rows)
         summary.update(summarize_tasks(rows, tasks))
         bridge_engine = OccupationBridge(raw_dir, rows, tasks)
@@ -347,6 +371,14 @@ def main(argv: list[str] | None = None) -> int:
             server.server_close()
         return 0
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        return _main(argv)
+    except (OSError, TypeError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

@@ -479,6 +479,25 @@ def build_dataset(
         }
     if not demo:
         validate_alias_registry(load_alias_registry(), rows)
+        missing_layers = [
+            label
+            for label, values in (
+                ("O*NET occupations", onet),
+                ("O*NET tasks", tasks),
+                ("O*NET-to-SOC crosswalk", crosswalk),
+                ("AIOE exposure", aioe),
+                ("BLS OEWS", oews),
+                ("BLS Employment Projections", projections),
+            )
+            if not values
+        ]
+        if missing_layers:
+            raise ValueError(
+                "full build requires every registered data layer; missing or "
+                "unreadable: "
+                + ", ".join(missing_layers)
+                + ". Run 'atlas download' and resolve every failed source first."
+            )
     count = write_csv(processed_dir / "occupations.csv", rows, FIELDS)
     task_count = write_csv(processed_dir / "tasks.csv", tasks, TASK_FIELDS)
     manifest = {

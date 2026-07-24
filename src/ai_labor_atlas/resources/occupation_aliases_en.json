@@ -1,0 +1,70 @@
+{
+  "schema_version": "occupation_aliases.v0.1",
+  "mapping_basis": "editorial_candidate_crosswalk",
+  "description": "Conservative candidate-family leads for common job titles that do not map cleanly to one O*NET title.",
+  "entries": [
+    {
+      "aliases": ["data analyst"],
+      "label": "Data analyst",
+      "note": "The title is domain-dependent. Confirm whether the work is business intelligence, management analysis, or financial analysis.",
+      "candidates": [
+        {"onet_soc_code": "15-2051.01", "note": "Business intelligence is a possible fit when the posting centers on data systems, reporting, and analytics products."},
+        {"onet_soc_code": "13-1111.00", "note": "Management analysis is a possible fit when the posting centers on organizational processes and recommendations."},
+        {"onet_soc_code": "13-2051.00", "note": "Financial analysis is a possible fit when the posting centers on investment, budgets, or financial models."}
+      ]
+    },
+    {
+      "aliases": ["machine learning engineer", "ml engineer"],
+      "label": "Machine learning engineer",
+      "note": "The title can sit between data science and software development. Confirm the occupation from the job tasks and production responsibilities.",
+      "candidates": [
+        {"onet_soc_code": "15-2051.00", "note": "Data Scientists is a possible fit when the work centers on statistical modeling, experimentation, and machine learning methods."},
+        {"onet_soc_code": "15-1252.00", "note": "Software Developers is a possible fit when the work centers on production systems, software design, and deployment."}
+      ]
+    },
+    {
+      "aliases": ["people analytics analyst"],
+      "label": "People analytics analyst",
+      "note": "The title combines an HR domain with analytical work. Confirm whether the posting is primarily HR practice, business intelligence, or organizational analysis.",
+      "candidates": [
+        {"onet_soc_code": "13-1071.00", "note": "Human Resources Specialists is a possible fit when the work centers on HR programs, workforce processes, and employee data."},
+        {"onet_soc_code": "15-2051.01", "note": "Business Intelligence Analysts is a possible fit when the work centers on analytical products, reporting, and data systems."},
+        {"onet_soc_code": "13-1111.00", "note": "Management Analysts is a possible fit when the work centers on organizational diagnosis and recommendations."}
+      ]
+    },
+    {
+      "aliases": ["product manager"],
+      "label": "Product manager",
+      "note": "Product management is highly context-dependent. Confirm whether the posting emphasizes market positioning, operations, or another occupational family.",
+      "candidates": [
+        {"onet_soc_code": "11-2021.00", "note": "Marketing Managers is a possible fit when the work centers on market positioning, customer research, and product strategy."},
+        {"onet_soc_code": "11-1021.00", "note": "General and Operations Managers is a possible fit when the work centers on cross-functional operations and business ownership."}
+      ]
+    },
+    {
+      "aliases": ["ux designer", "user experience designer"],
+      "label": "UX designer",
+      "note": "Confirm that the posting centers on user research, interaction design, and digital interface work.",
+      "candidates": [
+        {"onet_soc_code": "15-1255.00", "note": "Web and Digital Interface Designers is a possible fit for digital interface and user experience design work."}
+      ]
+    },
+    {
+      "aliases": ["cybersecurity analyst", "cyber security analyst"],
+      "label": "Cybersecurity analyst",
+      "note": "Confirm that the posting centers on information security analysis rather than broader IT operations or software engineering.",
+      "candidates": [
+        {"onet_soc_code": "15-1212.00", "note": "Information Security Analysts is a possible fit for monitoring, assessing, and protecting information systems."}
+      ]
+    },
+    {
+      "aliases": ["hr business partner", "human resources business partner"],
+      "label": "HR business partner",
+      "note": "Confirm the seniority and balance between HR advisory work, workforce programs, and people management.",
+      "candidates": [
+        {"onet_soc_code": "13-1071.00", "note": "Human Resources Specialists is a possible fit for HR advisory and workforce program work."},
+        {"onet_soc_code": "11-3121.00", "note": "Human Resources Managers is a possible fit when the role owns HR programs or supervises HR functions."}
+      ]
+    }
+  ]
+}

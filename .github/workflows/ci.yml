@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,3 +29,42 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install -e ".[dev,excel]" -c constraints-ci.txt
       - run: python tools/audit_500_atlas_scenarios.py
+
+  release-smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and install the wheel
+        run: |
+          python -m pip install build
+          python -m build
+          python -m pip install "dist/"*.whl openpyxl
+      - name: Run the installed distribution outside the source tree
+        working-directory: ${{ runner.temp }}
+        run: |
+          atlas build --demo
+          atlas analyze > atlas-analysis.json
+          atlas search software > atlas-search.json
+          python - <<'PY'
+          import json
+          from importlib.metadata import version
+          from pathlib import Path
+          import ai_labor_atlas
+
+          analysis = json.loads(Path("atlas-analysis.json").read_text())
+          assert version("ai-labor-atlas") == ai_labor_atlas.__version__ == "0.3.1"
+          assert analysis["summary"]["rows"] == 8
+          matches = json.loads(Path("atlas-search.json").read_text())
+          assert any(item["title"] == "Software Developers" for item in matches)
+          assert Path("data/processed/occupations.csv").exists()
+          PY
+      - name: Rebuild and run from the source distribution
+        run: |
+          python -m venv "$RUNNER_TEMP/sdist-env"
+          "$RUNNER_TEMP/sdist-env/bin/python" -m pip install "dist/"*.tar.gz openpyxl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/sdist-env/bin/atlas" build --demo
+          "$RUNNER_TEMP/sdist-env/bin/atlas" search software > atlas-sdist-search.json
