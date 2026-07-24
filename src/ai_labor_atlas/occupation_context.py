@@ -379,12 +379,20 @@ def build_market_context(
                 "employment_change_2024_2034_pct"
             ),
             "ai_exposure": selected.get("ai_exposure"),
+            "ai_exposure_display": {
+                "scale": "0-100 relative display scale",
+                "interpretation": (
+                    "Higher means relatively higher AIOE within this release. "
+                    "It is not a probability, replacement risk, or forecast of job loss."
+                ),
+            },
         },
         "provenance": {
             "onet_version": selected.get("onet_version"),
             "wage_vintage": selected.get("wage_vintage"),
             "projection_vintage": selected.get("projection_vintage"),
             "ai_exposure_source": selected.get("ai_exposure_source"),
+            "ai_exposure_soc_vintage": selected.get("ai_exposure_soc_vintage"),
             "crosswalk_method": selected.get("crosswalk_method"),
             "data_quality_flags": selected.get("data_quality_flags", ""),
         },
@@ -402,7 +410,7 @@ def build_market_context(
         "representative_tasks": task_rows,
         "adjacent_occupations": alternatives,
         "interpretation": (
-            "These are descriptive market and task signals. AI exposure is not a job-loss probability, "
+            "These are descriptive market and task signals. AI exposure is a 0-100 relative display, not a job-loss probability, "
             "wage differences are not causal, adjacent occupations are not personal recommendations, "
             "and multiple SOC mappings are weighted reference estimates rather than a direct occupation statistic."
         ),

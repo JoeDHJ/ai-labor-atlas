@@ -20,6 +20,8 @@ from ai_labor_atlas.occupation_context import (
     validate_alias_registry,
 )
 from ai_labor_atlas.pipeline import (
+    _apply_relative_aioe_scale,
+    _bridge_aioe_to_soc_2018,
     _load_oews,
     _load_projections,
     _load_tasks,
@@ -205,7 +207,7 @@ class AtlasTests(unittest.TestCase):
         self.assertAlmostEqual(weighted["ai_exposure"], 0.9)
         self.assertEqual(weighted["crosswalk_row_count"], 2)
 
-    def test_negative_market_values_are_excluded_but_negative_change_is_valid(self):
+    def test_negative_source_aioe_is_not_a_valid_public_display_value(self):
         result = summarize(
             [
                 {
@@ -222,10 +224,103 @@ class AtlasTests(unittest.TestCase):
             ]
         )
         self.assertEqual(result["exposure_coverage"], 0.0)
+        self.assertIsNone(result["exposure_min"])
         self.assertEqual(result["wage_coverage"], 0.0)
         self.assertEqual(result["employment_coverage"], 0.0)
         self.assertIsNone(result["employment_weighted_exposure"])
         self.assertEqual(result["employment_weighting_row_count"], 1)
+
+    def test_signed_source_aioe_is_transformed_to_a_nonnegative_display_scale(self):
+        rows = [
+            {"ai_exposure": -1.0, "ai_exposure_source": "AIOE"},
+            {"ai_exposure": 0.0, "ai_exposure_source": "AIOE"},
+            {"ai_exposure": 1.0, "ai_exposure_source": "AIOE"},
+        ]
+        display = _apply_relative_aioe_scale(rows, source_values=[-1.0, 0.0, 1.0])
+        self.assertEqual([row["ai_exposure"] for row in rows], [0.0, 50.0, 100.0])
+        self.assertTrue(all(row["ai_exposure"] >= 0 for row in rows))
+        self.assertEqual(display["method"], "relative_0_100_min_max")
+
+    def test_aioe_soc_bridge_keeps_only_defensible_2010_to_2018_scores(self):
+        scores, flags, metadata = _bridge_aioe_to_soc_2018(
+            {
+                "15-1121": 0.2,
+                "15-1132": 1.2,
+                "15-1133": 0.9,
+                "29-1141": -0.1,
+            },
+            {"15-1211", "15-1252", "15-1253", "29-1141"},
+        )
+        self.assertEqual(scores["15-1211"], 0.2)
+        self.assertEqual(scores["29-1141"], -0.1)
+        self.assertNotIn("15-1252", scores)
+        self.assertEqual(flags["15-1252"], {"aioe_crosswalk_ambiguous"})
+        self.assertEqual(metadata["source_soc_vintage"], "2010")
+
+    def test_aioe_bridge_classifies_complete_official_crosswalk_and_same_code_merges(self):
+        scores, flags, metadata = _bridge_aioe_to_soc_2018(
+            {
+                "13-1021": 0.25,
+                "29-2099": 0.5,
+                "29-9099": 0.75,
+            },
+            {"13-1021", "29-2036", "29-2099", "29-9021", "29-9093", "29-9099"},
+        )
+        self.assertEqual(scores, {"13-1021": 0.25})
+        self.assertEqual(flags["29-2099"], {"aioe_crosswalk_ambiguous"})
+        self.assertEqual(flags["29-9099"], {"aioe_crosswalk_ambiguous"})
+        self.assertEqual(metadata["one_to_one_mapped_scores"], 1)
+
+    def test_dashboard_keeps_missing_aioe_out_of_release_wide_provenance_warning(self):
+        row = {key: str(value) for key, value in demo_rows()[0].items()}
+        row.update(
+            {
+                "ai_exposure": "",
+                "ai_exposure_source": "",
+                "ai_exposure_soc_vintage": "2010_to_2018_official_bridge",
+                "data_quality_flags": "aioe_crosswalk_ambiguous",
+            }
+        )
+        page = render([row], summarize([row]), [], [])
+        self.assertNotIn("DATA QUALITY NOTICE", page)
+        self.assertIn("AIOE is intentionally withheld", page)
+
+    def test_public_aioe_rejects_values_outside_display_range(self):
+        result = summarize(
+            [
+                {
+                    "onet_soc_code": "A",
+                    "soc_2018_code": "15-1252",
+                    "ai_exposure": "101",
+                }
+            ]
+        )
+        self.assertEqual(result["exposure_coverage"], 0.0)
+
+    def test_crosswalk_growth_is_derived_from_aggregated_employment_levels(self):
+        aggregated = aggregate_onet_rows(
+            [
+                {
+                    "onet_soc_code": "A",
+                    "soc_2018_code": "15-1252",
+                    "crosswalk_weight": "0.5",
+                    "projected_employment_2024_thousands": "100",
+                    "projected_employment_2034_thousands": "110",
+                    "employment_change_2024_2034_pct": "10",
+                },
+                {
+                    "onet_soc_code": "A",
+                    "soc_2018_code": "15-2051",
+                    "crosswalk_weight": "0.5",
+                    "projected_employment_2024_thousands": "10",
+                    "projected_employment_2034_thousands": "20",
+                    "employment_change_2024_2034_pct": "100",
+                },
+            ]
+        )
+        self.assertAlmostEqual(
+            float(aggregated[0]["employment_change_2024_2034_pct"]), 2000 / 110
+        )
 
     def test_missing_crosswalk_is_explicitly_disclosed(self):
         rows = [{"onet_soc_code": "A", "soc_2018_code": ""}]
@@ -831,7 +926,7 @@ class AtlasTests(unittest.TestCase):
             ):
                 with self.assertRaisesRegex(
                     ValueError,
-                    "O\\*NET tasks, BLS OEWS, BLS Employment Projections",
+                    "O\\*NET tasks, AIOE exposure, BLS OEWS, BLS Employment Projections",
                 ):
                     build_dataset(raw_dir, processed_dir, demo=False)
             self.assertFalse((processed_dir / "occupations.csv").exists())
@@ -916,6 +1011,20 @@ class AtlasTests(unittest.TestCase):
         with self.assertRaises(SystemExit) as search_error:
             cli_main(["search", "software", "--limit", "-1"])
         self.assertEqual(search_error.exception.code, 2)
+
+    def test_cli_search_keeps_list_contract_and_explains_aioe(self):
+        with tempfile.TemporaryDirectory() as temp:
+            output = io.StringIO()
+            with patch("ai_labor_atlas.cli.data_root", return_value=Path(temp)):
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(cli_main(["build", "--demo"]), 0)
+                with redirect_stdout(output):
+                    self.assertEqual(cli_main(["search", "software"]), 0)
+
+        matches = json.loads(output.getvalue())
+        self.assertIsInstance(matches, list)
+        self.assertTrue(any(item["title"] == "Software Developers" for item in matches))
+        self.assertIn("not a probability", matches[0]["ai_exposure_interpretation"])
 
     def test_cli_reports_analyze_filesystem_error_without_traceback(self):
         stderr = io.StringIO()

@@ -26,12 +26,30 @@ _NON_NEGATIVE_NUMERIC_FIELDS = frozenset(
 )
 
 
+def _derived_growth_percent(
+    employment_2024: object, employment_2034: object
+) -> float | None:
+    """Derive an aggregate growth rate from aggregate employment levels.
+
+    Averaging SOC-level percentage changes is not an aggregate employment
+    change.  The denominator must be the corresponding aggregated 2024 level.
+    """
+
+    start = number(employment_2024, "projected_employment_2024_thousands")
+    end = number(employment_2034, "projected_employment_2034_thousands")
+    if start is None or end is None or start <= 0:
+        return None
+    return 100 * (end - start) / start
+
+
 def number(value, field: str | None = None):
     try:
         parsed = float(value) if value not in (None, "") else None
         if parsed is None or not math.isfinite(parsed):
             return None
         if field in _NON_NEGATIVE_NUMERIC_FIELDS and parsed < 0:
+            return None
+        if field == "ai_exposure" and parsed > 100:
             return None
         return parsed
     except (TypeError, ValueError):
@@ -130,6 +148,8 @@ def aggregate_onet_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
             raw_weights = [weight / total_weight for weight in raw_weights]
 
         for field in _AGGREGATED_NUMERIC_FIELDS:
+            if field == "employment_change_2024_2034_pct":
+                continue
             pairs = [
                 (number(member.get(field), field), weight)
                 for member, weight in zip(members, raw_weights)
@@ -141,6 +161,25 @@ def aggregate_onet_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
             else:
                 base[field] = None
 
+        derived_growth = _derived_growth_percent(
+            base.get("projected_employment_2024_thousands"),
+            base.get("projected_employment_2034_thousands"),
+        )
+        if derived_growth is not None:
+            base["employment_change_2024_2034_pct"] = derived_growth
+        else:
+            growth_pairs = [
+                (number(member.get("employment_change_2024_2034_pct")), weight)
+                for member, weight in zip(members, raw_weights)
+                if number(member.get("employment_change_2024_2034_pct")) is not None
+            ]
+            base["employment_change_2024_2034_pct"] = (
+                sum(value * weight for value, weight in growth_pairs)
+                / sum(weight for _, weight in growth_pairs)
+                if growth_pairs
+                else None
+            )
+
         flags = {
             flag.strip()
             for member in members
@@ -151,9 +190,11 @@ def aggregate_onet_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
             flags.add("multiple_soc_crosswalk")
             if uniform_fallback:
                 flags.add("uniform_crosswalk_fallback")
+        if derived_growth is None and len(members) > 1:
+            flags.add("growth_rate_weighted_fallback")
         elif not soc_codes:
             flags.add("missing_crosswalk")
-        elif len(members) > 1:
+        elif len(soc_codes) == 1 and len(members) > 1:
             flags.add("duplicate_crosswalk_rows")
         base.update(
             {
@@ -214,6 +255,8 @@ def aggregate_soc_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
         if len(onet_codes) > 1:
             flags.add("shared_soc_crosswalk")
         for field in _AGGREGATED_NUMERIC_FIELDS:
+            if field == "employment_change_2024_2034_pct":
+                continue
             values = [
                 number(member.get(field), field)
                 for member in members
@@ -225,6 +268,23 @@ def aggregate_soc_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
                     flags.add("conflicting_soc_duplicates")
             else:
                 base[field] = None
+        derived_growth = _derived_growth_percent(
+            base.get("projected_employment_2024_thousands"),
+            base.get("projected_employment_2034_thousands"),
+        )
+        if derived_growth is not None:
+            base["employment_change_2024_2034_pct"] = derived_growth
+        else:
+            growth_values = [
+                number(member.get("employment_change_2024_2034_pct"))
+                for member in members
+                if number(member.get("employment_change_2024_2034_pct")) is not None
+            ]
+            base["employment_change_2024_2034_pct"] = (
+                mean(growth_values) if growth_values else None
+            )
+            if len(members) > 1:
+                flags.add("growth_rate_mean_fallback")
         base.update(
             {
                 "soc_2018_code": "" if code.startswith("__missing_soc_") else code,

@@ -124,11 +124,14 @@ def _jaccard(left: set[str], right: set[str]) -> float:
 
 
 def _snapshot(row: dict[str, str], profile_source: str = "") -> dict[str, object]:
+    exposure = _number(row.get("ai_exposure"))
     return {
         "onet_soc_code": row.get("onet_soc_code", ""),
         "title": row.get("title", ""),
         "soc_2018_code": row.get("soc_2018_code", ""),
-        "ai_exposure": _number(row.get("ai_exposure"), non_negative=True),
+        # The public dataset exposes AIOE as a 0--100 relative display scale,
+        # not its signed standardized source value.
+        "ai_exposure": exposure if exposure is not None and 0 <= exposure <= 100 else None,
         "median_annual_wage": _number(
             row.get("median_annual_wage"), non_negative=True
         ),

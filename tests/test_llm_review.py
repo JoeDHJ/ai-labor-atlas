@@ -68,7 +68,7 @@ class LLMReviewTests(unittest.TestCase):
         )
         self.assertEqual(result["decision"], "review")
         self.assertIsNone(result["selected_soc_code"])
-        self.assertEqual(result["confidence"], 1.0)
+        self.assertEqual(result["support_level"], "strong")
         self.assertEqual(result["evidence"], ["title only"])
 
 

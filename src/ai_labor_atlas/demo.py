@@ -10,7 +10,9 @@ FIELDS = [
     "title",
     "description",
     "ai_exposure",
+    "ai_exposure_display_scale",
     "ai_exposure_source",
+    "ai_exposure_soc_vintage",
     "employment_2024",
     "projected_employment_2024_thousands",
     "projected_employment_2034_thousands",
@@ -138,6 +140,9 @@ def demo_rows() -> list[dict[str, object]]:
         ),
     ]
     rows = []
+    exposure_values = [item[3] for item in occupations]
+    exposure_min = min(exposure_values)
+    exposure_max = max(exposure_values)
     for (
         code,
         soc,
@@ -157,8 +162,15 @@ def demo_rows() -> list[dict[str, object]]:
                 "crosswalk_weight": 1.0,
                 "title": title,
                 "description": f"Demo occupation profile for {title}.",
-                "ai_exposure": exposure,
-                "ai_exposure_source": "demo_aioe",
+                # The dashboard-facing value is deliberately bounded and
+                # relative. It preserves ordering but is not a probability.
+                "ai_exposure": round(
+                    100 * (exposure - exposure_min) / (exposure_max - exposure_min),
+                    4,
+                ),
+                "ai_exposure_display_scale": "relative_0_100_min_max",
+                "ai_exposure_source": "demo_aioe_relative_display",
+                "ai_exposure_soc_vintage": "demo",
                 "employment_2024": emp,
                 "projected_employment_2024_thousands": projected_2024,
                 "projected_employment_2034_thousands": projected_2034,

@@ -9,7 +9,9 @@ crosswalk_weight
 title
 description
 ai_exposure
+ai_exposure_display_scale
 ai_exposure_source
+ai_exposure_soc_vintage
 employment_2024
 projected_employment_2024_thousands
 projected_employment_2034_thousands
@@ -27,7 +29,9 @@ Missing values remain blank and are accompanied by coverage fields. A blank expo
 
 Units:
 
-- `ai_exposure`: source exposure score; it is not a probability of job loss. Negative values are treated as invalid/missing.
+- `ai_exposure`: a bounded 0--100 relative display of source AIOE values. It preserves the source ordering within a release, but is not a probability of job loss, a replacement-risk percentage, or a forecast. It is never negative. AIOE uses SOC 2010 while Atlas market data use SOC 2018: Atlas classifies every row in the complete official BLS crosswalk, keeps only unmarked one-to-one relationships, and leaves every split/merge mapping missing with `aioe_crosswalk_ambiguous` rather than inventing an allocation.
+- `ai_exposure_display_scale`: `relative_0_100_min_max` when a source AIOE value is available. The release manifest records the signed-source minimum, maximum, and interpretation needed to reproduce this display transform from the registered AIOE source.
+- `ai_exposure_soc_vintage`: the source-to-target SOC bridge used for the AIOE value. `2010_to_2018_official_bridge` signals the conservative BLS bridge; split and merged occupations remain missing instead of receiving an invented allocation.
 - `employment_2024`: workers from national OEWS. Negative values are treated as invalid/missing.
 - `projected_employment_2024_thousands` and `projected_employment_2034_thousands`: thousands of workers from BLS projections; negative values are treated as invalid/missing.
 - `annual_openings_2024_2034`: workers per year; converted from the BLS table's thousands unit. Negative values are treated as invalid/missing.
@@ -82,6 +86,6 @@ The release check `atlas validate-reviews --input <path>` returns a JSON import 
 
 ## Market context response
 
-`GET /api/occupation-context?source=<O*NET-SOC code>` also returns `market_context.v0.2`. It keeps the selected occupation's `metrics`, `provenance`, `mapping`, `representative_tasks`, and `adjacent_occupations` separate from worker comments. The metrics are descriptive snapshots; AI exposure is not a job-loss probability, wage levels are not causal effects, and adjacent occupations are not personal recommendations. The provenance fields preserve O*NET, wage, projection, exposure, and crosswalk vintages for downstream consumers. When several SOC targets are attached to one O*NET occupation, `mapping.status` is `multiple_soc_crosswalk` and the metrics disclose the weighted-reference method. Its `mapping.data_quality_flags` carries fallback and shared-target warnings. The release-level `employment_weighted_exposure` is weighted over unique 2018 SOC units (`employment_weighting_unit: unique_soc_2018`) so shared SOC employment is not counted once per O*NET source row.
+`GET /api/occupation-context?source=<O*NET-SOC code>` also returns `market_context.v0.2`. It keeps the selected occupation's `metrics`, `provenance`, `mapping`, `representative_tasks`, and `adjacent_occupations` separate from worker comments. The metrics are descriptive snapshots; AI exposure is shown as a 0--100 relative display rather than a job-loss probability, wage levels are not causal effects, and adjacent occupations are not personal recommendations. The provenance fields preserve O*NET, wage, projection, exposure, and crosswalk vintages for downstream consumers. When several SOC targets are attached to one O*NET occupation, `mapping.status` is `multiple_soc_crosswalk` and the metrics disclose the weighted-reference method. Its `mapping.data_quality_flags` carries fallback and shared-target warnings. The release-level `employment_weighted_exposure` is weighted over unique 2018 SOC units (`employment_weighting_unit: unique_soc_2018`) so shared SOC employment is not counted once per O*NET source row.
 
 The release summary reports `rows`, `unique_onet_occupation_count`, `aggregated_onet_occupation_count`, `unique_soc_count`, `crosswalk_expanded_row_count`, `crosswalk_expanded_onet_count`, `employment_weighting_unit`, `employment_weighting_row_count`, `shared_soc_count`, `conflicting_soc_count`, and `multiple_soc_occupation_count`. Coverage and means use one aggregated record per O*NET occupation, while employment-weighted exposure uses one collapsed record per unique SOC target. The raw row and crosswalk counts remain available for auditability; consumers should not describe raw `rows` as a count of independent occupations. The dashboard chart is explicitly an O*NET view; its bubble employment is not the unique-SOC KPI.

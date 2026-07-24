@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import math
 import re
 import zipfile
@@ -11,6 +12,7 @@ from typing import Iterable
 from .demo import FIELDS, TASK_FIELDS, demo_rows, demo_tasks
 from .io import read_csv, sha256, write_csv, write_json
 from .occupation_context import load_alias_registry, validate_alias_registry
+from .resources import resource_path
 
 
 def _value(row: dict[str, object], *names: str) -> str:
@@ -212,12 +214,130 @@ def _load_aioe(raw_dir: Path) -> dict[str, float]:
     result = {}
     for row in rows:
         code = _value(row, "soc", "soc_code", "soc 2018 code", "occupation code")
-        score = _number(
-            _value(row, "aioe", "ai exposure", "exposure"), non_negative=True
-        )
+        # AIOE is standardized across occupations.  Negative values are valid
+        # and mean below-average exposure; they are not missing observations.
+        score = _number(_value(row, "aioe", "ai exposure", "exposure"))
         if code and score is not None:
             result[code] = score
     return result
+
+
+def _load_aioe_soc_bridge() -> dict[str, object]:
+    """Load the conservative BLS 2010-to-2018 bridge packaged with Atlas."""
+
+    with resource_path("aioe_soc_2010_to_2018.json").open(encoding="utf-8") as handle:
+        value = json.load(handle)
+    if not isinstance(value, dict):
+        raise ValueError("AIOE SOC bridge must be a JSON object")
+    return value
+
+
+def _bridge_aioe_to_soc_2018(
+    source_scores: dict[str, float], target_soc_codes: set[str]
+) -> tuple[dict[str, float], dict[str, set[str]], dict[str, object]]:
+    """Bridge AIOE's SOC 2010 codes without inventing split/merge allocations."""
+
+    bridge = _load_aioe_soc_bridge()
+    one_to_one = {
+        str(source): str(target)
+        for source, target in dict(bridge.get("one_to_one", {})).items()
+    }
+    ambiguous = {
+        str(source): {str(target) for target in targets}
+        for source, targets in dict(bridge.get("ambiguous", {})).items()
+        if isinstance(targets, list)
+    }
+    scores: dict[str, float] = {}
+    flags: dict[str, set[str]] = {}
+    for source_code, score in source_scores.items():
+        if source_code in ambiguous:
+            for target_code in ambiguous[source_code] & target_soc_codes:
+                flags.setdefault(target_code, set()).add("aioe_crosswalk_ambiguous")
+            continue
+        target_code = one_to_one.get(source_code)
+        if target_code is None:
+            # The packaged bridge is generated from the entire official BLS
+            # crosswalk. A code absent from both classifications is not safe
+            # to treat as continuous; fail closed instead of inventing a map.
+            continue
+        if target_code not in target_soc_codes:
+            continue
+        if target_code in scores:
+            scores.pop(target_code, None)
+            flags.setdefault(target_code, set()).add("aioe_crosswalk_ambiguous")
+            continue
+        scores[target_code] = score
+    metadata = {
+        "source_soc_vintage": bridge.get("source_soc_vintage", "2010"),
+        "target_soc_vintage": bridge.get("target_soc_vintage", "2018"),
+        "official_crosswalk_url": bridge.get("official_crosswalk_url", ""),
+        "method": bridge.get("method", ""),
+        "official_crosswalk_classification": bridge.get("classification", {}),
+        "one_to_one_mapped_scores": sum(
+            code in one_to_one and target in scores
+            for code, target in one_to_one.items()
+        ),
+        "ambiguous_target_count": len(flags),
+    }
+    return scores, flags, metadata
+
+
+def _apply_relative_aioe_scale(
+    rows: list[dict[str, object]], *, source_values: Iterable[float] | None = None
+) -> dict[str, object]:
+    """Replace signed source AIOE with a user-facing, order-preserving scale.
+
+    Source AIOE is standardized around zero, which is statistically useful but
+    easy to mistake for a negative likelihood or a prediction of job loss.
+    The published occupation field therefore uses a release-specific 0--100
+    min--max display scale. The transformation is recorded in the manifest.
+    """
+
+    values = list(source_values or ())
+    if not values:
+        values = [
+            float(row["ai_exposure"])
+            for row in rows
+            if row.get("ai_exposure") not in (None, "")
+        ]
+    if not values:
+        for row in rows:
+            row["ai_exposure_display_scale"] = ""
+        return {
+            "method": "relative_0_100_min_max",
+            "source_min": None,
+            "source_max": None,
+            "interpretation": "No source AIOE values were available.",
+        }
+    source_min = min(values)
+    source_max = max(values)
+    spread = source_max - source_min
+    for row in rows:
+        raw = row.get("ai_exposure")
+        if raw in (None, ""):
+            row["ai_exposure_display_scale"] = ""
+            continue
+        value = float(raw)
+        row["ai_exposure"] = round(
+            50.0 if spread == 0 else 100 * (value - source_min) / spread,
+            6,
+        )
+        row["ai_exposure_display_scale"] = "relative_0_100_min_max"
+        if row.get("ai_exposure_source"):
+            source = str(row["ai_exposure_source"])
+            row["ai_exposure_source"] = (
+                source if source.endswith("_relative_display") else f"{source}_relative_display"
+            )
+    return {
+        "method": "relative_0_100_min_max",
+        "source_min": source_min,
+        "source_max": source_max,
+        "interpretation": (
+            "A 0--100 relative display scale derived from the signed, "
+            "standardized AIOE values in this release. It preserves ordering; "
+            "it is not a probability, replacement risk, or forecast of job loss."
+        ),
+    }
 
 
 def _read_csv_or_zip(path: Path) -> list[dict[str, str]]:
@@ -399,9 +519,21 @@ def build_dataset(
         for source_code, targets in crosswalk.items():
             for target_code in set(targets):
                 soc_to_onet.setdefault(target_code, set()).add(source_code)
-        aioe = _load_aioe(raw_dir)
+        aioe_source = _load_aioe(raw_dir)
         oews = _load_oews(raw_dir)
         projections = _load_projections(raw_dir)
+        # AIOE is an independent source layer. Its availability follows the
+        # O*NET-to-2018-SOC crosswalk, not whether wage or projection records
+        # happen to be published for the same SOC code.
+        target_soc_codes = {
+            str(target).strip()
+            for targets in crosswalk.values()
+            for target in targets
+            if str(target).strip()
+        }
+        aioe, aioe_flags, aioe_bridge = _bridge_aioe_to_soc_2018(
+            aioe_source, target_soc_codes
+        )
         rows = []
         for item in onet:
             codes = [
@@ -418,6 +550,7 @@ def build_dataset(
                 projection = projections.get(soc_code, {})
                 exposure = aioe.get(soc_code)
                 flags = []
+                flags.extend(sorted(aioe_flags.get(soc_code, set())))
                 if len([code for code in codes if code]) > 1:
                     flags.append("multiple_soc_crosswalk")
                     flags.append("uniform_crosswalk_fallback")
@@ -439,7 +572,12 @@ def build_dataset(
                         "title": item["title"],
                         "description": item["description"],
                         "ai_exposure": exposure,
-                        "ai_exposure_source": "AIOE" if exposure is not None else "",
+                        "ai_exposure_source": (
+                            "AIOE_SOC2010_to_SOC2018_relative_display"
+                            if exposure is not None
+                            else ""
+                        ),
+                        "ai_exposure_soc_vintage": "2010_to_2018_official_bridge",
                         "employment_2024": wage.get("employment_2024"),
                         "projected_employment_2024_thousands": projection.get(
                             "projected_employment_2024_thousands"
@@ -473,9 +611,22 @@ def build_dataset(
                 for task in tasks
             ),
             "crosswalk_sources": len(crosswalk),
-            "aioe_rows": len(aioe),
+            "aioe_source_rows": len(aioe_source),
+            "aioe_rows_after_soc_bridge": len(aioe),
+            "aioe_soc_bridge": aioe_bridge,
             "oews_rows": len(oews),
             "projection_rows": len(projections),
+        }
+        source_flags["aioe_display"] = _apply_relative_aioe_scale(
+            rows, source_values=aioe_source.values()
+        )
+    if demo:
+        source_flags["aioe_display"] = {
+            "method": "relative_0_100_min_max",
+            "interpretation": (
+                "Demo values use the same 0--100 relative display convention; "
+                "they are not probabilities or job-loss forecasts."
+            ),
         }
     if not demo:
         validate_alias_registry(load_alias_registry(), rows)
