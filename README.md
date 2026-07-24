@@ -30,13 +30,13 @@ dashboard to share a different persistent location.
 
 ## Explore the dashboard
 
-The dashboard brings occupational tasks, AI exposure, wages, employment, and outlook together in one visual workspace for comparing roles and exploring changing work.
+The dashboard brings occupational tasks, AI exposure, wages, employment, and outlook together in one visual workspace for comparing roles and exploring changing work. The screenshots below are rendered from the full current-data build (1,016 O*NET occupation records), not the eight-record demonstration dataset.
 
-![AI Labor Atlas dashboard](docs/assets/atlas-dashboard.png)
+![AI Labor Atlas full dashboard with 1,016 O*NET occupations](docs/assets/atlas-dashboard.png)
 
-![AI Labor Atlas task explorer](docs/assets/atlas-task-explorer.png)
+![AI Labor Atlas complete task explorer](docs/assets/atlas-task-explorer.png)
 
-![AI Labor Atlas career bridge](docs/assets/atlas-career-bridge.png)
+![AI Labor Atlas complete career bridge](docs/assets/atlas-career-bridge.png)
 
 The dashboard compares AI exposure with wages, projected employment growth, annual openings, and employment scale. It pairs the visual comparison with plain-language metric guidance so users can explore the economic context behind each occupation.
 
