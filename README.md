@@ -6,17 +6,23 @@ The current explorer focuses on U.S. national data, English-language sources, an
 
 ## Quick start
 
+Requires Python 3.10 or newer.
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[excel]"
 python -m ai_labor_atlas.cli build --demo
 python -m ai_labor_atlas.cli analyze
-python -m ai_labor_atlas.cli search analyst
+python -m ai_labor_atlas.cli search software
 python -m ai_labor_atlas.cli serve
 ```
 
 The demonstration dataset is deterministic so the examples are easy to explore and reproduce. Research users can find the public source coverage and attribution notes in the sections below.
+
+Atlas reads and writes `data/` under the current working directory. Set
+`AI_LABOR_ATLAS_DATA_DIR` to an absolute directory when you want builds and the
+dashboard to share a different persistent location.
 
 ## Explore the dashboard
 
@@ -43,7 +49,9 @@ $env:AI_LABOR_ATLAS_LLM_MODEL = "your-model"
 atlas serve
 ```
 
-Candidate evidence is sent only when the review button is used. A local OpenAI-compatible endpoint may be used without an API key.
+The selected occupation and deterministic mapping evidence are sent only when
+the review button is used. A local OpenAI-compatible endpoint may be used
+without an API key.
 
 ## Data sources and vintages
 

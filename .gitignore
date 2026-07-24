@@ -15,4 +15,5 @@ data/download_manifest.json
 !data/processed/README.md
 site/
 dist/
+build/
 *.egg-info/

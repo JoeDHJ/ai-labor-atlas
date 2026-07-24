@@ -10,7 +10,7 @@ from pathlib import Path
 from .io import read_json, write_json
 
 
-USER_AGENT = "ai-labor-atlas/0.3.0 (reproducible research; contact via GitHub issues)"
+USER_AGENT = "ai-labor-atlas/0.3.1 (reproducible research; contact via GitHub issues)"
 SOURCE_INTEGRITY_FAILURE = "new_upstream_version_requires_review"
 
 
@@ -82,6 +82,12 @@ def download_registered_sources(config_path: Path, raw_dir: Path) -> dict[str, o
         )
         result["id"] = source["id"]
         result["version"] = source.get("version")
+        result["landing_url"] = source.get("landing_url")
+        if result.get("status") == "failed":
+            result["next_step"] = (
+                "Download the registered file from landing_url, verify its SHA-256 "
+                f"against the registry, and place it at {raw_dir / filename}."
+            )
         results.append(result)
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

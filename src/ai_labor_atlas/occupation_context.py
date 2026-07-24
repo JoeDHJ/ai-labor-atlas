@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .metrics import aggregate_onet_rows
+from .runtime import config_path
 
 
 _STOPWORDS = {
@@ -43,11 +44,6 @@ _ROLE_TOKENS = {
     "technician",
 }
 _ONET_CODE = re.compile(r"^\d{2}-\d{4}\.\d{2}$")
-_ALIAS_PATH = (
-    Path(__file__).resolve().parents[2] / "config" / "occupation_aliases_en.json"
-)
-
-
 def _normalize_token(token: str) -> str:
     if token.endswith("ies") and len(token) > 4:
         return token[:-3] + "y"
@@ -72,9 +68,10 @@ def _alias_key(value: str) -> str:
     )
 
 
-def load_alias_registry(path: Path = _ALIAS_PATH) -> dict[str, dict[str, Any]]:
+def load_alias_registry(path: Path | None = None) -> dict[str, dict[str, Any]]:
     """Load the auditable candidate-family crosswalk used for common aliases."""
 
+    path = path or config_path("occupation_aliases_en.json")
     if not path.exists():
         return {}
     try:
