@@ -55,7 +55,7 @@ jobs:
           import ai_labor_atlas
 
           analysis = json.loads(Path("atlas-analysis.json").read_text())
-          assert version("ai-labor-atlas") == ai_labor_atlas.__version__ == "0.3.1"
+          assert version("ai-labor-atlas") == ai_labor_atlas.__version__ == "0.4.0"
           assert analysis["summary"]["rows"] == 8
           matches = json.loads(Path("atlas-search.json").read_text())
           assert any(item["title"] == "Software Developers" for item in matches)
