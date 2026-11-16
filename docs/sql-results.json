@@ -1,0 +1,174 @@
+{
+  "task_mass_conservation": [
+    {
+      "source_matched_pct": 99.51844275644618,
+      "allocated_pct": 99.51844275644618
+    }
+  ],
+  "largest_rank_gaps": [
+    {
+      "soc": "43-2021",
+      "title": "Telephone Operators",
+      "applicability": 0.3421045851367955,
+      "usage_pct": 0.0,
+      "applicability_rank": 96.30118890356671,
+      "usage_rank": 11.228533685601057,
+      "gap_pp": -85.07265521796566
+    },
+    {
+      "soc": "21-1092",
+      "title": "Probation Officers and Correctional Treatment Specialists",
+      "applicability": 0.288475143716106,
+      "usage_pct": 0.0,
+      "applicability_rank": 85.99735799207397,
+      "usage_rank": 11.228533685601057,
+      "gap_pp": -74.76882430647291
+    },
+    {
+      "soc": "39-3011",
+      "title": "Gambling Dealers",
+      "applicability": 0.28521873392825714,
+      "usage_pct": 0.0,
+      "applicability_rank": 85.60105680317041,
+      "usage_rank": 11.228533685601057,
+      "gap_pp": -74.37252311756936
+    },
+    {
+      "soc": "11-3013",
+      "title": "Facilities Managers",
+      "applicability": 0.061712782287566006,
+      "usage_pct": 0.2613646727729932,
+      "applicability_rank": 16.90885072655218,
+      "usage_rank": 89.96036988110964,
+      "gap_pp": 73.05151915455747
+    },
+    {
+      "soc": "39-3012",
+      "title": "Gambling and Sports Book Writers and Runners",
+      "applicability": 0.24865004473618885,
+      "usage_pct": 0.0,
+      "applicability_rank": 79.52443857331572,
+      "usage_rank": 11.228533685601057,
+      "gap_pp": -68.29590488771467
+    },
+    {
+      "soc": "29-1126",
+      "title": "Respiratory Therapists",
+      "applicability": 0.05440693464826362,
+      "usage_pct": 0.09915180258237678,
+      "applicability_rank": 14.266842800528401,
+      "usage_rank": 78.99603698811096,
+      "gap_pp": 64.72919418758255
+    },
+    {
+      "soc": "43-5032",
+      "title": "Dispatchers, Except Police, Fire, and Ambulance",
+      "applicability": 0.23169246848195102,
+      "usage_pct": 0.0,
+      "applicability_rank": 75.82562747688243,
+      "usage_rank": 11.228533685601057,
+      "gap_pp": -64.59709379128137
+    },
+    {
+      "soc": "43-5041",
+      "title": "Meter Readers, Utilities",
+      "applicability": 0.23020085410725,
+      "usage_pct": 0.0,
+      "applicability_rank": 75.56142668428005,
+      "usage_rank": 11.228533685601057,
+      "gap_pp": -64.332892998679
+    },
+    {
+      "soc": "17-2151",
+      "title": "Mining and Geological Engineers, Including Mining Safety Engineers",
+      "applicability": 0.22501670080102887,
+      "usage_pct": 0.0,
+      "applicability_rank": 74.9009247027741,
+      "usage_rank": 11.228533685601057,
+      "gap_pp": -63.67239101717305
+    },
+    {
+      "soc": "51-6052",
+      "title": "Tailors, Dressmakers, and Custom Sewers",
+      "applicability": 0.04755970366120081,
+      "usage_pct": 0.07843546012429804,
+      "applicability_rank": 11.360634081902246,
+      "usage_rank": 74.9009247027741,
+      "gap_pp": 63.54029062087186
+    },
+    {
+      "soc": "17-3031",
+      "title": "Surveying and Mapping Technicians",
+      "applicability": 0.21763639679475374,
+      "usage_pct": 0.0,
+      "applicability_rank": 72.91941875825627,
+      "usage_rank": 11.228533685601057,
+      "gap_pp": -61.69088507265521
+    },
+    {
+      "soc": "51-3092",
+      "title": "Food Batchmakers",
+      "applicability": 0.07307398833113297,
+      "usage_pct": 0.1312035022344986,
+      "applicability_rank": 21.928665785997357,
+      "usage_rank": 82.82694848084545,
+      "gap_pp": 60.89828269484809
+    }
+  ],
+  "monthly_market_change": [
+    {
+      "source_id": "CES3000000003",
+      "industry": "Manufacturing",
+      "metric": "hourly_earnings",
+      "unit": "USD_per_hour_nominal",
+      "first": "2022-01",
+      "last": "2026-10",
+      "change_pct": 21.97838191942352
+    },
+    {
+      "source_id": "CES6000000003",
+      "industry": "Professional and business services",
+      "metric": "hourly_earnings",
+      "unit": "USD_per_hour_nominal",
+      "first": "2022-01",
+      "last": "2026-10",
+      "change_pct": 22.09609292502639
+    },
+    {
+      "source_id": "JTS3000JOL",
+      "industry": "Manufacturing",
+      "metric": "job_openings",
+      "unit": "thousand_jobs",
+      "first": "2022-01",
+      "last": "2026-09",
+      "change_pct": -34.74860335195531
+    },
+    {
+      "source_id": "JTS540099JOL",
+      "industry": "Professional and business services",
+      "metric": "job_openings",
+      "unit": "thousand_jobs",
+      "first": "2022-01",
+      "last": "2026-09",
+      "change_pct": -37.2905696505505
+    },
+    {
+      "source_id": "MANEMP",
+      "industry": "Manufacturing",
+      "metric": "payroll_employment",
+      "unit": "thousand_jobs",
+      "first": "2022-01",
+      "last": "2026-10",
+      "change_pct": 0.9312320916905444
+    },
+    {
+      "source_id": "USPBS",
+      "industry": "Professional and business services",
+      "metric": "payroll_employment",
+      "unit": "thousand_jobs",
+      "first": "2022-01",
+      "last": "2026-10",
+      "change_pct": 1.8978497047288465
+    }
+  ]
+}

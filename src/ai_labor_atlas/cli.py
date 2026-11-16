@@ -34,6 +34,8 @@ from .intelligence import build_research, refresh_market
 from .research_dashboard import write_research_site
 from .scenario import Scenario, run_scenario, sensitivity
 from .staffing import refresh_staffing
+from .workbench import write_workbench
+from .workflow import Workflow, run_workflow
 
 
 LLM_REVIEW_CLIENT = LLMReviewClient()
@@ -111,6 +113,24 @@ def parser() -> argparse.ArgumentParser:
             default=value,
         )
     scenario.add_argument("--output", type=Path, help="optional JSON result path")
+    workbench = sub.add_parser(
+        "workbench",
+        help="export the real public-data research site and SQL warehouse offline",
+    )
+    workbench.add_argument("--output", type=Path, default=Path("data/workbench"))
+    workflow = sub.add_parser(
+        "workflow",
+        help="compare task allocation, training and recruitment alternatives",
+    )
+    for key, value in Workflow().__dict__.items():
+        workflow.add_argument(
+            "--" + key.replace("_", "-"),
+            type=int
+            if key in {"weeks", "hiring_lead_weeks", "reallocation_delay_weeks"}
+            else float,
+            default=value,
+        )
+    workflow.add_argument("--output", type=Path)
     return root
 
 
@@ -120,6 +140,17 @@ def _main(argv: list[str] | None = None) -> int:
     raw_dir = atlas_data_root / "raw"
     processed_dir = atlas_data_root / "processed"
     research_dir = atlas_data_root / "research"
+    if args.command == "workbench":
+        print(json.dumps(write_workbench(args.output), indent=2))
+        return 0
+    if args.command == "workflow":
+        result = run_workflow(
+            Workflow(**{k: getattr(args, k) for k in Workflow().__dict__})
+        )
+        if args.output:
+            write_json(args.output, result)
+        print(json.dumps(result, indent=2))
+        return 0
     if args.command == "market-update":
         print(json.dumps(refresh_market(raw_dir, research_dir), indent=2))
         return 0
@@ -320,7 +351,7 @@ def _main(argv: list[str] | None = None) -> int:
             (site_dir / "index.html").write_text(
                 '<!doctype html><html lang="en"><meta charset="utf-8">'
                 '<meta name="viewport" content="width=device-width,initial-scale=1">'
-                "<title>AI Labor Atlas 0.5.0</title><main><h1>Research data unavailable</h1>"
+                "<title>AI Labor Atlas 0.6.0</title><main><h1>Research data unavailable</h1>"
                 f"<p>{notice}</p><p>Restore the required source layers and run "
                 "<code>atlas research</code> to regenerate research findings.</p>"
                 '<p><a href="explorer.html">Open the occupation explorer</a></p></main></html>',
@@ -332,6 +363,9 @@ def _main(argv: list[str] | None = None) -> int:
             )
         else:
             write_research_site(site_dir, result)
+
+        (site_dir / "index.html").replace(site_dir / "market.html")
+        write_workbench(site_dir, local_mode=True)
 
         class AtlasHandler(SimpleHTTPRequestHandler):
             def __init__(self, *handler_args, **handler_kwargs):

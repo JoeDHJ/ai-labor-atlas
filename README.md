@@ -1,82 +1,74 @@
-# AI Labor Atlas — Labor Market Intelligence
+# AI Labor Atlas — Tasks, Evidence & Organization
 
-**Release 0.5.0 · Independent portfolio research by Haojian Dui**
+**Release 0.6.0 · Independent portfolio research by Haojian Dui**
 
-How should workforce teams combine AI exposure, actual recruitment conditions and
-the skills required to do the work? Atlas answers with two reproducible public-data
-cases, an occupation/task explorer and an explicit workforce capacity scenario.
+Which tasks deserve an AI pilot, and how should training and task allocation change
+when drafting becomes faster? Atlas connects labor-market measurement to a
+transparent organizational decision.
 
-- **Exposure and wages:** across 691 complete SOC occupations, the highest exposure
-  quartile's employment-weighted average occupation median wage is **$88,489**, versus
-  **$45,686** in the lowest quartile (1.94×; May 2025). This is a descriptive wage-level
-  comparison, not an AI wage effect.
-- **Demand and skills:** from January 2022 to September 2026, job openings fell
-  **37.3%** in professional and business services and **34.7%** in manufacturing,
-  while payroll employment rose 1.6% and 0.8%. Published 2025 industry staffing
-  weights show that Critical Thinking and Active Listening both score at least
-  3.5/5 in 50.5% versus 31.0% of covered employment. Skill coverage is 91.2% and
-  85.8%; this is skill co-occurrence, not estimated economic complementarity.
+**[Open the live public-data case →](https://joedhj.github.io/ai-labor-atlas/)**
+No installation, account, API key or private data required. Search 758 occupations,
+inspect their task evidence, compare six organization alternatives and export the
+current assumptions. The case also works offline after export.
 
-Start with the [executive brief](docs/reports/executive-brief.md),
-[research report](docs/reports/labor-market-intelligence.md),
-[figures and structured tables](docs/reports/), or
-[two-minute demonstration](docs/demo-script.md).
-The [official employer requirement matrix](docs/employer-evidence.md) maps the
-delivered work to actual economist roles without claiming client experience.
+- **Measurement:** Copilot applicability and task-linked Claude conversation share
+  share 100 of 190 top-quartile picks on a common sample of 758 SOC occupations.
+  Official taxonomy crosswalks preserve 99.52% of released task share; source
+  residuals and allocation sensitivity remain visible. These are different
+  descriptive measures, not job-loss probabilities.
+- **Organization:** a hypothetical research-team case counts review bottlenecks,
+  error rework, a quality floor, training time, role qualification and recruitment
+  delay. Under the default assumptions, AI plus training produces 493.3 expected
+  accepted briefs versus 521.6 at baseline; adding qualified task reallocation
+  raises expected output to 665.7. These are model outputs, not firm treatment effects.
+- **Professional practice:** reproducible Python/SQL analysis, numerical reconstruction
+  of 785 published scores, grouped held-out task classification against silver
+  labels, and a browser calculator checked against the Python model.
 
-![Atlas 0.5.0 research workspace](docs/assets/atlas-research.jpg)
+Start with the [research brief](docs/research-brief.md),
+[capability evidence and interview guide](docs/career-evidence.md),
+[full assumptions](docs/workflow-assumptions.md), or
+[three-round review record](docs/review-0.6.0.md).
+The existing [market, wage and skill research](docs/reports/labor-market-intelligence.md)
+and occupation explorer remain available.
 
-## Quick start
+![AI Labor Atlas research workbench](docs/assets/atlas-workbench-0.6.jpg)
 
-Requires Python 3.10 or newer.
+## Reproduce the real public-data case
+
+Requires Python 3.10 or newer; the core has no external dependencies.
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install "ai-labor-atlas[excel]==0.5.0"
-python -m ai_labor_atlas.cli build --demo
-python -m ai_labor_atlas.cli research
-python -m ai_labor_atlas.cli search software
-python -m ai_labor_atlas.cli serve
+python -m pip install ai-labor-atlas==0.6.0
+atlas workbench --output my-research
+atlas workflow --demand-per-week 30 --output my-research/low-demand.json
 ```
 
-The offline occupation demo is deterministic and explicitly synthetic. The bundled
-346 monthly observations and 2,007 industry-matrix rows are actual public BLS
-source estimates. No API key or running sibling project is required.
+Open `my-research/index.html` in a browser. The export contains the actual public
+aggregate case, offline interactions, CSV/JSON data, SQL queries and a SQLite
+warehouse. `atlas workflow --help` lists model inputs, including the qualification
+and recruitment delays. Source acquisition never happens during rendering.
 
-For a real-data occupation build and both research cases:
+To add the original local explorer and market research:
 
 ```powershell
+python -m pip install "ai-labor-atlas[excel]==0.6.0"
 atlas download
 atlas build
 atlas research
 atlas serve
 ```
 
-Download failures identify the exact missing public source; place that registered
-file in `data/raw/` and rerun the build. Existing local source files are retained.
-To explicitly update the monthly series and industry staffing baseline, use
-`atlas market-update` and `atlas staffing-update`, then `atlas research`.
-The latter validates the 2025 baseline header and stops for source-vintage review
-if BLS changes the table structure. Serving performs no network download.
+The local homepage links to the market workspace and its occupation explorer.
+For an explicitly synthetic occupation fixture, use `atlas build --demo`; the new
+workbench always uses its separately labeled actual public aggregates. Atlas reads
+occupation data under the current directory's `data/`, or the directory specified
+by `AI_LABOR_ATLAS_DATA_DIR`. `atlas workbench --output` uses its explicit output path.
 
-```powershell
-atlas scenario --workforce 1000 --years 3 --annual-adoption 0.25 --output data/research/scenario.json
-```
-
-This default scenario releases 129,594 net annual capacity hours in year 3
-(64.8 FTE equivalent) under its stated task, savings and training assumptions.
-It holds workforce constant; capacity is not a forecast of headcount cuts.
-`atlas scenario --help` lists every assumption. The dashboard runs the same model
-and exports its annual trajectory and adoption-speed sensitivity.
-
-Contributors working from a clone can instead use
-`python -m pip install -e ".[excel]"`. Maintainers can find the token-free
-release procedure in [docs/publishing.md](docs/publishing.md).
-
-Atlas reads and writes `data/` under the current working directory. Set
-`AI_LABOR_ATLAS_DATA_DIR` to an absolute directory when you want builds and the
-dashboard to share a different persistent location.
+For source-level reproduction and the selected evidence boundary, see
+[reproduction instructions](docs/reproduction.md) and
+[data attribution](docs/data-attribution.md). Maintainer publication instructions
+are in [docs/publishing.md](docs/publishing.md).
 
 ## Explore the dashboard
 

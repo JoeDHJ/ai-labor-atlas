@@ -12,7 +12,7 @@ from pathlib import Path
 from .io import read_json, write_json
 
 
-USER_AGENT = "ai-labor-atlas/0.5.0 (reproducible research; contact via GitHub issues)"
+USER_AGENT = "ai-labor-atlas/0.6.0 (reproducible research; contact via GitHub issues)"
 SOURCE_INTEGRITY_FAILURE = "new_upstream_version_requires_review"
 
 

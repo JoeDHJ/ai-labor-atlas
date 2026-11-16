@@ -1,0 +1,41 @@
+task_id,task,published_physical,predicted_physical,human_review
+340,Prescribe medications to treat eye diseases if state laws permit.,False,True,pending
+716,"Estimate quantity and cost of merchandise required, such as paint or floor covering.",False,True,pending
+803,"Address envelopes or prepare envelope labels, using typewriter or computer.",False,True,pending
+878,"Monitor installation of plumbing, wiring, equipment, or appliances to ensure that installation is performed properly and is in compliance with applicable regulations.",False,True,pending
+927,"Inspect equipment or monitor operating conditions, meters, and gauges to determine load requirements and detect malfunctions.",False,True,pending
+1116,"Inspect guest rooms, public areas, and grounds for cleanliness and appearance.",False,True,pending
+1487,"Read dials and meters to determine amperage, voltage, electrical output and input at specific operating temperature to analyze parts performance.",False,True,pending
+2050,Prepare prescription labels by typing or operating a computer and printer.,False,True,pending
+2309,Order or requisition supplies and equipment for tables and serving stations.,False,True,pending
+2617,"Post charges, such as those for rooms, food, liquor, or telephone calls, to ledgers, manually or by using computers.",False,True,pending
+2720,"Monitor alarm systems to detect emergencies, such as fires and illegal entry into establishments.",False,True,pending
+2830,"Transmit, deliver, or mail publication master to printer for production into film and plates.",False,True,pending
+2865,Assist customers in selection of tile and grout.,False,True,pending
+2881,"Direct or train workers to install, maintain, or repair electrical wiring, equipment, or fixtures.",False,True,pending
+3017,Direct workers who are assembling or disassembling equipment or cleaning parts.,False,True,pending
+3072,"Research catalogs or repair part lists to locate sources for repair parts, requisitioning parts and recording their receipt.",False,True,pending
+3098,Monitor the feed and speed of machines during the machining process.,False,True,pending
+3550,"Determine specifications for equipment to be used for aerial photography, as well as altitudes from which to photograph terrain.",False,True,pending
+3990,"Compress, digitize, duplicate, and store audio and video data.",False,True,pending
+4022,"Edit broadcast material electronically, using computers.",False,True,pending
+4050,"Cut shot sequences to different angles at specific points in scenes, making each individual cut as fluid and seamless as possible.",False,True,pending
+4066,Trim film segments to specified lengths and reassemble segments in sequences that present stories with maximum effect.,False,True,pending
+4143,Assess cardiac physiology and calculate valve areas from blood flow velocity measurements.,False,True,pending
+4237,Accompany injured athletes to hospitals.,False,True,pending
+4407,"Observe casino or casino hotel operations for irregular activities, such as cheating or theft by employees or patrons, using audio and video equipment and one-way mirrors.",False,True,pending
+4449,Check to ensure that all players have placed bets before play begins.,False,True,pending
+4674,"Record casino exchange transactions, using cash registers.",False,True,pending
+4735,Schedule repairs for locks on safe-deposit boxes.,False,True,pending
+4883,Inspect markers to verify accurate installation.,False,True,pending
+4981,Observe equipment gauges and indicators and hand signals of other workers to verify load positions or depths.,False,True,pending
+5013,"Monitor control panels during pumping operations to ensure that materials are being pumped at the correct pressure, density, rate, and concentration.",False,True,pending
+5384,"Design or develop nuclear equipment, such as reactor cores, radiation shielding, or associated instrumentation or control mechanisms.",False,True,pending
+5813,"Conduct research in a particular field of knowledge and publish findings in professional journals, books, or electronic media.",True,False,pending
+6492,"Plan and supervise class projects, field trips, visits by guests, or other experiential activities and guide students in learning from those activities.",True,False,pending
+6563,"Plan and supervise class projects, field trips, visits by guest speakers or other experiential activities, and guide students in learning from those activities.",True,False,pending
+6888,"Create basic designs, drawings, and illustrations for product labels, cartons, direct mail, or television.",False,True,pending
+6896,"Prepare sketches of ideas, detailed drawings, illustrations, artwork, or blueprints, using drafting instruments, paints and brushes, or computer-aided design equipment.",False,True,pending
+6927,Formulate plan of treatment for patient's teeth and mouth tissue.,False,True,pending
+7007,Calculate the value of chips won or lost by players.,False,True,pending
+7035,Maintain tallies of trees examined and counted during tree marking or measuring efforts.,False,True,pending
