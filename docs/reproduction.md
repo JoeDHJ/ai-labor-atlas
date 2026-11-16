@@ -67,8 +67,8 @@ atlas analyze
 atlas serve
 ```
 
-Registered sources: O*NET 30.3 text database, O*NET-SOC2019â†’SOC2018 crosswalk,
-AIOE appendix, OEWS May 2025 national workbook and retained BLS 2024â€“2034
+Registered sources: O*NET 30.3 text database, O*NET-SOC2019→SOC2018 crosswalk,
+AIOE appendix, OEWS May 2025 national workbook and retained BLS 2024–2034
 occupation projection workbook. These occupation files were acquired locally in
 July 2026 and the release was regenerated from them on 16 November 2026. Source
 filenames/landing links are in `config/source_registry.json`. A direct ZIP request
@@ -93,12 +93,12 @@ baseline header; a future vintage needs an explicit adapter review.
 
 ## Outputs and units
 
-- `data/processed/occupations.csv`: crosswalk rows; signed raw and fixed 0â€“100
+- `data/processed/occupations.csv`: crosswalk rows; signed raw and fixed 0–100
   display AIOE; legacy API fields retained.
 - `data/research/research.json`: two complete cases and their public source data.
 - `exposure_quartiles.csv`: one SOC counted once; nominal annual wage levels.
 - `industry_changes.csv`: one common monthly window; changes in percent.
-- `skill_composition.csv`: IM importance on its 1â€“5 source scale; per-skill coverage.
+- `skill_composition.csv`: IM importance on its 1–5 source scale; per-skill coverage.
 - `portfolio_snapshot.json`: local `portfolio.v1` occupation adapter with nulls,
   exact IDs, source dates and observed/estimated/synthetic status.
 - `executive-brief.md`: rendered from the same results object as the dashboard.
@@ -128,7 +128,7 @@ python tools/audit_500_atlas_scenarios.py
 python -m build
 ```
 
-CI checks Python 3.10â€“3.14, the established 500-scenario audit and installed wheel
+CI checks Python 3.10–3.14, the established 500-scenario audit and installed wheel
 and source-distribution workflows outside the source tree. Release verification
 also exercises both research cases, scenario arithmetic, malformed inputs,
 browser comparison controls, exports and responsive layouts. See the final

@@ -16,6 +16,20 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReleaseRuntimeTests(unittest.TestCase):
+    def test_packaged_text_is_utf8_without_broken_interface_symbols(self):
+        for path in resource_path("workbench.html").parent.iterdir():
+            if path.suffix in {".html", ".js", ".css", ".md", ".json", ".csv"}:
+                self.assertNotIn(b'\r\r\n', path.read_bytes(), str(path))
+                text = path.read_text(encoding="utf-8")
+                if path.suffix in {".html", ".js", ".css", ".md"}:
+                    for broken in (
+                        "\u00c2\u00b7",
+                        "\u00e2\u20ac",
+                        "\u00e2\u2020",
+                        "\ufffd",
+                    ):
+                        self.assertNotIn(broken, text, str(path))
+
     def test_packaged_resources_match_source_config(self):
         for name in ("source_registry.json", "occupation_aliases_en.json"):
             self.assertEqual(
@@ -39,9 +53,7 @@ class ReleaseRuntimeTests(unittest.TestCase):
 
     def test_data_root_honors_environment_override(self):
         with tempfile.TemporaryDirectory() as temp:
-            with patch.dict(
-                os.environ, {"AI_LABOR_ATLAS_DATA_DIR": temp}, clear=False
-            ):
+            with patch.dict(os.environ, {"AI_LABOR_ATLAS_DATA_DIR": temp}, clear=False):
                 self.assertEqual(data_root(), Path(temp).resolve())
 
 
