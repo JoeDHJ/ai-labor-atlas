@@ -351,7 +351,7 @@ def _main(argv: list[str] | None = None) -> int:
             (site_dir / "index.html").write_text(
                 '<!doctype html><html lang="en"><meta charset="utf-8">'
                 '<meta name="viewport" content="width=device-width,initial-scale=1">'
-                "<title>AI Labor Atlas 0.6.0</title><main><h1>Research data unavailable</h1>"
+                "<title>AI Labor Atlas 0.6.1</title><main><h1>Research data unavailable</h1>"
                 f"<p>{notice}</p><p>Restore the required source layers and run "
                 "<code>atlas research</code> to regenerate research findings.</p>"
                 '<p><a href="explorer.html">Open the occupation explorer</a></p></main></html>',

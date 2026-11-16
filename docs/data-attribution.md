@@ -1,6 +1,6 @@
 # Data attribution and transformation ledger
 
-AI Labor Atlas 0.6.0 · Haojian Dui · retrieved 16 November 2026
+AI Labor Atlas 0.6.1 · Haojian Dui · retrieved 16 November 2026
 
 Atlas code is MIT licensed. Incorporated research data retain the separate source
 licenses below; the code license does not relicense those data. No private

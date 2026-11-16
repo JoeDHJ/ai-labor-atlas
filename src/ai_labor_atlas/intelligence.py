@@ -535,7 +535,7 @@ def portfolio_snapshot(
 
     return {
         "schema_version": SCHEMA,
-        "dataset_id": "atlas.occupations.0.6.0",
+        "dataset_id": "atlas.occupations.0.6.1",
         "generated_at": generated,
         "geography": "US",
         "unit_of_observation": "SOC2018_occupation",
@@ -571,7 +571,7 @@ def portfolio_snapshot(
                 else "recorded"
                 if wage_source.get("retrieved_at")
                 else "unknown; local file timestamp supplied separately",
-                "source_vintage": "deterministic synthetic fixture 0.6.0"
+                "source_vintage": "deterministic synthetic fixture 0.6.1"
                 if demo
                 else r.get("wage_vintage"),
                 "period": observation_period(r),
@@ -611,7 +611,7 @@ def build_research(raw_dir: Path, processed_dir: Path, research_dir: Path) -> di
     comparison = market_comparison(market)
     result = {
         "schema_version": SCHEMA,
-        "version": "0.6.0",
+        "version": "0.6.1",
         "mode": "synthetic_occupation_demo" if demo else "public_data",
         "case1": case1,
         "case2": {
@@ -663,7 +663,7 @@ def executive_brief(result: dict) -> str:
     lines = [
         "# AI Labor Market Intelligence",
         "",
-        "Haojian Dui · Release 0.6.0 · US national public data",
+        "Haojian Dui · Release 0.6.1 · US national public data",
         "",
     ]
     if result["mode"] != "public_data":

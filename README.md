@@ -1,6 +1,6 @@
 # AI Labor Atlas — Tasks, Evidence & Organization
 
-**Release 0.6.0 · Independent portfolio research by Haojian Dui**
+**Release 0.6.1 · Independent portfolio research by Haojian Dui**
 
 Which tasks deserve an AI pilot, and how should training and task allocation change
 when drafting becomes faster? Atlas connects labor-market measurement to a
@@ -28,7 +28,7 @@ current assumptions. The case also works offline after export.
 Start with the [research brief](docs/research-brief.md),
 [capability evidence and interview guide](docs/career-evidence.md),
 [full assumptions](docs/workflow-assumptions.md), or
-[three-round review record](docs/review-0.6.0.md).
+[three-round review record](docs/review-0.6.1.md).
 The existing [market, wage and skill research](docs/reports/labor-market-intelligence.md)
 and occupation explorer remain available.
 
@@ -39,7 +39,7 @@ and occupation explorer remain available.
 Requires Python 3.10 or newer; the core has no external dependencies.
 
 ```powershell
-python -m pip install ai-labor-atlas==0.6.0
+python -m pip install ai-labor-atlas==0.6.1
 atlas workbench --output my-research
 atlas workflow --demand-per-week 30 --output my-research/low-demand.json
 ```
@@ -52,7 +52,7 @@ and recruitment delays. Source acquisition never happens during rendering.
 To add the original local explorer and market research:
 
 ```powershell
-python -m pip install "ai-labor-atlas[excel]==0.6.0"
+python -m pip install "ai-labor-atlas[excel]==0.6.1"
 atlas download
 atlas build
 atlas research

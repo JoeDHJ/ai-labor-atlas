@@ -84,7 +84,7 @@ def write_workbench(directory: Path, *, local_mode: bool = False) -> dict:
     write_json(
         directory / "site-manifest.json",
         {
-            "release": "0.6.0",
+            "release": "0.6.1",
             "occupation_source_mode": "public_aggregate_data",
             "organization_model": "hypothetical",
             "network_required": False,

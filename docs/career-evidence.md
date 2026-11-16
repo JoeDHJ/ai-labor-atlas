@@ -1,6 +1,6 @@
 # Career evidence: labor economics, organization and AI
 
-AI Labor Atlas 0.6.0 · Haojian Dui
+AI Labor Atlas 0.6.1 · Haojian Dui
 
 The professional claim supported by this portfolio is the ability to turn an
 economic question into a source-aware analytical product and a conditional
