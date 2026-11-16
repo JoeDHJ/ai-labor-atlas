@@ -1,0 +1,176 @@
+major_soc,occupation_group,skill_id,skill_label,skill_taxonomy,skill_vintage,employment_reference,importance,scale,covered_soc_count,all_soc_count,covered_employment_jobs,employment_coverage,status
+15,Computer and mathematical,2.A.1.a,Reading Comprehension,O*NET,30.3,OEWS May 2025 national employment,3.7883355132582524,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.1.b,Active Listening,O*NET,30.3,OEWS May 2025 national employment,3.6879755373134704,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.1.c,Writing,O*NET,30.3,OEWS May 2025 national employment,3.4186832968322647,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.1.d,Speaking,O*NET,30.3,OEWS May 2025 national employment,3.5097615295215063,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.1.e,Mathematics,O*NET,30.3,OEWS May 2025 national employment,2.7961071705588467,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.1.f,Science,O*NET,30.3,OEWS May 2025 national employment,2.104581996228223,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.2.a,Critical Thinking,O*NET,30.3,OEWS May 2025 national employment,3.8625883630031255,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.2.b,Active Learning,O*NET,30.3,OEWS May 2025 national employment,3.3987525189539407,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.2.c,Learning Strategies,O*NET,30.3,OEWS May 2025 national employment,2.873780278143211,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.A.2.d,Monitoring,O*NET,30.3,OEWS May 2025 national employment,3.2187244714315772,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.1.a,Social Perceptiveness,O*NET,30.3,OEWS May 2025 national employment,2.973966408244172,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.1.b,Coordination,O*NET,30.3,OEWS May 2025 national employment,3.04448979617702,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.1.c,Persuasion,O*NET,30.3,OEWS May 2025 national employment,2.7407580879016704,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.1.d,Negotiation,O*NET,30.3,OEWS May 2025 national employment,2.553605427886309,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.1.e,Instructing,O*NET,30.3,OEWS May 2025 national employment,2.910016875407152,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.1.f,Service Orientation,O*NET,30.3,OEWS May 2025 national employment,2.897073995777029,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.2.i,Complex Problem Solving,O*NET,30.3,OEWS May 2025 national employment,3.5506459548451366,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.a,Operations Analysis,O*NET,30.3,OEWS May 2025 national employment,2.8815547490678286,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.b,Technology Design,O*NET,30.3,OEWS May 2025 national employment,2.6876377059838936,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.c,Equipment Selection,O*NET,30.3,OEWS May 2025 national employment,1.941701710227143,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.d,Installation,O*NET,30.3,OEWS May 2025 national employment,1.7674319660641453,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.e,Programming,O*NET,30.3,OEWS May 2025 national employment,3.3114715443754132,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.g,Operations Monitoring,O*NET,30.3,OEWS May 2025 national employment,2.733427846386267,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.h,Operation and Control,O*NET,30.3,OEWS May 2025 national employment,2.048183162488055,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.j,Equipment Maintenance,O*NET,30.3,OEWS May 2025 national employment,1.5378107343558702,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.k,Troubleshooting,O*NET,30.3,OEWS May 2025 national employment,2.517435064852766,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.l,Repairing,O*NET,30.3,OEWS May 2025 national employment,1.5061348632097113,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.3.m,Quality Control Analysis,O*NET,30.3,OEWS May 2025 national employment,2.771491813241269,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.4.e,Judgment and Decision Making,O*NET,30.3,OEWS May 2025 national employment,3.5292959349469846,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.4.g,Systems Analysis,O*NET,30.3,OEWS May 2025 national employment,3.4233007770418418,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.4.h,Systems Evaluation,O*NET,30.3,OEWS May 2025 national employment,3.321051297308807,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.5.a,Time Management,O*NET,30.3,OEWS May 2025 national employment,3.114376148579627,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.5.b,Management of Financial Resources,O*NET,30.3,OEWS May 2025 national employment,1.8497269422243854,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.5.c,Management of Material Resources,O*NET,30.3,OEWS May 2025 national employment,1.881231137946156,IM 1-5,21,21,5260120.0,1.0,estimated
+15,Computer and mathematical,2.B.5.d,Management of Personnel Resources,O*NET,30.3,OEWS May 2025 national employment,2.533450995414553,IM 1-5,21,21,5260120.0,1.0,estimated
+43,Office and administrative support,2.A.1.a,Reading Comprehension,O*NET,30.3,OEWS May 2025 national employment,3.5345822421124424,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.1.b,Active Listening,O*NET,30.3,OEWS May 2025 national employment,3.7226696237458867,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.1.c,Writing,O*NET,30.3,OEWS May 2025 national employment,3.1891780245652654,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.1.d,Speaking,O*NET,30.3,OEWS May 2025 national employment,3.6817633065689486,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.1.e,Mathematics,O*NET,30.3,OEWS May 2025 national employment,2.4035663197763157,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.1.f,Science,O*NET,30.3,OEWS May 2025 national employment,1.0449924319014905,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.2.a,Critical Thinking,O*NET,30.3,OEWS May 2025 national employment,3.1986216370556186,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.2.b,Active Learning,O*NET,30.3,OEWS May 2025 national employment,2.8286266230293324,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.2.c,Learning Strategies,O*NET,30.3,OEWS May 2025 national employment,2.3973668509234116,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.A.2.d,Monitoring,O*NET,30.3,OEWS May 2025 national employment,3.094646513441426,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.1.a,Social Perceptiveness,O*NET,30.3,OEWS May 2025 national employment,3.1072128550709137,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.1.b,Coordination,O*NET,30.3,OEWS May 2025 national employment,3.0775066652174563,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.1.c,Persuasion,O*NET,30.3,OEWS May 2025 national employment,2.6708326576102523,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.1.d,Negotiation,O*NET,30.3,OEWS May 2025 national employment,2.612424065978177,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.1.e,Instructing,O*NET,30.3,OEWS May 2025 national employment,2.5691030221786693,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.1.f,Service Orientation,O*NET,30.3,OEWS May 2025 national employment,3.325161072254638,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.2.i,Complex Problem Solving,O*NET,30.3,OEWS May 2025 national employment,2.9348154442117274,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.a,Operations Analysis,O*NET,30.3,OEWS May 2025 national employment,1.528907355777691,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.b,Technology Design,O*NET,30.3,OEWS May 2025 national employment,1.4711273792641,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.c,Equipment Selection,O*NET,30.3,OEWS May 2025 national employment,1.0493116768398931,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.d,Installation,O*NET,30.3,OEWS May 2025 national employment,1.0013518717241807,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.e,Programming,O*NET,30.3,OEWS May 2025 national employment,1.5263091487729443,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.g,Operations Monitoring,O*NET,30.3,OEWS May 2025 national employment,1.934384979854826,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.h,Operation and Control,O*NET,30.3,OEWS May 2025 national employment,1.3035000155272538,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.j,Equipment Maintenance,O*NET,30.3,OEWS May 2025 national employment,1.0355330046156201,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.k,Troubleshooting,O*NET,30.3,OEWS May 2025 national employment,1.341313559663185,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.l,Repairing,O*NET,30.3,OEWS May 2025 national employment,1.0357023666985263,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.3.m,Quality Control Analysis,O*NET,30.3,OEWS May 2025 national employment,1.7368681385353084,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.4.e,Judgment and Decision Making,O*NET,30.3,OEWS May 2025 national employment,2.926613020004854,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.4.g,Systems Analysis,O*NET,30.3,OEWS May 2025 national employment,2.242981741674804,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.4.h,Systems Evaluation,O*NET,30.3,OEWS May 2025 national employment,2.2321127186611136,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.5.a,Time Management,O*NET,30.3,OEWS May 2025 national employment,3.1703512351067755,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.5.b,Management of Financial Resources,O*NET,30.3,OEWS May 2025 national employment,1.6805679236841227,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.5.c,Management of Material Resources,O*NET,30.3,OEWS May 2025 national employment,1.75020069838137,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+43,Office and administrative support,2.B.5.d,Management of Personnel Resources,O*NET,30.3,OEWS May 2025 national employment,2.405566428467092,IM 1-5,50,54,17388780.0,0.9794608588091759,estimated
+51,Production,2.A.1.a,Reading Comprehension,O*NET,30.3,OEWS May 2025 national employment,2.953373765965931,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.1.b,Active Listening,O*NET,30.3,OEWS May 2025 national employment,3.0801804947057496,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.1.c,Writing,O*NET,30.3,OEWS May 2025 national employment,2.561434152678619,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.1.d,Speaking,O*NET,30.3,OEWS May 2025 national employment,3.0228300506185724,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.1.e,Mathematics,O*NET,30.3,OEWS May 2025 national employment,2.3340350431388086,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.1.f,Science,O*NET,30.3,OEWS May 2025 national employment,1.5146509642419024,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.2.a,Critical Thinking,O*NET,30.3,OEWS May 2025 national employment,3.1070934195855524,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.2.b,Active Learning,O*NET,30.3,OEWS May 2025 national employment,2.6383056201092634,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.2.c,Learning Strategies,O*NET,30.3,OEWS May 2025 national employment,2.3200364387687977,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.A.2.d,Monitoring,O*NET,30.3,OEWS May 2025 national employment,3.1790461307142728,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.1.a,Social Perceptiveness,O*NET,30.3,OEWS May 2025 national employment,2.834163466495991,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.1.b,Coordination,O*NET,30.3,OEWS May 2025 national employment,2.8886014187423332,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.1.c,Persuasion,O*NET,30.3,OEWS May 2025 national employment,2.225584889606811,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.1.d,Negotiation,O*NET,30.3,OEWS May 2025 national employment,2.1783876054341946,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.1.e,Instructing,O*NET,30.3,OEWS May 2025 national employment,2.3621038137907036,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.1.f,Service Orientation,O*NET,30.3,OEWS May 2025 national employment,2.341178627939522,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.2.i,Complex Problem Solving,O*NET,30.3,OEWS May 2025 national employment,2.7944280888631523,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.a,Operations Analysis,O*NET,30.3,OEWS May 2025 national employment,1.8879983618173921,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.b,Technology Design,O*NET,30.3,OEWS May 2025 national employment,1.6135467364608653,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.c,Equipment Selection,O*NET,30.3,OEWS May 2025 national employment,2.1984118606960625,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.d,Installation,O*NET,30.3,OEWS May 2025 national employment,1.3207764579190258,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.e,Programming,O*NET,30.3,OEWS May 2025 national employment,1.3464908452260311,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.g,Operations Monitoring,O*NET,30.3,OEWS May 2025 national employment,3.234316660698094,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.h,Operation and Control,O*NET,30.3,OEWS May 2025 national employment,3.0194858798818474,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.j,Equipment Maintenance,O*NET,30.3,OEWS May 2025 national employment,2.3495411767992707,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.k,Troubleshooting,O*NET,30.3,OEWS May 2025 national employment,2.5715712012577177,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.l,Repairing,O*NET,30.3,OEWS May 2025 national employment,2.2743227537214685,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.3.m,Quality Control Analysis,O*NET,30.3,OEWS May 2025 national employment,3.0346895948736314,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.4.e,Judgment and Decision Making,O*NET,30.3,OEWS May 2025 national employment,2.9593321586675096,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.4.g,Systems Analysis,O*NET,30.3,OEWS May 2025 national employment,2.3150867906605814,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.4.h,Systems Evaluation,O*NET,30.3,OEWS May 2025 national employment,2.2729376969946333,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.5.a,Time Management,O*NET,30.3,OEWS May 2025 national employment,2.9749209062578577,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.5.b,Management of Financial Resources,O*NET,30.3,OEWS May 2025 national employment,1.6841511471087984,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.5.c,Management of Material Resources,O*NET,30.3,OEWS May 2025 national employment,1.796172397765976,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+51,Production,2.B.5.d,Management of Personnel Resources,O*NET,30.3,OEWS May 2025 national employment,2.3317871937296974,IM 1-5,98,103,6562150.0,0.9491420744398498,estimated
+,Manufacturing (industry),2.A.1.a,Reading Comprehension,O*NET,30.3,BLS matrix 2025 industry baseline,3.2390206967226622,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.1.b,Active Listening,O*NET,30.3,BLS matrix 2025 industry baseline,3.337299802072418,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.1.c,Writing,O*NET,30.3,BLS matrix 2025 industry baseline,2.895849241131153,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.1.d,Speaking,O*NET,30.3,BLS matrix 2025 industry baseline,3.277226700672427,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.1.e,Mathematics,O*NET,30.3,BLS matrix 2025 industry baseline,2.5070689286647907,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.1.f,Science,O*NET,30.3,BLS matrix 2025 industry baseline,1.6247941146749791,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.2.a,Critical Thinking,O*NET,30.3,BLS matrix 2025 industry baseline,3.3047751522900066,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.2.b,Active Learning,O*NET,30.3,BLS matrix 2025 industry baseline,2.862994444407832,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.2.c,Learning Strategies,O*NET,30.3,BLS matrix 2025 industry baseline,2.4883989569809564,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.A.2.d,Monitoring,O*NET,30.3,BLS matrix 2025 industry baseline,3.2305090813831643,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.1.a,Social Perceptiveness,O*NET,30.3,BLS matrix 2025 industry baseline,2.945809092147262,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.1.b,Coordination,O*NET,30.3,BLS matrix 2025 industry baseline,3.025118511610946,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.1.c,Persuasion,O*NET,30.3,BLS matrix 2025 industry baseline,2.506633892187682,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.1.d,Negotiation,O*NET,30.3,BLS matrix 2025 industry baseline,2.426501329036481,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.1.e,Instructing,O*NET,30.3,BLS matrix 2025 industry baseline,2.550502582284932,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.1.f,Service Orientation,O*NET,30.3,BLS matrix 2025 industry baseline,2.6093131133064014,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.2.i,Complex Problem Solving,O*NET,30.3,BLS matrix 2025 industry baseline,2.9989785640694437,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.a,Operations Analysis,O*NET,30.3,BLS matrix 2025 industry baseline,1.9948515125753212,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.b,Technology Design,O*NET,30.3,BLS matrix 2025 industry baseline,1.7638984517274179,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.c,Equipment Selection,O*NET,30.3,BLS matrix 2025 industry baseline,1.9644174415718219,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.d,Installation,O*NET,30.3,BLS matrix 2025 industry baseline,1.3679111808214544,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.e,Programming,O*NET,30.3,BLS matrix 2025 industry baseline,1.565559770395218,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.g,Operations Monitoring,O*NET,30.3,BLS matrix 2025 industry baseline,2.8967983137712343,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.h,Operation and Control,O*NET,30.3,BLS matrix 2025 industry baseline,2.5989739915249213,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.j,Equipment Maintenance,O*NET,30.3,BLS matrix 2025 industry baseline,2.070246076047248,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.k,Troubleshooting,O*NET,30.3,BLS matrix 2025 industry baseline,2.385970214205533,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.l,Repairing,O*NET,30.3,BLS matrix 2025 industry baseline,2.0165195906567637,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.3.m,Quality Control Analysis,O*NET,30.3,BLS matrix 2025 industry baseline,2.722974920752081,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.4.e,Judgment and Decision Making,O*NET,30.3,BLS matrix 2025 industry baseline,3.083266973772948,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.4.g,Systems Analysis,O*NET,30.3,BLS matrix 2025 industry baseline,2.5582287315719756,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.4.h,Systems Evaluation,O*NET,30.3,BLS matrix 2025 industry baseline,2.514629403119831,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.5.a,Time Management,O*NET,30.3,BLS matrix 2025 industry baseline,3.043713782657502,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.5.b,Management of Financial Resources,O*NET,30.3,BLS matrix 2025 industry baseline,1.8664758313068275,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.5.c,Management of Material Resources,O*NET,30.3,BLS matrix 2025 industry baseline,1.9721021007563426,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Manufacturing (industry),2.B.5.d,Management of Personnel Resources,O*NET,30.3,BLS matrix 2025 industry baseline,2.488375025537271,IM 1-5,463,507,10838500.0,0.8579038603101229,estimated
+,Professional and business services (industry),2.A.1.a,Reading Comprehension,O*NET,30.3,BLS matrix 2025 industry baseline,3.5454061584906573,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.1.b,Active Listening,O*NET,30.3,BLS matrix 2025 industry baseline,3.6627172332339213,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.1.c,Writing,O*NET,30.3,BLS matrix 2025 industry baseline,3.2593609064400444,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.1.d,Speaking,O*NET,30.3,BLS matrix 2025 industry baseline,3.5823210712416063,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.1.e,Mathematics,O*NET,30.3,BLS matrix 2025 industry baseline,2.5309781890769254,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.1.f,Science,O*NET,30.3,BLS matrix 2025 industry baseline,1.6407442315259608,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.2.a,Critical Thinking,O*NET,30.3,BLS matrix 2025 industry baseline,3.5140871085068843,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.2.b,Active Learning,O*NET,30.3,BLS matrix 2025 industry baseline,3.1054909213762563,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.2.c,Learning Strategies,O*NET,30.3,BLS matrix 2025 industry baseline,2.6800533362082803,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.A.2.d,Monitoring,O*NET,30.3,BLS matrix 2025 industry baseline,3.264137153902624,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.1.a,Social Perceptiveness,O*NET,30.3,BLS matrix 2025 industry baseline,3.1315289880978594,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.1.b,Coordination,O*NET,30.3,BLS matrix 2025 industry baseline,3.1709416831906228,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.1.c,Persuasion,O*NET,30.3,BLS matrix 2025 industry baseline,2.829103682261973,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.1.d,Negotiation,O*NET,30.3,BLS matrix 2025 industry baseline,2.7166081443708,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.1.e,Instructing,O*NET,30.3,BLS matrix 2025 industry baseline,2.7289294139348264,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.1.f,Service Orientation,O*NET,30.3,BLS matrix 2025 industry baseline,3.0082264430824557,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.2.i,Complex Problem Solving,O*NET,30.3,BLS matrix 2025 industry baseline,3.1861695646785035,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.a,Operations Analysis,O*NET,30.3,BLS matrix 2025 industry baseline,2.0642758846577776,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.b,Technology Design,O*NET,30.3,BLS matrix 2025 industry baseline,1.776937258824212,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.c,Equipment Selection,O*NET,30.3,BLS matrix 2025 industry baseline,1.4996253345853565,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.d,Installation,O*NET,30.3,BLS matrix 2025 industry baseline,1.185734926098252,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.e,Programming,O*NET,30.3,BLS matrix 2025 industry baseline,1.7856036884941313,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.g,Operations Monitoring,O*NET,30.3,BLS matrix 2025 industry baseline,2.2986183835156035,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.h,Operation and Control,O*NET,30.3,BLS matrix 2025 industry baseline,1.8575753275727223,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.j,Equipment Maintenance,O*NET,30.3,BLS matrix 2025 industry baseline,1.4234725049991228,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.k,Troubleshooting,O*NET,30.3,BLS matrix 2025 industry baseline,1.818951963863733,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.l,Repairing,O*NET,30.3,BLS matrix 2025 industry baseline,1.4034013844244504,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.3.m,Quality Control Analysis,O*NET,30.3,BLS matrix 2025 industry baseline,2.171537313562365,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.4.e,Judgment and Decision Making,O*NET,30.3,BLS matrix 2025 industry baseline,3.2382468123384154,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.4.g,Systems Analysis,O*NET,30.3,BLS matrix 2025 industry baseline,2.752474388450541,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.4.h,Systems Evaluation,O*NET,30.3,BLS matrix 2025 industry baseline,2.6903048704841024,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.5.a,Time Management,O*NET,30.3,BLS matrix 2025 industry baseline,3.119210295851619,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.5.b,Management of Financial Resources,O*NET,30.3,BLS matrix 2025 industry baseline,1.9311925613424932,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.5.c,Management of Material Resources,O*NET,30.3,BLS matrix 2025 industry baseline,1.9661751241131407,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated
+,Professional and business services (industry),2.B.5.d,Management of Personnel Resources,O*NET,30.3,BLS matrix 2025 industry baseline,2.6236909039961063,IM 1-5,597,665,20439300.0,0.9118174518201285,estimated

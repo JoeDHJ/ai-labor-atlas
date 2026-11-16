@@ -1,14 +1,22 @@
 # Design
 
-The pipeline has four layers:
+The pipeline has seven layers:
 
-1. **Acquire**: download or register official files and write SHA-256 checksums.
+1. **Acquire**: download or register official files with version/date/path/size provenance. Preserve the previous business version and validate candidate source identity/schema before publishing updated panels.
 2. **Validate**: check expected files, row counts, unique keys, and value parsability.
 3. **Build**: normalize O*NET, bridge to 2018 SOC, store explicit crosswalk weights, and left-join wage, projections, and exposure data.
 4. **Explore**: expose search and descriptive summaries through the CLI and a dependency-free local HTML page.
 5. **Bridge**: compare structured O*NET occupational profiles and return separate software and task evidence for pathway discovery.
+6. **Research**: align six BLS/FRED series on common periods; deduplicate SOC market observations; join exact O*NET skill keys to published industry staffing; regenerate two cases and selected exports.
+7. **Scenario**: account for annual adoption, task time savings and training under explicit user assumptions. Report capacity and sensitivity separately from observed market estimates and official projections.
 
 Every output row includes source/version fields or can be traced to `data_manifest.json`. Data are stored as CSV for portability and JSON for metadata.
+
+The homepage is the research workspace; `explorer.html` preserves the original
+occupation explorer and all established endpoints. A processed-only installation
+without structured skill sources still serves that explorer/API and shows an
+explicit research-unavailable notice. It never substitutes synthetic research
+results for a public-data build. No source refresh occurs while serving.
 
 The raw release keeps one row per O*NET-to-SOC mapping. Summary statistics and occupation context collapse those rows to one O*NET record using the stored crosswalk weights, disclose when several SOC targets are involved, and retain the raw expansion counts. Because the public bridge does not provide a defensible individual allocation, the result is a weighted reference estimate rather than a direct SOC statistic. The release-level employment-weighted exposure is calculated after collapsing shared targets to one record per unique 2018 SOC code, preventing BLS employment from being duplicated across O*NET mappings; fallback allocations are flagged in the data-quality contract.
 

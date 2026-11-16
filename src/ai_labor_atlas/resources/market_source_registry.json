@@ -1,0 +1,84 @@
+{
+  "schema_version": "portfolio.v1",
+  "start_period": "2022-01",
+  "sources": [
+    {
+      "source_id": "JTS540099JOL",
+      "source_url": "https://fred.stlouisfed.org/series/JTS540099JOL",
+      "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=JTS540099JOL&cosd=2022-01-01",
+      "industry": "Professional and business services",
+      "industry_id": "54-56",
+      "metric": "job_openings",
+      "unit": "thousand_jobs",
+      "provider": "U.S. Bureau of Labor Statistics via FRED, Federal Reserve Bank of St. Louis",
+      "frequency": "monthly",
+      "seasonal_adjustment": "SA",
+      "license": "Public domain; source citation requested"
+    },
+    {
+      "source_id": "JTS3000JOL",
+      "source_url": "https://fred.stlouisfed.org/series/JTS3000JOL",
+      "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=JTS3000JOL&cosd=2022-01-01",
+      "industry": "Manufacturing",
+      "industry_id": "31-33",
+      "metric": "job_openings",
+      "unit": "thousand_jobs",
+      "provider": "U.S. Bureau of Labor Statistics via FRED, Federal Reserve Bank of St. Louis",
+      "frequency": "monthly",
+      "seasonal_adjustment": "SA",
+      "license": "Public domain; source citation requested"
+    },
+    {
+      "source_id": "USPBS",
+      "source_url": "https://fred.stlouisfed.org/series/USPBS",
+      "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USPBS&cosd=2022-01-01",
+      "industry": "Professional and business services",
+      "industry_id": "54-56",
+      "metric": "payroll_employment",
+      "unit": "thousand_jobs",
+      "provider": "U.S. Bureau of Labor Statistics via FRED, Federal Reserve Bank of St. Louis",
+      "frequency": "monthly",
+      "seasonal_adjustment": "SA",
+      "license": "Public domain; source citation requested"
+    },
+    {
+      "source_id": "MANEMP",
+      "source_url": "https://fred.stlouisfed.org/series/MANEMP",
+      "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=MANEMP&cosd=2022-01-01",
+      "industry": "Manufacturing",
+      "industry_id": "31-33",
+      "metric": "payroll_employment",
+      "unit": "thousand_jobs",
+      "provider": "U.S. Bureau of Labor Statistics via FRED, Federal Reserve Bank of St. Louis",
+      "frequency": "monthly",
+      "seasonal_adjustment": "SA",
+      "license": "Public domain; source citation requested"
+    },
+    {
+      "source_id": "CES6000000003",
+      "source_url": "https://fred.stlouisfed.org/series/CES6000000003",
+      "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CES6000000003&cosd=2022-01-01",
+      "industry": "Professional and business services",
+      "industry_id": "54-56",
+      "metric": "hourly_earnings",
+      "unit": "USD_per_hour_nominal",
+      "provider": "U.S. Bureau of Labor Statistics via FRED, Federal Reserve Bank of St. Louis",
+      "frequency": "monthly",
+      "seasonal_adjustment": "SA",
+      "license": "Public domain; source citation requested"
+    },
+    {
+      "source_id": "CES3000000003",
+      "source_url": "https://fred.stlouisfed.org/series/CES3000000003",
+      "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CES3000000003&cosd=2022-01-01",
+      "industry": "Manufacturing",
+      "industry_id": "31-33",
+      "metric": "hourly_earnings",
+      "unit": "USD_per_hour_nominal",
+      "provider": "U.S. Bureau of Labor Statistics via FRED, Federal Reserve Bank of St. Louis",
+      "frequency": "monthly",
+      "seasonal_adjustment": "SA",
+      "license": "Public domain; source citation requested"
+    }
+  ]
+}

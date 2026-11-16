@@ -6,11 +6,12 @@ import json
 import math
 import re
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
 from .demo import FIELDS, TASK_FIELDS, demo_rows, demo_tasks
-from .io import read_csv, sha256, write_csv, write_json
+from .io import read_csv, write_csv, write_json
 from .occupation_context import load_alias_registry, validate_alias_registry
 from .resources import resource_path
 
@@ -283,7 +284,10 @@ def _bridge_aioe_to_soc_2018(
 
 
 def _apply_relative_aioe_scale(
-    rows: list[dict[str, object]], *, source_values: Iterable[float] | None = None
+    rows: list[dict[str, object]],
+    *,
+    source_values: Iterable[float] | None = None,
+    source_bounds: tuple[float, float] | None = None,
 ) -> dict[str, object]:
     """Replace signed source AIOE with a user-facing, order-preserving scale.
 
@@ -309,8 +313,11 @@ def _apply_relative_aioe_scale(
             "source_max": None,
             "interpretation": "No source AIOE values were available.",
         }
-    source_min = min(values)
-    source_max = max(values)
+    source_min, source_max = source_bounds or (min(values), max(values))
+    if any(not math.isfinite(v) or v < source_min or v > source_max for v in values):
+        raise ValueError(
+            "AIOE values fall outside the fixed reference range; review the new source vintage"
+        )
     spread = source_max - source_min
     for row in rows:
         raw = row.get("ai_exposure")
@@ -318,6 +325,7 @@ def _apply_relative_aioe_scale(
             row["ai_exposure_display_scale"] = ""
             continue
         value = float(raw)
+        row.setdefault("ai_exposure_source_raw", value)
         row["ai_exposure"] = round(
             50.0 if spread == 0 else 100 * (value - source_min) / spread,
             6,
@@ -326,12 +334,17 @@ def _apply_relative_aioe_scale(
         if row.get("ai_exposure_source"):
             source = str(row["ai_exposure_source"])
             row["ai_exposure_source"] = (
-                source if source.endswith("_relative_display") else f"{source}_relative_display"
+                source
+                if source.endswith("_relative_display")
+                else f"{source}_relative_display"
             )
     return {
         "method": "relative_0_100_min_max",
         "source_min": source_min,
         "source_max": source_max,
+        "reference_vintage": "AIOE 2021 source release"
+        if source_bounds
+        else "input source range",
         "interpretation": (
             "A 0--100 relative display scale derived from the signed, "
             "standardized AIOE values in this release. It preserves ordering; "
@@ -412,6 +425,7 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
     candidates = [
         raw_dir / "bls_projections_2024_2034.xlsx",
         raw_dir / "bls_projections_2024_2034.csv",
+        raw_dir / "bls_projections_2024_2034_archive.zip",
     ]
     path = next((candidate for candidate in candidates if candidate.exists()), None)
     if not path:
@@ -425,7 +439,21 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
             raise RuntimeError(
                 "Projection parsing requires optional dependency: pip install -e .[excel]"
             ) from error
-        workbook_handle = load_workbook(path, read_only=True, data_only=True)
+        if path.suffix.lower() == ".zip":
+            with zipfile.ZipFile(path) as archive:
+                candidates = [
+                    name
+                    for name in archive.namelist()
+                    if Path(name).name.lower() == "occupation.xlsx"
+                ]
+                if len(candidates) != 1:
+                    raise ValueError(
+                        "Historical projections archive must contain one occupation.xlsx"
+                    )
+                workbook_input = io.BytesIO(archive.read(candidates[0]))
+        else:
+            workbook_input = path
+        workbook_handle = load_workbook(workbook_input, read_only=True, data_only=True)
         sheet = (
             workbook_handle["Table 1.2"]
             if "Table 1.2" in workbook_handle.sheetnames
@@ -443,8 +471,12 @@ def _load_projections(raw_dir: Path) -> dict[str, dict[str, float | None]]:
                 )
                 and any(str(cell).strip().lower() == "employment, 2024" for cell in row)
             ),
-            0,
+            None,
         )
+        if header_index is None:
+            raise ValueError(
+                "Expected 2024–2034 projection headers; review the source vintage before replacing the baseline"
+            )
         header = [str(cell or "").strip() for cell in values[header_index]]
         rows = [dict(zip(header, row)) for row in values[header_index + 1 :]]
     result = {}
@@ -544,7 +576,9 @@ def build_dataset(
                 if str(code).strip()
             ]
             codes = codes or [""]
-            crosswalk_weight = 1.0 / len([code for code in codes if code]) if any(codes) else 1.0
+            crosswalk_weight = (
+                1.0 / len([code for code in codes if code]) if any(codes) else 1.0
+            )
             for soc_code in codes or [""]:
                 wage = oews.get(soc_code, {})
                 projection = projections.get(soc_code, {})
@@ -572,6 +606,7 @@ def build_dataset(
                         "title": item["title"],
                         "description": item["description"],
                         "ai_exposure": exposure,
+                        "ai_exposure_source_raw": exposure,
                         "ai_exposure_source": (
                             "AIOE_SOC2010_to_SOC2018_relative_display"
                             if exposure is not None
@@ -618,11 +653,16 @@ def build_dataset(
             "projection_rows": len(projections),
         }
         source_flags["aioe_display"] = _apply_relative_aioe_scale(
-            rows, source_values=aioe_source.values()
+            rows,
+            source_values=aioe_source.values(),
+            source_bounds=(-2.669758, 1.527667),
         )
     if demo:
         source_flags["aioe_display"] = {
             "method": "relative_0_100_min_max",
+            "source_min": min(float(row["ai_exposure_source_raw"]) for row in rows),
+            "source_max": max(float(row["ai_exposure_source_raw"]) for row in rows),
+            "reference_vintage": "synthetic deterministic fixture",
             "interpretation": (
                 "Demo values use the same 0--100 relative display convention; "
                 "they are not probabilities or job-loss forecasts."
@@ -652,13 +692,71 @@ def build_dataset(
     count = write_csv(processed_dir / "occupations.csv", rows, FIELDS)
     task_count = write_csv(processed_dir / "tasks.csv", tasks, TASK_FIELDS)
     manifest = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "schema": FIELDS,
         "row_count": count,
         "task_schema": TASK_FIELDS,
         "task_row_count": task_count,
         "build": source_flags,
-        "sha256": sha256(processed_dir / "occupations.csv"),
-        "tasks_sha256": sha256(processed_dir / "tasks.csv"),
+        "occupation_file_bytes": (processed_dir / "occupations.csv").stat().st_size,
+        "task_file_bytes": (processed_dir / "tasks.csv").stat().st_size,
+        "source_files": [
+            {
+                "path": str(path),
+                "file_bytes": path.stat().st_size,
+                "local_modified_at": datetime.fromtimestamp(
+                    path.stat().st_mtime, timezone.utc
+                ).isoformat(),
+            }
+            for path in sorted(raw_dir.glob("*"))
+            if path.is_file() and path.suffix in {".xlsx", ".zip", ".csv"}
+        ]
+        if not demo
+        else [],
     }
+    manifest["sources"] = []
+    if not demo:
+        registry = json.loads(
+            resource_path("source_registry.json").read_text(encoding="utf-8")
+        )
+        download_path = raw_dir.parent / "download_manifest.json"
+        download_manifest = (
+            json.loads(download_path.read_text(encoding="utf-8"))
+            if download_path.exists()
+            else {}
+        )
+        for source in registry["sources"]:
+            filename = source.get("raw_filename")
+            path = raw_dir / filename if filename else None
+            if (
+                source["id"] == "bls_projections"
+                and (raw_dir / "bls_projections_2024_2034.xlsx").exists()
+            ):
+                path = raw_dir / "bls_projections_2024_2034.xlsx"
+            if path is None or not path.exists():
+                continue
+            acquisition = next(
+                (
+                    r
+                    for r in download_manifest.get("results", [])
+                    if r.get("id") == source["id"]
+                    and Path(str(r.get("path", ""))).resolve() == path.resolve()
+                    and r.get("status") == "downloaded"
+                ),
+                {},
+            )
+            manifest["sources"].append(
+                {
+                    "source_id": source["id"],
+                    "source_url": source["landing_url"],
+                    "source_vintage": source["version"],
+                    "path": str(path),
+                    "retrieved_at": acquisition.get("retrieved_at"),
+                    "local_modified_at": datetime.fromtimestamp(
+                        path.stat().st_mtime, timezone.utc
+                    ).isoformat(),
+                    "file_bytes": path.stat().st_size,
+                }
+            )
     write_json(processed_dir / "data_manifest.json", manifest)
     return manifest

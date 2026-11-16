@@ -1,8 +1,30 @@
-# AI Labor Atlas
+# AI Labor Atlas — Labor Market Intelligence
 
-AI Labor Atlas is a reproducible, descriptive measurement layer connecting occupations, tasks, AI exposure indicators, wages, and employment projections.
+**Release 0.5.0 · Independent portfolio research by Haojian Dui**
 
-The current explorer focuses on U.S. national data, English-language sources, and descriptive rather than causal interpretation. It keeps the meaning and coverage of each measure clear so users can ask better questions about changing work.
+How should workforce teams combine AI exposure, actual recruitment conditions and
+the skills required to do the work? Atlas answers with two reproducible public-data
+cases, an occupation/task explorer and an explicit workforce capacity scenario.
+
+- **Exposure and wages:** across 691 complete SOC occupations, the highest exposure
+  quartile's employment-weighted average occupation median wage is **$88,489**, versus
+  **$45,686** in the lowest quartile (1.94×; May 2025). This is a descriptive wage-level
+  comparison, not an AI wage effect.
+- **Demand and skills:** from January 2022 to September 2026, job openings fell
+  **37.3%** in professional and business services and **34.7%** in manufacturing,
+  while payroll employment rose 1.6% and 0.8%. Published 2025 industry staffing
+  weights show that Critical Thinking and Active Listening both score at least
+  3.5/5 in 50.5% versus 31.0% of covered employment. Skill coverage is 91.2% and
+  85.8%; this is skill co-occurrence, not estimated economic complementarity.
+
+Start with the [executive brief](docs/reports/executive-brief.md),
+[research report](docs/reports/labor-market-intelligence.md),
+[figures and structured tables](docs/reports/), or
+[two-minute demonstration](docs/demo-script.md).
+The [official employer requirement matrix](docs/employer-evidence.md) maps the
+delivered work to actual economist roles without claiming client experience.
+
+![Atlas 0.5.0 research workspace](docs/assets/atlas-research.jpg)
 
 ## Quick start
 
@@ -11,14 +33,42 @@ Requires Python 3.10 or newer.
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install "ai-labor-atlas[excel]"
+python -m pip install "ai-labor-atlas[excel]==0.5.0"
 python -m ai_labor_atlas.cli build --demo
-python -m ai_labor_atlas.cli analyze
+python -m ai_labor_atlas.cli research
 python -m ai_labor_atlas.cli search software
 python -m ai_labor_atlas.cli serve
 ```
 
-The demonstration dataset is deterministic so the examples are easy to explore and reproduce. Research users can find the public source coverage and attribution notes in the sections below.
+The offline occupation demo is deterministic and explicitly synthetic. The bundled
+346 monthly observations and 2,007 industry-matrix rows are actual public BLS
+source estimates. No API key or running sibling project is required.
+
+For a real-data occupation build and both research cases:
+
+```powershell
+atlas download
+atlas build
+atlas research
+atlas serve
+```
+
+Download failures identify the exact missing public source; place that registered
+file in `data/raw/` and rerun the build. Existing local source files are retained.
+To explicitly update the monthly series and industry staffing baseline, use
+`atlas market-update` and `atlas staffing-update`, then `atlas research`.
+The latter validates the 2025 baseline header and stops for source-vintage review
+if BLS changes the table structure. Serving performs no network download.
+
+```powershell
+atlas scenario --workforce 1000 --years 3 --annual-adoption 0.25 --output data/research/scenario.json
+```
+
+This default scenario releases 129,594 net annual capacity hours in year 3
+(64.8 FTE equivalent) under its stated task, savings and training assumptions.
+It holds workforce constant; capacity is not a forecast of headcount cuts.
+`atlas scenario --help` lists every assumption. The dashboard runs the same model
+and exports its annual trajectory and adoption-speed sensitivity.
 
 Contributors working from a clone can instead use
 `python -m pip install -e ".[excel]"`. Maintainers can find the token-free
@@ -32,11 +82,7 @@ dashboard to share a different persistent location.
 
 The dashboard brings occupational tasks, AI exposure, wages, employment, and outlook together in one visual workspace for comparing roles and exploring changing work. The screenshots below are rendered from the full current-data build (1,016 O*NET occupation records), not the eight-record demonstration dataset.
 
-![AI Labor Atlas full dashboard with 1,016 O*NET occupations](docs/assets/atlas-dashboard.png)
-
-![AI Labor Atlas complete task explorer](docs/assets/atlas-task-explorer.png)
-
-![AI Labor Atlas complete career bridge](docs/assets/atlas-career-bridge.png)
+![AI Labor Atlas occupation and task explorer](docs/assets/atlas-explorer.jpg)
 
 The dashboard compares AI exposure with wages, projected employment growth, annual openings, and employment scale. It pairs the visual comparison with plain-language metric guidance so users can explore the economic context behind each occupation.
 
@@ -66,10 +112,23 @@ without an API key.
 | Wage | BLS OEWS | May 2025 | National employment and wage estimates |
 | Outlook | BLS Employment Projections | 2024-2034 | Employment change and annual openings |
 | AI exposure | AIOE | source release recorded in manifest | Descriptive exposure comparator |
+| Monthly demand | BLS JOLTS via FRED | retrieved 2026-11-16; Jan 2022–Sep 2026 | Unfilled positions, two industry groups |
+| Monthly employment/pay | BLS CES via FRED | retrieved 2026-11-16; Jan 2022–Oct 2026 | Payroll jobs and nominal hourly earnings |
+| Industry staffing | BLS National Employment Matrix | 2025 baseline from 2025–2035 release | Industry-weighted occupational skills; projected cells excluded |
 
 O*NET-derived files must retain attribution to O*NET and the U.S. Department of Labor, Employment and Training Administration, and must identify modifications. AIOE raw redistribution is disabled by default until its repository license is verified.
 
-The full local build uses the registered public files rather than the demo rows. The current validation snapshot contains 1,016 unique O*NET occupations and 18,796 source task statements across 923 occupations, with 79.0% exposure coverage, 94.1% wage coverage, and 94.6% employment coverage. Release summaries distinguish unique O*NET occupations, unique SOC codes, raw crosswalk-expanded rows, and the one-record-per-O*NET aggregation used for top-line coverage and means. The dashboard shows representative task statements for the selected occupation and supports keyword filtering within that task list. Missing source values remain missing in the output.
+The full local build uses the registered public files rather than the demo rows.
+The retained occupation baseline contains 1,016 unique O*NET occupations and
+18,796 source task statements across 923 occupations, with **79.6% exposure
+coverage (809/1,016)**, 94.1% wage coverage, and 94.6% employment coverage.
+The earlier README's 79.0% was incorrect and was reproduced and corrected in this
+release. Occupation baseline files were acquired in July 2026; their vintages stay
+explicit even as monthly market data are updated. The legacy 2024–2034 outlook
+is a retained official projection vintage, not the newest BLS projection release.
+Release summaries distinguish unique O*NET occupations, unique SOC codes, raw
+crosswalk-expanded rows, and one-record-per-O*NET coverage. Research calculations
+deduplicate SOC market quantities. Missing source values remain missing.
 
 The occupation bridge uses O*NET 30.3 Essential Skills, Transferable Skills, Knowledge, Abilities, Work Activities, and Software Skills. Exact profiles are preferred; when a parent occupation has no direct structured rating, a family-average profile is marked in the result. This fallback is a data-coverage aid, not an exact occupational equivalence.
 
@@ -99,7 +158,24 @@ The full `50 × 10 = 500` deterministic scenario audit, including data-quality, 
 
 ## What the numbers mean
 
-`ai_exposure` is an exposure/applicability indicator, not a probability of job loss, a risk score, or evidence of causality. Wage and employment projections are joined by SOC code with provenance and coverage fields. Crosswalk-expanded rows are preserved with `crosswalk_weight`; multiple SOC targets are summarized only as disclosed weighted-reference estimates, with mapping quality flags retained. When no source allocation is available, `uniform_crosswalk_fallback` is shown. An unmapped occupation is labeled `missing_crosswalk` rather than being presented as a single-SOC observation. The release-level employment-weighted exposure uses each unique 2018 SOC target once, so shared SOC employment is not double-counted. A registered source hash mismatch is reported as `new_upstream_version_requires_review`; the downloader does not write the unverified payload.
+`ai_exposure` is an exposure/applicability indicator, not a probability of job loss,
+a risk score, or evidence of causality. Its fixed public-build transform is
+`100 × (ai_exposure_source_raw + 2.669758) / (1.527667 + 2.669758)`.
+Signed source values stay in `ai_exposure_source_raw`; subsetting does not rescale
+the display. Values outside this fixed source range require vintage review.
+
+Crosswalk-expanded rows retain `crosswalk_weight` and quality flags. Multiple
+targets use disclosed weighted references; research skill cases exclude multi-target
+O*NET ratings instead of inventing allocations. Market quantities enter once per
+SOC. The legacy `employment_2024` field contains OEWS May 2025 employment;
+the new [portfolio.v1 adapter](docs/portfolio-v1.md) exports `employment_jobs`
+with an explicit period. Source records use versions, dates, sizes and schemas.
+
+Research exports are written to `data/research/`, including the local downstream
+occupation snapshot, two case tables, skills, monthly observations and Markdown
+brief. AIOE occupation values are not bundled in distributions because upstream
+redistribution rights remain unverified. Published case aggregates are in
+`docs/reports/`; full locally generated source/occupation outputs remain local.
 
 ## Repository map
 

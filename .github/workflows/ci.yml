@@ -48,6 +48,8 @@ jobs:
           atlas build --demo
           atlas analyze > atlas-analysis.json
           atlas search software > atlas-search.json
+          atlas research > atlas-research.json
+          atlas scenario --years 3 > atlas-scenario.json
           python - <<'PY'
           import json
           from importlib.metadata import version
@@ -55,11 +57,16 @@ jobs:
           import ai_labor_atlas
 
           analysis = json.loads(Path("atlas-analysis.json").read_text())
-          assert version("ai-labor-atlas") == ai_labor_atlas.__version__ == "0.4.0"
+          assert version("ai-labor-atlas") == ai_labor_atlas.__version__ == "0.5.0"
           assert analysis["summary"]["rows"] == 8
           matches = json.loads(Path("atlas-search.json").read_text())
           assert any(item["title"] == "Software Developers" for item in matches)
           assert Path("data/processed/occupations.csv").exists()
+          research = json.loads(Path("data/research/research.json").read_text())
+          assert research["mode"] == "synthetic_occupation_demo"
+          assert len(research["case2"]["market_comparison"]) == 6
+          scenario = json.loads(Path("atlas-scenario.json").read_text())
+          assert abs(scenario["trajectory"][-1]["net_capacity_hours"] - 129593.75) < 0.01
           PY
       - name: Rebuild and run from the source distribution
         run: |
@@ -68,3 +75,4 @@ jobs:
           cd "$RUNNER_TEMP"
           "$RUNNER_TEMP/sdist-env/bin/atlas" build --demo
           "$RUNNER_TEMP/sdist-env/bin/atlas" search software > atlas-sdist-search.json
+          "$RUNNER_TEMP/sdist-env/bin/atlas" research > atlas-sdist-research.json

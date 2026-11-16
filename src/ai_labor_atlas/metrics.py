@@ -7,6 +7,7 @@ from statistics import mean
 
 _AGGREGATED_NUMERIC_FIELDS = (
     "ai_exposure",
+    "ai_exposure_source_raw",
     "employment_2024",
     "projected_employment_2024_thousands",
     "projected_employment_2034_thousands",
@@ -157,7 +158,9 @@ def aggregate_onet_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
             ]
             if pairs:
                 pair_weight = sum(weight for _, weight in pairs)
-                base[field] = sum(value * weight for value, weight in pairs) / pair_weight
+                base[field] = (
+                    sum(value * weight for value, weight in pairs) / pair_weight
+                )
             else:
                 base[field] = None
 
@@ -288,9 +291,7 @@ def aggregate_soc_rows(rows: list[dict[str, str]]) -> list[dict[str, object]]:
         base.update(
             {
                 "soc_2018_code": "" if code.startswith("__missing_soc_") else code,
-                "soc_2018_codes": []
-                if code.startswith("__missing_soc_")
-                else [code],
+                "soc_2018_codes": [] if code.startswith("__missing_soc_") else [code],
                 "onet_soc_codes": onet_codes,
                 "shared_onet_count": len(onet_codes),
                 "data_quality_flags": ";".join(sorted(flags)),
@@ -306,7 +307,9 @@ def summarize(rows: list[dict[str, str]]) -> dict[str, object]:
     mapped_soc_rows = [
         row for row in soc_rows if str(row.get("soc_2018_code", "")).strip()
     ]
-    exposures = [number(row.get("ai_exposure"), "ai_exposure") for row in aggregated_rows]
+    exposures = [
+        number(row.get("ai_exposure"), "ai_exposure") for row in aggregated_rows
+    ]
     exposures = [value for value in exposures if value is not None]
     wages = [
         number(row.get("median_annual_wage"), "median_annual_wage")

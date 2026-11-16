@@ -186,8 +186,8 @@ HTML_TEMPLATE = r"""<!doctype html>
 <body>
   <main class="shell">
     <header class="topbar">
-      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">AI Labor Atlas</span></div>
-      <span class="micro">Occupational intelligence explorer</span>
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">AI Labor Atlas · 0.5.0</span></div>
+      <a class="micro" href="/">Research workspace →</a>
     </header>
     <section class="hero">
       <div class="hero-copy">

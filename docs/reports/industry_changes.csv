@@ -1,0 +1,7 @@
+source_id,industry,metric,unit,start_period,end_period,start_value,end_value,change_pct,common_period_count,status
+JTS540099JOL,Professional and business services,job_openings,thousand_jobs,2022-01,2026-09,2089.0,1310.0,-37.290569650550495,57,estimated
+JTS3000JOL,Manufacturing,job_openings,thousand_jobs,2022-01,2026-09,895.0,584.0,-34.74860335195531,57,estimated
+USPBS,Professional and business services,payroll_employment,thousand_jobs,2022-01,2026-09,22183.0,22534.0,1.582292746697922,57,estimated
+MANEMP,Manufacturing,payroll_employment,thousand_jobs,2022-01,2026-09,12564.0,12662.0,0.7800063673989222,57,estimated
+CES6000000003,Professional and business services,hourly_earnings,USD_per_hour_nominal,2022-01,2026-09,37.88,46.1,21.7001055966209,57,estimated
+CES3000000003,Manufacturing,hourly_earnings,USD_per_hour_nominal,2022-01,2026-09,30.53,37.06,21.388797903701274,57,estimated
