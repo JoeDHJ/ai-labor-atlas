@@ -1,0 +1,43 @@
+{
+  "schema_version": "portfolio.v1",
+  "sources": [
+    {
+      "source_id": "31-330",
+      "path": "data\\raw\\manufacturing_matrix.html",
+      "retrieved_at": "2026-11-16T07:03:38.287947+00:00",
+      "source_url": "https://data.bls.gov/projections/nationalMatrix?queryParams=31-330&ioType=i",
+      "source_vintage": "2025-2035 matrix, 2025 baseline",
+      "file_bytes": 879068,
+      "rows": 508
+    },
+    {
+      "source_id": "540000",
+      "path": "data\\raw\\professional_matrix.html",
+      "retrieved_at": "2026-11-16T07:04:09.301450+00:00",
+      "source_url": "https://data.bls.gov/projections/nationalMatrix?queryParams=540000&ioType=i",
+      "source_vintage": "2025-2035 matrix, 2025 baseline",
+      "file_bytes": 866843,
+      "rows": 493
+    },
+    {
+      "source_id": "550000",
+      "path": "data\\raw\\industry_550000.html",
+      "retrieved_at": "2026-11-16T07:04:43.907045+00:00",
+      "source_url": "https://data.bls.gov/projections/nationalMatrix?queryParams=550000&ioType=i",
+      "source_vintage": "2025-2035 matrix, 2025 baseline",
+      "file_bytes": 793372,
+      "rows": 438
+    },
+    {
+      "source_id": "560000",
+      "path": "data\\raw\\industry_560000.html",
+      "retrieved_at": "2026-11-16T07:04:43.908402+00:00",
+      "source_url": "https://data.bls.gov/projections/nationalMatrix?queryParams=560000&ioType=i",
+      "source_vintage": "2025-2035 matrix, 2025 baseline",
+      "file_bytes": 946914,
+      "rows": 568
+    }
+  ],
+  "rows": 2007,
+  "note": "2025 employment baseline only. Projected 2035 cells are not imported. Suppressed small/confidential/poor-quality cells are not reconstructed."
+}

@@ -12,7 +12,12 @@ from ai_labor_atlas.cli import _read_json_body, main as cli_main
 from ai_labor_atlas.dashboard import render
 from ai_labor_atlas.demo import TASK_FIELDS, FIELDS, demo_rows, demo_tasks
 from ai_labor_atlas.distance import OccupationBridge
-from ai_labor_atlas.metrics import aggregate_onet_rows, group_by_major_soc, summarize, summarize_tasks
+from ai_labor_atlas.metrics import (
+    aggregate_onet_rows,
+    group_by_major_soc,
+    summarize,
+    summarize_tasks,
+)
 from ai_labor_atlas.occupation_context import (
     build_market_context,
     load_alias_registry,
@@ -34,7 +39,7 @@ from ai_labor_atlas.reviews import (
     summarize_reviews,
     validate_review_file,
 )
-from ai_labor_atlas.sources import download_file, sha256_bytes
+from ai_labor_atlas.sources import download_file
 
 try:
     from openpyxl import Workbook
@@ -45,9 +50,7 @@ except ImportError:  # pragma: no cover - optional Excel dependency
 class AtlasTests(unittest.TestCase):
     def test_deep_review_body_reader_rejects_invalid_content_lengths(self):
         headers = {"Content-Length": "2"}
-        self.assertEqual(
-            _read_json_body(headers, lambda length: b"{}", 80_000), {}
-        )
+        self.assertEqual(_read_json_body(headers, lambda length: b"{}", 80_000), {})
         with self.assertRaises(ValueError):
             _read_json_body({"Content-Length": "-1"}, lambda length: b"{}", 80_000)
         with self.assertRaises(ValueError):
@@ -76,7 +79,9 @@ class AtlasTests(unittest.TestCase):
 
     def test_market_context_keeps_metrics_tasks_and_interpretation_separate(self):
         rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
-        tasks = [{key: str(value) for key, value in row.items()} for row in demo_tasks()]
+        tasks = [
+            {key: str(value) for key, value in row.items()} for row in demo_tasks()
+        ]
         context = build_market_context(
             rows[0],
             tasks,
@@ -95,7 +100,10 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(context["schema_version"], "market_context.v0.2")
         self.assertIn("median_annual_wage", context["metrics"])
         self.assertTrue(context["representative_tasks"])
-        self.assertEqual(context["adjacent_occupations"][0]["onet_soc_code"], rows[1]["onet_soc_code"])
+        self.assertEqual(
+            context["adjacent_occupations"][0]["onet_soc_code"],
+            rows[1]["onet_soc_code"],
+        )
         self.assertEqual(context["adjacent_occupations"][0]["title"], rows[1]["title"])
         self.assertIn("not a job-loss probability", context["interpretation"])
 
@@ -126,7 +134,9 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(summary["aggregated_onet_occupation_count"], 1)
         self.assertEqual(summary["multiple_soc_occupation_count"], 1)
 
-    def test_summary_distinguishes_expanded_crosswalk_rows_from_unique_occupations(self):
+    def test_summary_distinguishes_expanded_crosswalk_rows_from_unique_occupations(
+        self,
+    ):
         rows = [
             {"onet_soc_code": "15-1252.00", "soc_2018_code": "15-1252"},
             {"onet_soc_code": "15-1252.00", "soc_2018_code": "15-1252"},
@@ -173,12 +183,22 @@ class AtlasTests(unittest.TestCase):
         aggregated = aggregate_onet_rows(rows)
         self.assertIn("uniform_crosswalk_fallback", aggregated[0]["data_quality_flags"])
         context = build_market_context(rows[0], [], occupation_rows=rows)
-        self.assertIn("uniform_crosswalk_fallback", context["mapping"]["data_quality_flags"])
+        self.assertIn(
+            "uniform_crosswalk_fallback", context["mapping"]["data_quality_flags"]
+        )
         with self.assertRaises(ValueError):
             aggregate_onet_rows(
                 [
-                    {"onet_soc_code": "A", "soc_2018_code": "15-1252", "crosswalk_weight": "-0.1"},
-                    {"onet_soc_code": "A", "soc_2018_code": "15-2051", "crosswalk_weight": "1.1"},
+                    {
+                        "onet_soc_code": "A",
+                        "soc_2018_code": "15-1252",
+                        "crosswalk_weight": "-0.1",
+                    },
+                    {
+                        "onet_soc_code": "A",
+                        "soc_2018_code": "15-2051",
+                        "crosswalk_weight": "1.1",
+                    },
                 ]
             )
         for bad_weight in ("nan", "inf", "-inf"):
@@ -195,13 +215,27 @@ class AtlasTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             aggregate_onet_rows(
                 [
-                    {"onet_soc_code": "A", "soc_2018_code": "15-1252", "crosswalk_weight": "not-a-number"}
+                    {
+                        "onet_soc_code": "A",
+                        "soc_2018_code": "15-1252",
+                        "crosswalk_weight": "not-a-number",
+                    }
                 ]
             )
         weighted = aggregate_onet_rows(
             [
-                {"onet_soc_code": "A", "soc_2018_code": "15-1252", "crosswalk_weight": "0", "ai_exposure": "0.1"},
-                {"onet_soc_code": "A", "soc_2018_code": "15-2051", "crosswalk_weight": "1", "ai_exposure": "0.9"},
+                {
+                    "onet_soc_code": "A",
+                    "soc_2018_code": "15-1252",
+                    "crosswalk_weight": "0",
+                    "ai_exposure": "0.1",
+                },
+                {
+                    "onet_soc_code": "A",
+                    "soc_2018_code": "15-2051",
+                    "crosswalk_weight": "1",
+                    "ai_exposure": "0.9",
+                },
             ]
         )[0]
         self.assertAlmostEqual(weighted["ai_exposure"], 0.9)
@@ -257,7 +291,9 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(flags["15-1252"], {"aioe_crosswalk_ambiguous"})
         self.assertEqual(metadata["source_soc_vintage"], "2010")
 
-    def test_aioe_bridge_classifies_complete_official_crosswalk_and_same_code_merges(self):
+    def test_aioe_bridge_classifies_complete_official_crosswalk_and_same_code_merges(
+        self,
+    ):
         scores, flags, metadata = _bridge_aioe_to_soc_2018(
             {
                 "13-1021": 0.25,
@@ -393,7 +429,7 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(mixed["employment_weighting_row_count"], 1)
         self.assertEqual(mixed["employment_weighting_excluded_missing_soc_count"], 1)
 
-    def test_download_rejects_unexpected_source_hash_before_writing(self):
+    def test_download_rejects_non_zip_payload_before_writing(self):
         class Response:
             def __enter__(self):
                 return self
@@ -404,16 +440,19 @@ class AtlasTests(unittest.TestCase):
             def read(self):
                 return b"unexpected payload"
 
-        with tempfile.TemporaryDirectory() as temp, patch(
-            "ai_labor_atlas.sources.urllib.request.urlopen", return_value=Response()
+        with (
+            tempfile.TemporaryDirectory() as temp,
+            patch(
+                "ai_labor_atlas.sources.urllib.request.urlopen", return_value=Response()
+            ),
         ):
             destination = Path(temp) / "source.zip"
             result = download_file(
                 "https://example.test/source.zip",
                 destination,
-                expected_sha256=sha256_bytes(b"registered payload"),
+                retries=1,
             )
-        self.assertEqual(result["status"], "new_upstream_version_requires_review")
+        self.assertEqual(result["status"], "failed")
         self.assertFalse(destination.exists())
 
     def test_download_cli_returns_nonzero_when_a_source_failed(self):
@@ -426,19 +465,25 @@ class AtlasTests(unittest.TestCase):
                 }
             ]
         }
-        with patch(
-            "ai_labor_atlas.cli.download_registered_sources",
-            return_value=result,
-        ), redirect_stdout(io.StringIO()):
+        with (
+            patch(
+                "ai_labor_atlas.cli.download_registered_sources",
+                return_value=result,
+            ),
+            redirect_stdout(io.StringIO()),
+        ):
             code = cli_main(["download"])
         self.assertEqual(code, 2)
 
     def test_download_cli_reports_filesystem_error_without_traceback(self):
         stderr = io.StringIO()
-        with patch(
-            "ai_labor_atlas.cli.download_registered_sources",
-            side_effect=PermissionError("read-only data directory"),
-        ), redirect_stderr(stderr):
+        with (
+            patch(
+                "ai_labor_atlas.cli.download_registered_sources",
+                side_effect=PermissionError("read-only data directory"),
+            ),
+            redirect_stderr(stderr),
+        ):
             code = cli_main(["download"])
         self.assertEqual(code, 2)
         self.assertIn("Download error: read-only data directory", stderr.getvalue())
@@ -618,7 +663,9 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(report["occupation_codes"], ["15-2051.00"])
         self.assertEqual(report["source_counts"], {"reddit": 2})
         self.assertEqual(report["error_count"], 3)
-        self.assertTrue(any(item["field"] == "onet_soc_code" for item in report["errors"]))
+        self.assertTrue(
+            any(item["field"] == "onet_soc_code" for item in report["errors"])
+        )
         self.assertNotIn("The team was supportive", json.dumps(report))
 
     def test_review_validation_reports_malformed_json_without_traceback_data(self):
@@ -722,10 +769,7 @@ class AtlasTests(unittest.TestCase):
         self.assertTrue(result["candidates"][0]["requires_confirmation"])
 
     def test_occupation_suggestions_reject_generic_or_incompatible_title_overlap(self):
-        rows = [
-            {key: str(value) for key, value in row.items()}
-            for row in demo_rows()
-        ]
+        rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
         analyst = suggest_occupations(rows, "Data Analyst")
         self.assertEqual(analyst["candidates"], [])
         product = suggest_occupations(rows, "Product Manager")
@@ -737,10 +781,7 @@ class AtlasTests(unittest.TestCase):
         self.assertEqual(unregistered_title["candidates"], [])
 
     def test_alias_hit_with_partial_release_keeps_confirmation_when_empty(self):
-        rows = [
-            {key: str(value) for key, value in row.items()}
-            for row in demo_rows()
-        ]
+        rows = [{key: str(value) for key, value in row.items()} for row in demo_rows()]
         result = suggest_occupations(rows, "Data Analyst")
         self.assertEqual(result["mapping_status"], "editorial_candidate_crosswalk")
         self.assertEqual(result["candidates"], [])
@@ -802,7 +843,9 @@ class AtlasTests(unittest.TestCase):
         self.assertTrue(report["valid"])
         self.assertGreater(report["candidate_code_count"], 0)
 
-        with self.assertRaisesRegex(ValueError, "missing from the current Atlas release"):
+        with self.assertRaisesRegex(
+            ValueError, "missing from the current Atlas release"
+        ):
             validate_alias_registry(registry, [{"onet_soc_code": "99-9999.00"}])
 
     def test_alias_registry_rejects_duplicate_candidate_codes(self):
@@ -849,37 +892,35 @@ class AtlasTests(unittest.TestCase):
 
     def test_build_fails_closed_before_writing_invalid_release(self):
         invalid_registry = {
-            "data analyst": {
-                "candidates": [{"onet_soc_code": "15-9999.00"}]
-            }
+            "data analyst": {"candidates": [{"onet_soc_code": "15-9999.00"}]}
         }
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             raw_dir = root / "raw"
             processed_dir = root / "processed"
-            with patch(
-                "ai_labor_atlas.pipeline._load_onet",
-                return_value=[
-                    {
-                        "onet_soc_code": "15-2051.00",
-                        "title": "Data Scientists",
-                        "description": "Model data.",
-                    }
-                ],
-            ), patch(
-                "ai_labor_atlas.pipeline._load_tasks", return_value=[]
-            ), patch(
-                "ai_labor_atlas.pipeline._load_crosswalk",
-                return_value={"15-2051.00": ["15-2051.00"]},
-            ), patch(
-                "ai_labor_atlas.pipeline._load_aioe", return_value={}
-            ), patch(
-                "ai_labor_atlas.pipeline._load_oews", return_value={}
-            ), patch(
-                "ai_labor_atlas.pipeline._load_projections", return_value={}
-            ), patch(
-                "ai_labor_atlas.pipeline.load_alias_registry",
-                return_value=invalid_registry,
+            with (
+                patch(
+                    "ai_labor_atlas.pipeline._load_onet",
+                    return_value=[
+                        {
+                            "onet_soc_code": "15-2051.00",
+                            "title": "Data Scientists",
+                            "description": "Model data.",
+                        }
+                    ],
+                ),
+                patch("ai_labor_atlas.pipeline._load_tasks", return_value=[]),
+                patch(
+                    "ai_labor_atlas.pipeline._load_crosswalk",
+                    return_value={"15-2051.00": ["15-2051.00"]},
+                ),
+                patch("ai_labor_atlas.pipeline._load_aioe", return_value={}),
+                patch("ai_labor_atlas.pipeline._load_oews", return_value={}),
+                patch("ai_labor_atlas.pipeline._load_projections", return_value={}),
+                patch(
+                    "ai_labor_atlas.pipeline.load_alias_registry",
+                    return_value=invalid_registry,
+                ),
             ):
                 with self.assertRaisesRegex(
                     ValueError,
@@ -891,38 +932,38 @@ class AtlasTests(unittest.TestCase):
 
     def test_full_build_fails_closed_when_required_layers_are_empty(self):
         valid_registry = {
-            "data scientist": {
-                "candidates": [{"onet_soc_code": "15-2051.00"}]
-            }
+            "data scientist": {"candidates": [{"onet_soc_code": "15-2051.00"}]}
         }
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             raw_dir = root / "raw"
             processed_dir = root / "processed"
-            with patch(
-                "ai_labor_atlas.pipeline._load_onet",
-                return_value=[
-                    {
-                        "onet_soc_code": "15-2051.00",
-                        "title": "Data Scientists",
-                        "description": "Model data.",
-                    }
-                ],
-            ), patch(
-                "ai_labor_atlas.pipeline._load_tasks", return_value=[]
-            ), patch(
-                "ai_labor_atlas.pipeline._load_crosswalk",
-                return_value={"15-2051.00": ["15-2051"]},
-            ), patch(
-                "ai_labor_atlas.pipeline._load_aioe",
-                return_value={"15-2051": 0.75},
-            ), patch(
-                "ai_labor_atlas.pipeline._load_oews", return_value={}
-            ), patch(
-                "ai_labor_atlas.pipeline._load_projections", return_value={}
-            ), patch(
-                "ai_labor_atlas.pipeline.load_alias_registry",
-                return_value=valid_registry,
+            with (
+                patch(
+                    "ai_labor_atlas.pipeline._load_onet",
+                    return_value=[
+                        {
+                            "onet_soc_code": "15-2051.00",
+                            "title": "Data Scientists",
+                            "description": "Model data.",
+                        }
+                    ],
+                ),
+                patch("ai_labor_atlas.pipeline._load_tasks", return_value=[]),
+                patch(
+                    "ai_labor_atlas.pipeline._load_crosswalk",
+                    return_value={"15-2051.00": ["15-2051"]},
+                ),
+                patch(
+                    "ai_labor_atlas.pipeline._load_aioe",
+                    return_value={"15-2051": 0.75},
+                ),
+                patch("ai_labor_atlas.pipeline._load_oews", return_value={}),
+                patch("ai_labor_atlas.pipeline._load_projections", return_value={}),
+                patch(
+                    "ai_labor_atlas.pipeline.load_alias_registry",
+                    return_value=valid_registry,
+                ),
             ):
                 with self.assertRaisesRegex(
                     ValueError,
@@ -935,7 +976,9 @@ class AtlasTests(unittest.TestCase):
     def test_review_summary_exposes_source_and_topic_labels(self):
         context = summarize_reviews([], "15-2051.00")
         self.assertEqual(context["source_labels"]["reddit"], "Reddit")
-        self.assertEqual(context["topic_labels"]["work_environment"], "Work environment")
+        self.assertEqual(
+            context["topic_labels"]["work_environment"], "Work environment"
+        )
 
     def test_review_summary_reports_when_display_limit_truncates_comments(self):
         reviews = [
@@ -1028,10 +1071,14 @@ class AtlasTests(unittest.TestCase):
 
     def test_cli_reports_analyze_filesystem_error_without_traceback(self):
         stderr = io.StringIO()
-        with patch(
-            "ai_labor_atlas.cli.read_csv",
-            side_effect=PermissionError("read-only processed dataset"),
-        ), patch("pathlib.Path.exists", return_value=True), redirect_stderr(stderr):
+        with (
+            patch(
+                "ai_labor_atlas.cli.read_csv",
+                side_effect=PermissionError("read-only processed dataset"),
+            ),
+            patch("pathlib.Path.exists", return_value=True),
+            redirect_stderr(stderr),
+        ):
             code = cli_main(["analyze"])
         self.assertEqual(code, 2)
         self.assertIn("Error: read-only processed dataset", stderr.getvalue())

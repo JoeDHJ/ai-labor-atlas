@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-labor-atlas"
-version = "0.4.0"
+version = "0.5.0"
 description = "A reproducible, descriptive atlas of occupations, AI exposure, wages, and employment."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,6 +29,7 @@ Issues = "https://github.com/JoeDHJ/ai-labor-atlas/issues"
 
 [project.optional-dependencies]
 excel = ["openpyxl==3.1.5"]
+reports = ["matplotlib>=3.9"]
 dev = ["pytest==9.1.1", "ruff==0.15.22"]
 
 [project.scripts]
@@ -38,4 +39,4 @@ atlas = "ai_labor_atlas.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"ai_labor_atlas.resources" = ["*.json"]
+"ai_labor_atlas.resources" = ["*.json", "*.csv"]

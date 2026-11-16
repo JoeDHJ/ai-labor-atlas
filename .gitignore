@@ -8,6 +8,7 @@ __pycache__/
 .env
 data/raw/*
 data/processed/*
+data/research/
 data/download_manifest.json
 !data/raw/.gitkeep
 !data/raw/README.md

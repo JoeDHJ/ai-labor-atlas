@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -12,7 +13,13 @@ from .demo import write_demo
 from .distance import OccupationBridge
 from .io import read_csv, read_json, write_json
 from .llm_review import LLMNotConfiguredError, LLMReviewClient, LLMReviewError
-from .metrics import aggregate_onet_rows, group_by_major_soc, rank_rows, summarize, summarize_tasks
+from .metrics import (
+    aggregate_onet_rows,
+    group_by_major_soc,
+    rank_rows,
+    summarize,
+    summarize_tasks,
+)
 from .occupation_context import (
     build_market_context,
     load_alias_registry,
@@ -23,6 +30,10 @@ from .pipeline import build_dataset
 from .reviews import load_reviews, summarize_reviews, validate_review_file
 from .runtime import config_path, data_root
 from .sources import SOURCE_INTEGRITY_FAILURE, download_registered_sources
+from .intelligence import build_research, refresh_market
+from .research_dashboard import write_research_site
+from .scenario import Scenario, run_scenario, sensitivity
+from .staffing import refresh_staffing
 
 
 LLM_REVIEW_CLIENT = LLMReviewClient()
@@ -80,6 +91,26 @@ def parser() -> argparse.ArgumentParser:
         help="JSON review import; defaults to data/processed/reviews.json",
     )
     sub.add_parser("serve", help="serve a dependency-free local dashboard")
+    sub.add_parser(
+        "market-update", help="explicitly refresh six public BLS/FRED monthly series"
+    )
+    sub.add_parser(
+        "staffing-update",
+        help="explicitly refresh four BLS 2025 industry staffing matrices",
+    )
+    sub.add_parser(
+        "research", help="regenerate both labor-market intelligence cases and exports"
+    )
+    scenario = sub.add_parser(
+        "scenario", help="run an explicit workforce capacity scenario"
+    )
+    for key, value in Scenario().__dict__.items():
+        scenario.add_argument(
+            "--" + key.replace("_", "-"),
+            type=int if key == "years" else float,
+            default=value,
+        )
+    scenario.add_argument("--output", type=Path, help="optional JSON result path")
     return root
 
 
@@ -88,6 +119,21 @@ def _main(argv: list[str] | None = None) -> int:
     atlas_data_root = data_root()
     raw_dir = atlas_data_root / "raw"
     processed_dir = atlas_data_root / "processed"
+    research_dir = atlas_data_root / "research"
+    if args.command == "market-update":
+        print(json.dumps(refresh_market(raw_dir, research_dir), indent=2))
+        return 0
+    if args.command == "staffing-update":
+        print(json.dumps(refresh_staffing(raw_dir, research_dir), indent=2))
+        return 0
+    if args.command == "scenario":
+        params = Scenario(**{key: getattr(args, key) for key in Scenario().__dict__})
+        result = run_scenario(params)
+        result["sensitivity"] = sensitivity(params)
+        if args.output:
+            write_json(args.output, result)
+        print(json.dumps(result, indent=2))
+        return 0
     if args.command == "download":
         try:
             result = download_registered_sources(
@@ -97,11 +143,15 @@ def _main(argv: list[str] | None = None) -> int:
             print(f"Download error: {exc}", file=sys.stderr)
             return 2
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 2 if any(
-            item.get("status") in {SOURCE_INTEGRITY_FAILURE, "failed"}
-            for item in result.get("results", [])
-            if isinstance(item, dict)
-        ) else 0
+        return (
+            2
+            if any(
+                item.get("status") in {SOURCE_INTEGRITY_FAILURE, "failed"}
+                for item in result.get("results", [])
+                if isinstance(item, dict)
+            )
+            else 0
+        )
     if args.command == "build":
         try:
             if args.demo:
@@ -115,7 +165,9 @@ def _main(argv: list[str] | None = None) -> int:
         print(f"built {processed_dir / 'occupations.csv'}")
         return 0
     if args.command == "validate-reviews":
-        review_path = args.input if args.input.is_absolute() else Path.cwd() / args.input
+        review_path = (
+            args.input if args.input.is_absolute() else Path.cwd() / args.input
+        )
         if not review_path.exists():
             report = validate_review_file(review_path)
             report["valid"] = False
@@ -140,6 +192,22 @@ def _main(argv: list[str] | None = None) -> int:
     rows = read_csv(path)
     tasks_path = processed_dir / "tasks.csv"
     tasks = read_csv(tasks_path) if tasks_path.exists() else []
+    if args.command == "research":
+        result = build_research(raw_dir, processed_dir, research_dir)
+        print(
+            json.dumps(
+                {
+                    "mode": result["mode"],
+                    "case1_soc_count": result["case1"]["sample_soc_count"],
+                    "case1_wage_ratio": result["case1"]["high_low_wage_ratio"],
+                    "market_observations": len(result["market_observations"]),
+                    "skill_rows": len(result["case2"]["skills"]),
+                    "output": str(research_dir),
+                },
+                indent=2,
+            )
+        )
+        return 0
     if args.command == "analyze":
         summary = summarize(rows)
         summary.update(summarize_tasks(rows, tasks))
@@ -157,9 +225,7 @@ def _main(argv: list[str] | None = None) -> int:
         matches = [
             {
                 **row,
-                "ai_exposure_interpretation": AIOE_DISPLAY_METADATA[
-                    "interpretation"
-                ],
+                "ai_exposure_interpretation": AIOE_DISPLAY_METADATA["interpretation"],
             }
             for row in rows
             if query
@@ -171,6 +237,10 @@ def _main(argv: list[str] | None = None) -> int:
         print(json.dumps(matches[: args.limit], ensure_ascii=False, indent=2))
         return 0
     if args.command == "serve":
+        if not rows:
+            raise ValueError(
+                "Cannot serve an empty occupation dataset; run atlas build first"
+            )
         manifest_path = processed_dir / "data_manifest.json"
         try:
             manifest = read_json(manifest_path) if manifest_path.exists() else {}
@@ -229,6 +299,39 @@ def _main(argv: list[str] | None = None) -> int:
             bridge_engine.bridge(default_code) if default_code else None,
             reviews,
         )
+        (site_dir / "index.html").replace(site_dir / "explorer.html")
+        # Keep the original explorer/API and put current research at the homepage.
+        try:
+            result = build_research(raw_dir, processed_dir, research_dir)
+        except (FileNotFoundError, ValueError) as exc:
+            # A processed-only installation can still use the established explorer/API.
+            result = None
+            for generated_file in (
+                "research.json",
+                "executive-brief.md",
+                "exposure_quartiles.csv",
+                "industry_changes.csv",
+                "skill_composition.csv",
+                "market_observations.csv",
+                "industry_staffing.csv",
+            ):
+                (site_dir / generated_file).unlink(missing_ok=True)
+            notice = html.escape(str(exc))
+            (site_dir / "index.html").write_text(
+                '<!doctype html><html lang="en"><meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width,initial-scale=1">'
+                "<title>AI Labor Atlas 0.5.0</title><main><h1>Research data unavailable</h1>"
+                f"<p>{notice}</p><p>Restore the required source layers and run "
+                "<code>atlas research</code> to regenerate research findings.</p>"
+                '<p><a href="explorer.html">Open the occupation explorer</a></p></main></html>',
+                encoding="utf-8",
+            )
+            print(
+                f"Research data unavailable: {exc}; occupation explorer/API remain available.",
+                file=sys.stderr,
+            )
+        else:
+            write_research_site(site_dir, result)
 
         class AtlasHandler(SimpleHTTPRequestHandler):
             def __init__(self, *handler_args, **handler_kwargs):
@@ -245,6 +348,19 @@ def _main(argv: list[str] | None = None) -> int:
                 self.wfile.write(body)
 
             def do_POST(self) -> None:
+                if urlparse(self.path).path == "/api/scenario":
+                    try:
+                        payload = _read_json_body(self.headers, self.rfile.read, 16_000)
+                        params = Scenario(**payload)
+                        result = run_scenario(params)
+                        result["sensitivity"] = sensitivity(params)
+                        self._send_json(result)
+                    except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                        self._send_json(
+                            {"error": "invalid_scenario", "detail": str(exc)},
+                            status=400,
+                        )
+                    return
                 if urlparse(self.path).path != "/api/deep-review":
                     self._send_json({"error": "not_found"}, status=404)
                     return

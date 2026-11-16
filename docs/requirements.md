@@ -16,8 +16,13 @@ Provide an auditable public tool for exploring how occupational AI exposure indi
 8. Expose software overlap, shared task evidence, profile provenance, labor-market context, and a training hint separately.
 9. Mark family-average fallbacks and unavailable structured profiles explicitly.
 10. Run a repeatable 50-case by 10-variant release audit covering measurement, crosswalks, occupation mapping, public review validation, and dashboard provenance disclosure; publish the result with the release evidence.
+11. Provide six versioned BLS/FRED monthly series for job openings, employment and wages, with explicit industry grouping, units, retrieval dates and common-period comparison.
+12. Regenerate two completed public-data research cases and their structured tables with `atlas research`; serve findings, market pulse, skill profiles, skill-pair co-occurrence and occupation exploration from one local workspace.
+13. Provide an explicit adoption/task/training capacity scenario, annual trajectory, adoption-speed sensitivity and JSON export; validate nonfinite, unknown, missing and out-of-range inputs.
+14. Generate a standalone `portfolio.v1` occupation snapshot for downstream projects, without a live service dependency. Keep source-native IDs, taxonomies, vintages, null values and status labels.
+15. Package an offline public monthly-data snapshot and a clearly labeled deterministic synthetic occupation demo. Preserve raw signed AIOE locally and use a fixed 2021 source display range.
 
-## Non-goals for 0.1
+## Current analytical boundaries (0.5.0)
 
 - causal effects, job-loss probabilities, or firm-level AI response;
 - individual career recommendations;
