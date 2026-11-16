@@ -1,0 +1,37 @@
+{
+  "common_three_count": 692,
+  "excluded_public_common": 66,
+  "comparisons": [
+    {
+      "left": "aioe_raw",
+      "right": "ms_applicability",
+      "sample_count": 692,
+      "spearman_rho": 0.6960573522262781,
+      "mean_absolute_rank_gap_pp": 17.509599056406483,
+      "top_quartile_overlap_count": 98,
+      "left_top_quartile_count": 173,
+      "right_top_quartile_count": 173
+    },
+    {
+      "left": "aioe_raw",
+      "right": "claude_share_pct",
+      "sample_count": 692,
+      "spearman_rho": 0.6764448914091188,
+      "mean_absolute_rank_gap_pp": 18.07592247141196,
+      "top_quartile_overlap_count": 88,
+      "left_top_quartile_count": 173,
+      "right_top_quartile_count": 173
+    },
+    {
+      "left": "ms_applicability",
+      "right": "claude_share_pct",
+      "sample_count": 692,
+      "spearman_rho": 0.609821796213038,
+      "mean_absolute_rank_gap_pp": 19.838677296035737,
+      "top_quartile_overlap_count": 91,
+      "left_top_quartile_count": 173,
+      "right_top_quartile_count": 173
+    }
+  ],
+  "public_data_note": "Only aggregate AIOE comparisons are published; occupation values stay local."
+}

@@ -1,0 +1,828 @@
+{
+  "schema": "atlas.workflow.v1",
+  "status": "hypothetical_decision_model",
+  "parameters": {
+    "demand_per_week": 60,
+    "value_per_accepted_case": 350,
+    "analyst_hours_per_week": 30,
+    "reviewer_hours_per_week": 30,
+    "ai_review_hours": 1.2,
+    "trained_error_rate": 0.12,
+    "hiring_lead_weeks": 6,
+    "reallocation_delay_weeks": 2,
+    "weeks": 12
+  },
+  "strategies": [
+    {
+      "id": "baseline",
+      "label": "Current workflow",
+      "quality_pass_rate": 0.99,
+      "quality_eligible": true,
+      "feasibility_eligible": true,
+      "accepted_cases": 521.5609756097562,
+      "cash_cost": 98400,
+      "contribution": 84146.34146341466,
+      "analyst_hours_per_case": 4.1,
+      "reviewer_hours_per_case": 1.3,
+      "steady_bottleneck": "analyst",
+      "trajectory": [
+        {
+          "week": 1,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 2,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 3,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 4,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 5,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 6,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 7,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 8,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 9,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 10,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 11,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 12,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        }
+      ],
+      "incremental_accepted_cases": 0.0,
+      "incremental_cash_cost": 0,
+      "incremental_contribution": 0.0,
+      "break_even_value_per_case": null
+    },
+    {
+      "id": "ai_only",
+      "label": "AI without training",
+      "quality_pass_rate": 0.975,
+      "quality_eligible": false,
+      "feasibility_eligible": true,
+      "accepted_cases": 355.44303797468353,
+      "cash_cost": 103200,
+      "contribution": 21205.06329113923,
+      "analyst_hours_per_case": 2.45,
+      "reviewer_hours_per_case": 1.975,
+      "steady_bottleneck": "reviewer",
+      "trajectory": [
+        {
+          "week": 1,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 2,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 3,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 4,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 5,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 6,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 7,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 8,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 9,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 10,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 11,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 12,
+          "analyst_capacity": 73.46938775510203,
+          "reviewer_capacity": 30.379746835443036,
+          "completed_cases": 30.379746835443036,
+          "accepted_cases": 29.62025316455696,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        }
+      ],
+      "incremental_accepted_cases": -166.11793763507262,
+      "incremental_cash_cost": 4800,
+      "incremental_contribution": -62941.27817227543,
+      "break_even_value_per_case": null
+    },
+    {
+      "id": "train",
+      "label": "AI + role-specific training",
+      "quality_pass_rate": 0.988,
+      "quality_eligible": true,
+      "feasibility_eligible": true,
+      "accepted_cases": 493.29929078014186,
+      "cash_cost": 105200,
+      "contribution": 67454.75177304965,
+      "analyst_hours_per_case": 2.3200000000000003,
+      "reviewer_hours_per_case": 1.41,
+      "steady_bottleneck": "reviewer",
+      "trajectory": [
+        {
+          "week": 1,
+          "analyst_capacity": 62.068965517241374,
+          "reviewer_capacity": 36.87943262411348,
+          "completed_cases": 36.87943262411348,
+          "accepted_cases": 36.43687943262412,
+          "bottleneck": "reviewer",
+          "cash_cost": 10600
+        },
+        {
+          "week": 2,
+          "analyst_capacity": 62.068965517241374,
+          "reviewer_capacity": 36.87943262411348,
+          "completed_cases": 36.87943262411348,
+          "accepted_cases": 36.43687943262412,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 3,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 4,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 5,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 6,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 7,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 8,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 9,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 10,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 11,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 12,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        }
+      ],
+      "incremental_accepted_cases": -28.261684829614296,
+      "incremental_cash_cost": 6800,
+      "incremental_contribution": -16691.589690365014,
+      "break_even_value_per_case": null
+    },
+    {
+      "id": "redesign",
+      "label": "AI + training + task reallocation",
+      "quality_pass_rate": 0.988,
+      "quality_eligible": true,
+      "feasibility_eligible": true,
+      "accepted_cases": 665.6737588652483,
+      "cash_cost": 105200,
+      "contribution": 127785.8156028369,
+      "analyst_hours_per_case": 2.3200000000000003,
+      "reviewer_hours_per_case": 1.41,
+      "steady_bottleneck": "demand",
+      "trajectory": [
+        {
+          "week": 1,
+          "analyst_capacity": 53.44827586206896,
+          "reviewer_capacity": 36.87943262411348,
+          "completed_cases": 36.87943262411348,
+          "accepted_cases": 36.43687943262412,
+          "bottleneck": "reviewer",
+          "cash_cost": 10600
+        },
+        {
+          "week": 2,
+          "analyst_capacity": 53.44827586206896,
+          "reviewer_capacity": 36.87943262411348,
+          "completed_cases": 36.87943262411348,
+          "accepted_cases": 36.43687943262412,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 3,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 4,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 5,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 6,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 7,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 8,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 9,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 10,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 11,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        },
+        {
+          "week": 12,
+          "analyst_capacity": 64.6551724137931,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 8600
+        }
+      ],
+      "incremental_accepted_cases": 144.1127832554921,
+      "incremental_cash_cost": 6800,
+      "incremental_contribution": 43639.47413942224,
+      "break_even_value_per_case": 47.18526591735125
+    },
+    {
+      "id": "hire_analyst",
+      "label": "Recruit one analyst",
+      "quality_pass_rate": 0.99,
+      "quality_eligible": true,
+      "feasibility_eligible": true,
+      "accepted_cases": 534.9343339587242,
+      "cash_cost": 106300,
+      "contribution": 80927.01688555349,
+      "analyst_hours_per_case": 4.1,
+      "reviewer_hours_per_case": 1.3,
+      "steady_bottleneck": "reviewer",
+      "trajectory": [
+        {
+          "week": 1,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 10700
+        },
+        {
+          "week": 2,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 3,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 4,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 5,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 6,
+          "analyst_capacity": 43.90243902439025,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 43.90243902439025,
+          "accepted_cases": 43.463414634146346,
+          "bottleneck": "analyst",
+          "cash_cost": 8200
+        },
+        {
+          "week": 7,
+          "analyst_capacity": 51.21951219512196,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 46.15384615384615,
+          "accepted_cases": 45.69230769230769,
+          "bottleneck": "reviewer",
+          "cash_cost": 9100
+        },
+        {
+          "week": 8,
+          "analyst_capacity": 51.21951219512196,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 46.15384615384615,
+          "accepted_cases": 45.69230769230769,
+          "bottleneck": "reviewer",
+          "cash_cost": 9100
+        },
+        {
+          "week": 9,
+          "analyst_capacity": 51.21951219512196,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 46.15384615384615,
+          "accepted_cases": 45.69230769230769,
+          "bottleneck": "reviewer",
+          "cash_cost": 9100
+        },
+        {
+          "week": 10,
+          "analyst_capacity": 51.21951219512196,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 46.15384615384615,
+          "accepted_cases": 45.69230769230769,
+          "bottleneck": "reviewer",
+          "cash_cost": 9100
+        },
+        {
+          "week": 11,
+          "analyst_capacity": 51.21951219512196,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 46.15384615384615,
+          "accepted_cases": 45.69230769230769,
+          "bottleneck": "reviewer",
+          "cash_cost": 9100
+        },
+        {
+          "week": 12,
+          "analyst_capacity": 51.21951219512196,
+          "reviewer_capacity": 46.15384615384615,
+          "completed_cases": 46.15384615384615,
+          "accepted_cases": 45.69230769230769,
+          "bottleneck": "reviewer",
+          "cash_cost": 9100
+        }
+      ],
+      "incremental_accepted_cases": 13.373358348968054,
+      "incremental_cash_cost": 7900,
+      "incremental_contribution": -3219.3245778611745,
+      "break_even_value_per_case": 590.7267115600472
+    },
+    {
+      "id": "hire_reviewer",
+      "label": "AI + training + recruit one reviewer",
+      "quality_pass_rate": 0.988,
+      "quality_eligible": true,
+      "feasibility_eligible": true,
+      "accepted_cases": 596.7239716312057,
+      "cash_cost": 116100,
+      "contribution": 92753.390070922,
+      "analyst_hours_per_case": 2.3200000000000003,
+      "reviewer_hours_per_case": 1.41,
+      "steady_bottleneck": "demand",
+      "trajectory": [
+        {
+          "week": 1,
+          "analyst_capacity": 62.068965517241374,
+          "reviewer_capacity": 36.87943262411348,
+          "completed_cases": 36.87943262411348,
+          "accepted_cases": 36.43687943262412,
+          "bottleneck": "reviewer",
+          "cash_cost": 13100
+        },
+        {
+          "week": 2,
+          "analyst_capacity": 62.068965517241374,
+          "reviewer_capacity": 36.87943262411348,
+          "completed_cases": 36.87943262411348,
+          "accepted_cases": 36.43687943262412,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 3,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 4,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 5,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 6,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 42.5531914893617,
+          "completed_cases": 42.5531914893617,
+          "accepted_cases": 42.04255319148936,
+          "bottleneck": "reviewer",
+          "cash_cost": 8600
+        },
+        {
+          "week": 7,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 10000
+        },
+        {
+          "week": 8,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 10000
+        },
+        {
+          "week": 9,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 10000
+        },
+        {
+          "week": 10,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 10000
+        },
+        {
+          "week": 11,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 10000
+        },
+        {
+          "week": 12,
+          "analyst_capacity": 77.58620689655172,
+          "reviewer_capacity": 63.829787234042556,
+          "completed_cases": 60,
+          "accepted_cases": 59.28,
+          "bottleneck": "demand",
+          "cash_cost": 10000
+        }
+      ],
+      "incremental_accepted_cases": 75.16299602144954,
+      "incremental_cash_cost": 17700,
+      "incremental_contribution": 8607.048607507342,
+      "break_even_value_per_case": 235.48821809802374
+    }
+  ],
+  "best_strategy": "redesign",
+  "quality_floor": 0.98,
+  "sensitivity": [
+    {
+      "demand_per_week": 30,
+      "ai_review_hours": 0.8,
+      "best_strategy": "baseline"
+    },
+    {
+      "demand_per_week": 30,
+      "ai_review_hours": 1.2,
+      "best_strategy": "baseline"
+    },
+    {
+      "demand_per_week": 30,
+      "ai_review_hours": 1.6,
+      "best_strategy": "baseline"
+    },
+    {
+      "demand_per_week": 60,
+      "ai_review_hours": 0.8,
+      "best_strategy": "redesign"
+    },
+    {
+      "demand_per_week": 60,
+      "ai_review_hours": 1.2,
+      "best_strategy": "redesign"
+    },
+    {
+      "demand_per_week": 60,
+      "ai_review_hours": 1.6,
+      "best_strategy": "redesign"
+    },
+    {
+      "demand_per_week": 90,
+      "ai_review_hours": 0.8,
+      "best_strategy": "hire_reviewer"
+    },
+    {
+      "demand_per_week": 90,
+      "ai_review_hours": 1.2,
+      "best_strategy": "redesign"
+    },
+    {
+      "demand_per_week": 90,
+      "ai_review_hours": 1.6,
+      "best_strategy": "redesign"
+    }
+  ]
+}

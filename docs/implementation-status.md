@@ -1,10 +1,12 @@
+Current release: **0.6.0**. The new research workbench and its three-round review are documented in [review-0.6.0.md](review-0.6.0.md). The record below preserves the completed 0.5.0 work.
+
 # Labor Intelligence 0.5.0 implementation record
 
 Owner: Haojian Dui. Started: 2026-11-16. Branch: `codex/labor-intelligence-0.5.0`.
 
 ## Preserve
 
-Package/CLI, source registry, official occupation crosswalk, 0–100 AIOE display,
+Package/CLI, source registry, official occupation crosswalk, 0â€“100 AIOE display,
 occupation explorer, task explorer, Career bridge, optional consent-based semantic
 review, worker-context validation. Preserve the pre-existing untracked `output/`.
 
@@ -61,7 +63,7 @@ source-access limits are in `docs/review-0.5.0.md`.
 Implementation commit: `cc72725`; reviewable [PR #11](https://github.com/JoeDHJ/ai-labor-atlas/pull/11).
 Both [branch CI](https://github.com/JoeDHJ/ai-labor-atlas/actions/runs/43824902557)
 and [PR CI](https://github.com/JoeDHJ/ai-labor-atlas/actions/runs/43824926130)
-passed all seven jobs: Python 3.10–3.14, the 500-case audit and clean-distribution
+passed all seven jobs: Python 3.10â€“3.14, the 500-case audit and clean-distribution
 release smoke. Subsequent changes to this record contain release metadata only.
 
 Public release entry points:

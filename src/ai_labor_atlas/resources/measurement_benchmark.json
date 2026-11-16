@@ -1,0 +1,343 @@
+{
+  "label_status": "Published Microsoft LLM classifier labels; no independent human gold labels",
+  "scope": "Physical versus nonphysical task text; not AI exposure or job replacement",
+  "split": "Group identical case/whitespace-normalized task text, stratify by group-majority silver label, order groups by smallest numeric task ID; every fifth group held out",
+  "train_count": 15051,
+  "test_count": 3745,
+  "vocabulary_size": 5512,
+  "matched_task_ids": 18796,
+  "source_label_count": 18796,
+  "source_text_count": 18796,
+  "task_text_source": "Official O*NET 29.0 Task Statements; matched by published task ID",
+  "unique_text_groups": 17535,
+  "mixed_label_text_groups": 16,
+  "exact_text_overlap_train_test": 0,
+  "train_physical_count": 6329,
+  "test_physical_count": 1601,
+  "majority": {
+    "n": 3745,
+    "tp": 0,
+    "tn": 2144,
+    "fp": 0,
+    "fn": 1601,
+    "accuracy": 0.5724966622162884,
+    "balanced_accuracy": 0.5,
+    "physical_precision": 0,
+    "physical_recall": 0.0,
+    "physical_f1": 0
+  },
+  "keyword_rule": {
+    "n": 3745,
+    "tp": 358,
+    "tn": 2102,
+    "fp": 42,
+    "fn": 1243,
+    "accuracy": 0.6568758344459279,
+    "balanced_accuracy": 0.6020103456794728,
+    "physical_precision": 0.895,
+    "physical_recall": 0.22361024359775142,
+    "physical_f1": 0.35782108945527236
+  },
+  "multinomial_nb": {
+    "n": 3745,
+    "tp": 1304,
+    "tn": 1935,
+    "fp": 209,
+    "fn": 297,
+    "accuracy": 0.8648865153538051,
+    "balanced_accuracy": 0.8585047999384714,
+    "physical_precision": 0.8618638466622605,
+    "physical_recall": 0.8144909431605247,
+    "physical_f1": 0.8375080282594732
+  },
+  "review_queue": [
+    {
+      "task_id": "340",
+      "task": "Prescribe medications to treat eye diseases if state laws permit.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "716",
+      "task": "Estimate quantity and cost of merchandise required, such as paint or floor covering.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "803",
+      "task": "Address envelopes or prepare envelope labels, using typewriter or computer.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "878",
+      "task": "Monitor installation of plumbing, wiring, equipment, or appliances to ensure that installation is performed properly and is in compliance with applicable regulations.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "927",
+      "task": "Inspect equipment or monitor operating conditions, meters, and gauges to determine load requirements and detect malfunctions.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "1116",
+      "task": "Inspect guest rooms, public areas, and grounds for cleanliness and appearance.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "1487",
+      "task": "Read dials and meters to determine amperage, voltage, electrical output and input at specific operating temperature to analyze parts performance.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "2050",
+      "task": "Prepare prescription labels by typing or operating a computer and printer.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "2309",
+      "task": "Order or requisition supplies and equipment for tables and serving stations.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "2617",
+      "task": "Post charges, such as those for rooms, food, liquor, or telephone calls, to ledgers, manually or by using computers.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "2720",
+      "task": "Monitor alarm systems to detect emergencies, such as fires and illegal entry into establishments.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "2830",
+      "task": "Transmit, deliver, or mail publication master to printer for production into film and plates.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "2865",
+      "task": "Assist customers in selection of tile and grout.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "2881",
+      "task": "Direct or train workers to install, maintain, or repair electrical wiring, equipment, or fixtures.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "3017",
+      "task": "Direct workers who are assembling or disassembling equipment or cleaning parts.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "3072",
+      "task": "Research catalogs or repair part lists to locate sources for repair parts, requisitioning parts and recording their receipt.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "3098",
+      "task": "Monitor the feed and speed of machines during the machining process.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "3550",
+      "task": "Determine specifications for equipment to be used for aerial photography, as well as altitudes from which to photograph terrain.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "3990",
+      "task": "Compress, digitize, duplicate, and store audio and video data.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4022",
+      "task": "Edit broadcast material electronically, using computers.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4050",
+      "task": "Cut shot sequences to different angles at specific points in scenes, making each individual cut as fluid and seamless as possible.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4066",
+      "task": "Trim film segments to specified lengths and reassemble segments in sequences that present stories with maximum effect.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4143",
+      "task": "Assess cardiac physiology and calculate valve areas from blood flow velocity measurements.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4237",
+      "task": "Accompany injured athletes to hospitals.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4407",
+      "task": "Observe casino or casino hotel operations for irregular activities, such as cheating or theft by employees or patrons, using audio and video equipment and one-way mirrors.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4449",
+      "task": "Check to ensure that all players have placed bets before play begins.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4674",
+      "task": "Record casino exchange transactions, using cash registers.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4735",
+      "task": "Schedule repairs for locks on safe-deposit boxes.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4883",
+      "task": "Inspect markers to verify accurate installation.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "4981",
+      "task": "Observe equipment gauges and indicators and hand signals of other workers to verify load positions or depths.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "5013",
+      "task": "Monitor control panels during pumping operations to ensure that materials are being pumped at the correct pressure, density, rate, and concentration.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "5384",
+      "task": "Design or develop nuclear equipment, such as reactor cores, radiation shielding, or associated instrumentation or control mechanisms.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "5813",
+      "task": "Conduct research in a particular field of knowledge and publish findings in professional journals, books, or electronic media.",
+      "published_physical": true,
+      "predicted_physical": false,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "6492",
+      "task": "Plan and supervise class projects, field trips, visits by guests, or other experiential activities and guide students in learning from those activities.",
+      "published_physical": true,
+      "predicted_physical": false,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "6563",
+      "task": "Plan and supervise class projects, field trips, visits by guest speakers or other experiential activities, and guide students in learning from those activities.",
+      "published_physical": true,
+      "predicted_physical": false,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "6888",
+      "task": "Create basic designs, drawings, and illustrations for product labels, cartons, direct mail, or television.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "6896",
+      "task": "Prepare sketches of ideas, detailed drawings, illustrations, artwork, or blueprints, using drafting instruments, paints and brushes, or computer-aided design equipment.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "6927",
+      "task": "Formulate plan of treatment for patient's teeth and mouth tissue.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "7007",
+      "task": "Calculate the value of chips won or lost by players.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    },
+    {
+      "task_id": "7035",
+      "task": "Maintain tallies of trees examined and counted during tree marking or measuring efforts.",
+      "published_physical": false,
+      "predicted_physical": true,
+      "human_review": "pending"
+    }
+  ],
+  "score_reconstruction": {
+    "soc_count": 785,
+    "maximum_absolute_error": 1.6653345369377348e-16,
+    "tolerance": 1e-10,
+    "passed": true,
+    "interpretation": "Verifies implementation of the published equation, not construct validity."
+  },
+  "limitations": "Systematic text-group holdout is not a random labor-market sample; related wording can cross groups. Task IDs may have text revisions between source releases. Agreement with silver labels is not verified human accuracy. No tuning uses held-out outcomes."
+}

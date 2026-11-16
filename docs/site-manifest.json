@@ -1,0 +1,24 @@
+{
+  "release": "0.6.0",
+  "occupation_source_mode": "public_aggregate_data",
+  "organization_model": "hypothetical",
+  "network_required": false,
+  "common_soc_count": 758,
+  "aioe_values_included": false,
+  "files": [
+    "data-attribution.md",
+    "index.html",
+    "measurement-benchmark.json",
+    "measurement-comparison.json",
+    "occupation-comparison.csv",
+    "research-brief.md",
+    "research-queries.sql",
+    "research.sqlite",
+    "site-manifest.json",
+    "sql-results.json",
+    "workbench.css",
+    "workbench.js",
+    "workflow-assumptions.md",
+    "workflow-default.json"
+  ]
+}

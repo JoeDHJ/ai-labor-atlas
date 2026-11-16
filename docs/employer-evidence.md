@@ -1,5 +1,25 @@
 # Official employer requirements → delivered evidence
 
+## Current labor / organization / AI alignment, 0.6.0
+
+The [Anthropic Regional Research Economist, Economic Research role](https://job-boards.greenhouse.io/anthropic/jobs/5460519008)
+was checked directly on 16 November 2026. It emphasizes new AI measurement,
+task transformation, empirical methods, Python/R/SQL, and communicating research
+to policy and industry audiences. The 0.6.0 workbench directly supplies evidence
+of measurement, harmonization, SQL and decision communication. It does not establish
+the role's required research track record, regional relationships or academic
+qualifications. This is a benchmark, not a claim of eligibility or an application.
+
+The [Amazon Economist II description](https://www.amazon.jobs/en/jobs/10514197/economist-ii-amz27751-1)
+also explicitly requires SQL and connects economic modeling with data systems
+and management decisions. The new warehouse and task-allocation case strengthen
+those signals. The project still lacks a causally identified program evaluation;
+the hypothetical scenario is not a substitute for that qualification.
+
+For the current capability matrix, demonstration lengths and interview questions,
+see [career-evidence.md](career-evidence.md). The earlier release matrix below is
+retained as background.
+
 Checked 2026-11-16. These are role benchmarks, not applications, endorsements,
 claims of prior employment or a statement that every qualification is satisfied.
 Requirements below are paraphrased from official employer descriptions.
