@@ -19,6 +19,7 @@ class ReleaseRuntimeTests(unittest.TestCase):
     def test_packaged_text_is_utf8_without_broken_interface_symbols(self):
         for path in resource_path("workbench.html").parent.iterdir():
             if path.suffix in {".html", ".js", ".css", ".md", ".json", ".csv"}:
+                self.assertNotIn(b'\r\r\n', path.read_bytes(), str(path))
                 text = path.read_text(encoding="utf-8")
                 if path.suffix in {".html", ".js", ".css", ".md"}:
                     for broken in (
