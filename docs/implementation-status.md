@@ -58,5 +58,14 @@ Two read-only reviewers covered all six required dimensions and verified the
 fixes. No unresolved P0/P1 or material scope gap remains; details and actual
 source-access limits are in `docs/review-0.5.0.md`.
 
-Remote CI, reviewable commit and immutable publication are the final pending
-steps. This record will be updated with their actual links after completion.
+Implementation commit: `cc72725`; reviewable [PR #11](https://github.com/JoeDHJ/ai-labor-atlas/pull/11).
+Both [branch CI](https://github.com/JoeDHJ/ai-labor-atlas/actions/runs/43824902557)
+and [PR CI](https://github.com/JoeDHJ/ai-labor-atlas/actions/runs/43824926130)
+passed all seven jobs: Python 3.10–3.14, the 500-case audit and clean-distribution
+release smoke. Subsequent changes to this record contain release metadata only.
+
+Public release entry points:
+[GitHub v0.5.0](https://github.com/JoeDHJ/ai-labor-atlas/releases/tag/v0.5.0),
+[PyPI 0.5.0](https://pypi.org/project/ai-labor-atlas/0.5.0/).
+The GitHub release and its publish workflow provide the final publication status.
+The local worktree keeps the user's original untracked `output/` unchanged.

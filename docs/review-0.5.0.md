@@ -33,6 +33,7 @@ services coverage 91.1817% and bundle share 50.4704%.
 - 84 unit tests pass; lint and compilation checks pass. The established
   500-case audit passes with zero failures. CI repeats the required checks across
   Python 3.10–3.14 and installed-distribution smoke workflows.
+  All seven jobs passed in [the implementation PR run](https://github.com/JoeDHJ/ai-labor-atlas/actions/runs/43824926130).
 - Clean wheel and source-distribution installations run outside the source tree:
   offline build, research, occupation search and scenario file export succeed.
   Packaged public data have 346 monthly observations and 2,007 staffing rows.
